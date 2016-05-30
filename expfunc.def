@@ -1,0 +1,13 @@
+;LIBRARY MacType.dll
+EXPORTS
+	GetMsgProc @1
+	DllGetVersion = GdippDllGetVersion @2
+;	SafeUnload @3
+	CreateControlCenter @4
+	ReloadConfig @5
+;;	GdippInjectDLL
+;	GdippInstallHook
+;	GdippRemoveHook
+;	GdippUnloadALL
+;	GdippApplyNewSettings
+;	GdippApplyNewSettingsToALL

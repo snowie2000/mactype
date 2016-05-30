@@ -1,0 +1,123 @@
+# usage:
+#  nmake            release build
+#  nmake debug=1    debug build
+#  nmake ddk=1      using DDK compiler
+#  nmake oldpsdk=1  using old platform sdk (dynamic load SHILCreateFromPath()/SHFree())
+#  nmake clean      clean all file(s)
+#  nmake cleanobj   clean object file(s)
+
+TARGET_EXE = ..\gdi++.exe
+TARGET_DLL = ..\gdi++.dll
+
+EXE_OBJS = run.obj gdiexe.res
+DLL_OBJS = hook.obj override.obj settings.obj cache.obj misc.obj expfunc.obj ft.obj fteng.obj ft2vert.obj gdidll.res memcpy_amd.obj
+DLL_LIBS = advapi32.lib
+
+GDI_PREFIX = ..\gdi++
+EXE_PREFIX = ..\gdiexe
+DLL_PREFIX = ..\gdidll
+
+.SUFFIXES: .c .cpp .obj .rc .res
+
+CPPFLAGS  = /nologo /D "WIN32" /I. /EHsc /D
+LINKFLAGS = /nologo
+LINK_EXE  = /map:$(EXE_PREFIX).map
+LINK_DLL  = /map:$(DLL_PREFIX).map
+
+CPPOPT    = /Gy /arch:SSE
+LINKOPT   = /opt:nowin98 /opt:icf /opt:ref
+
+!ifdef ddk
+GDI_PREFIX = ..\gdi++_G7-GS-SSE2_ddk
+TARGET_DLL = ..\gdi++_G7-GS-SSE2_ddk.dll
+DLL_PREFIX = ..\gdidll_G7-GS-SSE2_ddk
+CPPOPT     = /G7 /Gy /GL /GS /arch:SSE2
+LINKOPT    = $(LINKOPT) /ltcg /ignore:4070,4078 bufferoverflowU.lib
+!endif
+
+!ifdef oldpsdk
+CPPFLAGS  = $(CPPFLAGS) /D "OLD_PSDK"
+!endif
+
+!ifdef usetrace
+CPPFLAGS  = $(CPPFLAGS) /D "USE_TRACE"
+!endif
+
+!ifdef ftstatic
+CPPFLAGS  = $(CPPFLAGS) /D "FREETYPE_STATIC"
+FTLIB     = freetypeMT
+!else
+FTLIB     = freetype
+!endif
+
+!ifdef debug
+CPPFLAGS  = $(CPPFLAGS) /Od /MTd /FD /GZ /Zi /D "DEBUG" /D "_DEBUG"
+LINKFLAGS = $(LINKFLAGS) /incremental:no /debug /machine:I386 /opt:ref /opt:noicf /Fm
+LINK_EXE  = $(LINK_EXE) /pdb:$(EXE_PREFIX).pdb
+LINK_DLL  = $(LINK_DLL) $(FTLIB)D.lib /pdb:$(DLL_PREFIX).pdb
+!else
+CPPFLAGS  = $(CPPFLAGS) $(CPPOPT) /O2 /MT /GF /GL
+LINK_DLL  = $(LINK_DLL) $(LINKOPT) $(FTLIB).lib
+LINK_EXE  = $(LINK_EXE) $(LINKOPT)
+!endif
+
+!ifdef ddk
+all: $(TARGET_DLL)
+!else
+all: $(TARGET_EXE) $(TARGET_DLL)
+!endif
+
+$(TARGET_EXE): $(EXE_OBJS)
+	link $(LINKFLAGS) $(LINK_EXE) /LTCG /out:$@ $(EXE_OBJS)
+
+$(TARGET_DLL): $(DLL_OBJS) expfunc.def
+	link /dll $(LINKFLAGS) $(LINK_DLL) /LTCG /def:expfunc.def /out:$@ $(DLL_OBJS) $(DLL_LIBS)
+	if exist $@.manifest mt -manifest $@.manifest -outputresource:$@;2
+
+pgi:
+	-del gdi++*.pg*
+	link /dll $(LINKFLAGS) $(LINK_DLL) /LTCG:PGI /def:expfunc.def /out:gdi++.dll $(DLL_OBJS) $(DLL_LIBS)
+
+pgo:
+	link /dll $(LINKFLAGS) $(LINK_DLL) /LTCG:PGO /def:expfunc.def /out:gdi++.dll $(DLL_OBJS) $(DLL_LIBS)
+
+.c.obj:
+	cl $(CPPFLAGS) /W3 /Fo$@ /c $<
+
+.cpp.obj:
+	cl $(CPPFLAGS) /W3 /Fo$@ /c $<
+
+.rc.res:
+	rc /l 0x411 $<
+
+clean: cleanobj
+	@-erase "$(TARGET_EXE)"
+	@-erase "$(TARGET_DLL)"
+
+cleanobj:
+	@-erase $(EXE_OBJS)
+	@-erase $(DLL_OBJS)
+	@-erase vc??.pdb
+	@-erase vc??.idb
+	@-erase "$(EXE_PREFIX).pdb"
+	@-erase "$(DLL_PREFIX).pdb"
+	@-erase "$(EXE_PREFIX).map"
+	@-erase "$(DLL_PREFIX).map"
+	@-erase "$(GDI_PREFIX).exp"
+	@-erase "$(GDI_PREFIX).lib"
+
+memcpy_amd.obj: optimize/memcpy__amd.cpp optimize/memcpy_amd.h
+	cl $(CPPFLAGS) /W3 /Fomemcpy_amd.obj /c optimize/memcpy__amd.cpp
+
+hook.obj:     hook.cpp ft.h hooklist.h override.h common.h array.h cache.h settings.h tlsdata.h fteng.h
+override.obj: override.cpp ft.h hooklist.h override.h common.h array.h cache.h settings.h tlsdata.h fteng.h
+cache.obj:    cache.cpp hooklist.h override.h common.h array.h cache.h
+misc.obj:     misc.cpp common.h array.h
+settings.obj: settings.cpp common.h array.h cache.h settings.h strtoken.h
+expfunc.obj:  expfunc.cpp common.h array.h cache.h settings.h
+ft.obj:       ft.cpp ft.h override.h common.h array.h cache.h settings.h fteng.h ft2vert.h
+fteng.obj:    fteng.cpp ft.h override.h common.h array.h cache.h settings.h fteng.h
+ft2vert.obj:  ft2vert.c ft2vert.h
+run.obj:      run.cpp expfunc.cpp gdiexe.rc
+gdiexe.res:   gdiexe.rc gdidll.rc
+gdidll.res:   gdidll.rc

@@ -1,0 +1,70 @@
+#ifdef RC_INVOKED
+#include <winresrc.h>
+#endif
+
+#define IDS_USAGE		1
+#define IDS_DLL			2
+#define IDC_EXEC		3
+
+#ifdef RC_INVOKED
+
+#define GDIPP_EXE
+#include "gdidll.rc"
+
+VS_VERSION_INFO	VERSIONINFO
+FILEVERSION		VER_NUMBER
+PRODUCTVERSION	VER_NUMBER
+FILEOS			VOS_NT_WINDOWS32
+FILETYPE		VFT_APP
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "041104B0"
+		{
+			VALUE "CompanyName",		"2ch"
+			VALUE "FileDescription",	"GDI++ Font Rasterizer Driver"
+			VALUE "FileVersion",		VER_STRING
+			VALUE "InternalName",		"gdi++"
+			VALUE "LegalCopyright",		"(C) ◆0x0D/0x20I, 460. All rights reserved."
+			VALUE "OriginalFilename",	"gdi++.exe"
+			VALUE "ProductVersion",		VER_STRING
+			VALUE "URL",				"http://drwatson.nobody.jp/gdi++/"
+		}
+	}
+
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 0x0411 0x04B0
+	}
+}
+
+1 24 DISCARDABLE
+{
+"<?xml version=""1.0"" standalone=""yes""?>\n"
+"<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0""><dependency><dependentAssembly><assemblyIdentity type=""win32"" name=""Microsoft.Windows.Common-Controls"" version=""6.0.0.0"" processorArchitecture=""X86"" publicKeyToken=""6595b64144ccf1df"" language=""*"" /></dependentAssembly></dependency></assembly>"
+}
+
+//じゃぱにーず
+STRINGTABLE DISCARDABLE
+{
+IDS_USAGE	"gdi++.exe <file> argument ...\n\nEXE, またはショートカットなどをドロップしてください."
+IDS_DLL		"error: 0x%08x\nDLLが見つかりません."
+IDC_EXEC	"error: 0x%08x\n実行できません."
+}
+
+//えーご(適当)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+STRINGTABLE DISCARDABLE
+{
+IDS_USAGE	"gdi++.exe <file> argument ...\n\nPlease drag and drop executable files or shortcut files."
+IDS_DLL		"error: 0x%08x\nCannot find a DLL."
+IDC_EXEC	"error: 0x%08x\nCannot execute."
+}
+
+#endif
+
+#ifdef APSTUDIO_INVOKED
+#include "Please modify with a text editor instead of Visual Studio."
+#endif

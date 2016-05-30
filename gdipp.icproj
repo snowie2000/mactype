@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="gb2312"?>
+<VisualStudioProject
+	ProjectType="Intel C++ Project"
+	Version="11.1"
+	Name="MacType"
+	ProjectGUID="{DC95DDFA-6291-4CEC-A3B8-FF825137805B}"
+	VCNestedProjectGUID="{15C33FD9-0811-4981-B08F-E0BAD74A3028}"
+	VCNestedProjectFileName="gdipp.vcproj">
+	<Configurations>
+		<Configuration
+			Name="Release|Win32">
+			<Tool
+				Name="CppCmplrTool"
+				EnableEnhancedInstructionSet="1000"
+				GenerateAlternateCodePaths="2"
+				UseProcessorExtensions="2"
+				Cpp0xSupport="true"
+				RecognizeRestrictKeyword="true"/>
+		</Configuration>
+	</Configurations>
+	<Files/>
+</VisualStudioProject>
