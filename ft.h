@@ -312,10 +312,12 @@ struct FreeTypeDrawInfo
 	FT_Face freetype_face_list[CFontLinkInfo::FONTMAX * 2 + 1];	//Snowie!!用于解决斜体问题
 	int face_id_list_num;
 	int* Dx;
+	int* Dy;
 
 	//屇傃弌偟慜偵帺暘偱愝掕偡傞
 	HDC hdc;
 	int xBase;
+	int y;//坐标高度，根据ETO_PDY计算，如没有则为0
 	int x;//坐标宽度，根据win32宽度计算
 	int px;	//x of paint,真实文字宽度
 	int yBase;
@@ -333,7 +335,7 @@ struct FreeTypeDrawInfo
 	FreeTypeDrawInfo(FREETYPE_PARAMS& fp, HDC dc, LOGFONTW* lf = NULL, CBitmapCache* ca = NULL, const int* dx = NULL, int cbString =0, int xs=0, int ys = 0)
 		: freetype_face(&dummy_freetype_face), cmap_index(0), useKerning(0)
 		, pfi(NULL), pfs(NULL), pftCache(NULL), face_id_list_num(0)
-		, hdc(dc), x(0), yBase(0), yTop(0), face_id_simsun(NULL), px(0), xBase(0)
+		, hdc(dc), x(0), y(0), yBase(0), yTop(0), face_id_simsun(NULL), px(0), xBase(0)
 	{
 		render_mode = FT_RENDER_MODE_NORMAL;
 		ZeroMemory(&scaler, sizeof(scaler));
@@ -351,11 +353,13 @@ struct FreeTypeDrawInfo
 		if(lf) params->lplf = lf;
 		memset(&dummy_freetype_face, 0, sizeof dummy_freetype_face);
 		Dx = new int[cbString];
+		Dy = new int[cbString];
 		AAModes = new int[cbString];
 	}
 	~FreeTypeDrawInfo()
 	{
 		delete Dx;
+		delete Dy;
 		delete[] AAModes;
 	}
 

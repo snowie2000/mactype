@@ -1436,6 +1436,17 @@ public:
 		}
 		return result;
 	}
+	int gety(int val) {	// you must call gety BEFORE call get, gety won't move the pointer, thus has no side effect
+		int result;
+		if (step == 1) return val;	//only search for values in ETO_PDY mode.
+		if (p) {
+			result = *(p+1);
+		}
+		else {
+			result = val;
+		}
+		return result;
+	}
 };
 /*
 FT_UInt FTC_CMapCache_Lookup2( FTC_CMapCache  cache,
@@ -1526,6 +1537,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 //fontlink
 
 	int* Dx= FTInfo.Dx;
+	int* Dy = FTInfo.Dy;
 	if (!bAllowDefaultLink && FTInfo.face_id_list_num > 1)
 		FTInfo.face_id_list_num--;	//如果是symbol页那就不链接到宋体
 
@@ -1714,7 +1726,9 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 // 					else
 // 						if (isc == CNTRL_ZERO_WIDTH)	//预计算的无宽度控制字
 // 							cx = 0;
+					int dyHeight = clpdx.gety(0);
 					int dxWidth = clpdx.get(cx);
+
 					if (isc == CNTRL_COMPLEX_TEXT)	//控制字
 					{
 						cx = dxWidth;	//服从windows的宽度调度
@@ -1723,6 +1737,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					}
 					if (lpString < lpEnd - 1) {
 						FTInfo.x += dxWidth;
+						FTInfo.y -= dyHeight;
 					} else {
 						//if (gdi32x)
 						//{
@@ -1877,6 +1892,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 				FT_FixedToInt(FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->root.advance.x);
 
 {
+			int dy = clpdx.gety(0);	//获得高度
 			int dx = clpdx.get(bWidthGDI32 ? gdi32x : cx);	//获得宽度
 			int left = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->left;
 			if (FTInfo.x + left< FTInfo.xBase)
@@ -1884,6 +1900,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 
 			if (lpString < lpEnd - 1) {
 				FTInfo.x += dx;
+				FTInfo.y -= dy;
 			} else {
 					int bx = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.width;
 					if (render_mode == FT_RENDER_MODE_LCD) bx /= 3;
@@ -1908,7 +1925,9 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 
 cont:
 		*Dx = FTInfo.x;		//Dx的位置是下一个字符开始的基准位置，并不是下一个字符开始画的位置
+		*Dy = FTInfo.y;		//Dy的位置是下一个字符的y坐标
 		++Dx;
+		++Dy;
 	}
 gdiexit:
 	delete[] ggi;
@@ -2031,6 +2050,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 		}
 //!!Snowie
 	int* Dx= FTInfo.Dx;
+	int* Dy = FTInfo.Dy;
 	if (!bAllowDefaultLink && FTInfo.face_id_list_num > 1)
 		FTInfo.face_id_list_num--;	//如果是symbol页那就不链接到宋体
 
@@ -2132,6 +2152,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 					if (isc)
 						cx = 0;
 					if (lpString < lpEnd - 1) {
+						FTInfo.y -= clpdx.gety(0);
 						FTInfo.x += clpdx.get(cx);
 					} else {
 						//if (gdi32x)
@@ -2264,6 +2285,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 			FTInfo.x += bWidthGDI32 ? gdi32x : cx;
 		} else */
 		{
+			int dy = clpdx.gety(0);
 			int dx = clpdx.get(bWidthGDI32 ? gdi32x : cx);	//获得宽度
 			int left = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->left;
 			if (FTInfo.x + left< FTInfo.xBase)
@@ -2271,6 +2293,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 
 			if (lpString < lpEnd - 1) {
 				FTInfo.x += dx;
+				FTInfo.y -= dy;
 			} else {
 				int bx = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.width;
 				if (render_mode == FT_RENDER_MODE_LCD) bx /= 3;
@@ -2301,7 +2324,9 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 // 		}
 cont:
 		*Dx = FTInfo.x;
-		Dx++;
+		*Dy = FTInfo.y;
+		++Dx;
+		++Dy;
 	}
 gdiexit:
 	delete[] ggi;
@@ -2356,22 +2381,22 @@ BOOL CALLBACK TextOutCallback(FreeTypeGlyphInfo& FTGInfo)
 			if (FTInfo->params->alpha>1)
 			{
 				FreeTypeDrawBitmapV(FTGInfo, *FTGInfo.shadow, FTInfo->x + FTInfo->sx, 
-					FTInfo->params->otm->otmTextMetrics.tmHeight - (glyph_bitmap->left+glyph_bitmap->bitmap.width) -1 + FTInfo->sy);//画阴影
+					FTInfo->yTop + FTInfo->params->otm->otmTextMetrics.tmHeight - (glyph_bitmap->left + glyph_bitmap->bitmap.width) - 1 + FTInfo->sy);//画阴影
 				FTInfo->params->alpha = 1;
 			}
 			FreeTypeDrawBitmapV(FTGInfo,*FTGInfo.solid,	FTInfo->x,
-				FTInfo->params->otm->otmTextMetrics.tmHeight - (glyph_bitmap->left+glyph_bitmap->bitmap.width) -1);	//画文字	
+				FTInfo->yTop + FTInfo->params->otm->otmTextMetrics.tmHeight - (glyph_bitmap->left + glyph_bitmap->bitmap.width) - 1);	//画文字	
 		}else{
 			if (FTInfo->params->alpha>1)
 			{
 				FreeTypeDrawBitmap(FTGInfo,*FTGInfo.shadow,
 					FTInfo->x + glyph_bitmap->left + FTInfo->sx,
-					FTInfo->yBase - glyph_bitmap->top + FTInfo->sy);	//画阴影
+					FTInfo->yTop + FTInfo->yBase - glyph_bitmap->top + FTInfo->sy);	//画阴影
 				FTInfo->params->alpha = 1;
 			}
 			FreeTypeDrawBitmap(FTGInfo,*FTGInfo.solid,
 				FTInfo->x + glyph_bitmap->left,
-				FTInfo->yBase - glyph_bitmap->top);	//画文字
+				FTInfo->yTop + FTInfo->yBase - glyph_bitmap->top);	//画文字
 
 		}
 	}
@@ -2526,6 +2551,43 @@ BOOL FreeTypeTextOut(
 				break;
 	}
 
+//计算下划线或删除线的信息
+	int decorationInfo_height;
+	int decorationInfo_thickness;
+	OUTLINETEXTMETRIC &decorationInfo_otm = *FTInfo.params->otm;
+	if (lf.lfUnderline || lf.lfStrikeOut) {
+
+		if (lf.lfUnderline){
+			switch (pSettings->FontLoader()) {
+			case SETTING_FONTLOADER_FREETYPE:
+				decorationInfo_height = decorationInfo_otm.otmTextMetrics.tmHeight; //FT_PosToInt(freetype_face->size->metrics.height);
+				decorationInfo_thickness =
+					MulDiv(freetype_face->underline_thickness,
+					FTInfo.font_type.height/*freetype_face->size->metrics.y_ppem*/,
+					freetype_face->units_per_EM);
+				break;
+			case SETTING_FONTLOADER_WIN32:
+				decorationInfo_height = decorationInfo_otm.otmTextMetrics.tmHeight;
+				decorationInfo_thickness = decorationInfo_otm.otmsUnderscoreSize;
+				break;
+			}
+		}
+
+		if (lf.lfStrikeOut){
+			switch (pSettings->FontLoader()) {
+			case SETTING_FONTLOADER_FREETYPE:
+				decorationInfo_thickness =
+					MulDiv(freetype_face->underline_thickness,
+					FTInfo.font_type.height,// freetype_face->size->metrics.y_ppem,
+					freetype_face->units_per_EM);
+				break;
+			case SETTING_FONTLOADER_WIN32:
+				decorationInfo_thickness = decorationInfo_otm.otmsStrikeoutSize;
+				break;
+			}
+		}
+	}
+
 //===============计算完成==========================
 
 	FreeTypeGlyphInfo FTGInfo = {&FTInfo, 0, 0, 0, solid, shadow};
@@ -2551,7 +2613,25 @@ BOOL FreeTypeTextOut(
 			lpString += --j - i;
 			i = j;
 		}
+		//draw underline or strikeline separated
+
+		if (lf.lfUnderline){
+			int yPos = FTInfo.yBase - decorationInfo_otm.otmsUnderscorePosition + FTInfo.yTop;
+			if (yPos >= decorationInfo_height) {
+				yPos = decorationInfo_height - 1;
+			}
+			cache.DrawHorizontalLine(FTInfo.x, yPos, FTInfo.Dx[i], FTInfo.Color(), decorationInfo_thickness);
+		}
+
+		if (lf.lfStrikeOut){
+			int yPos = FTInfo.yBase - decorationInfo_otm.otmsStrikeoutPosition + FTInfo.yTop;
+			cache.DrawHorizontalLine(FTInfo.x, yPos, FTInfo.Dx[i], FTInfo.Color(), decorationInfo_thickness);
+		}
+
+
+		//draw line end.
 		FTInfo.x=FTInfo.Dx[i];
+		FTInfo.yTop = FTInfo.Dy[i];
 	}
 
 	if (shadow)
@@ -2564,50 +2644,50 @@ BOOL FreeTypeTextOut(
 
 	// 壓慄傪(偁傟偽)堷偔
 
-	if(lf.lfUnderline || lf.lfStrikeOut) {
-		OUTLINETEXTMETRIC &otm = *FTInfo.params->otm;
-		if(lf.lfUnderline){
-			int yPos = 0; //壓慄偺埵抲
-			int height = 0;
-			int thickness = 0; // 揔摉側懢偝
-			switch (pSettings->FontLoader()) {
-			case SETTING_FONTLOADER_FREETYPE:
-				yPos = y - otm.otmsUnderscorePosition;
-				height = otm.otmTextMetrics.tmHeight; //FT_PosToInt(freetype_face->size->metrics.height);
-				thickness =
-					MulDiv(freetype_face->underline_thickness,
-						FTInfo.font_type.height/*freetype_face->size->metrics.y_ppem*/,
-						freetype_face->units_per_EM);
-				break;
-			case SETTING_FONTLOADER_WIN32:
-				yPos = y - otm.otmsUnderscorePosition;
-				height = otm.otmTextMetrics.tmHeight;
-				thickness = otm.otmsUnderscoreSize;
-				break;
-			}
-			if (yPos >= height) {
-				yPos = height - 1;
-			}
-			cache.DrawHorizontalLine(0, yPos, x, FTInfo.Color(), thickness);
-		}
-
-		if(lf.lfStrikeOut){
-			int yPos = y - otm.otmsStrikeoutPosition; 
-			int thickness = 0; 
-			switch (pSettings->FontLoader()) {
-			case SETTING_FONTLOADER_FREETYPE:
-				thickness =
-					MulDiv(freetype_face->underline_thickness,
-						FTInfo.font_type.height,// freetype_face->size->metrics.y_ppem,
-						freetype_face->units_per_EM);
-				break;
-			case SETTING_FONTLOADER_WIN32:
-				thickness = otm.otmsStrikeoutSize;
-				break;
-			}
-			cache.DrawHorizontalLine(0, yPos, x, FTInfo.Color(), thickness);
-		}
-	}
+// 	if(lf.lfUnderline || lf.lfStrikeOut) {
+// 		OUTLINETEXTMETRIC &otm = *FTInfo.params->otm;
+// 		if(lf.lfUnderline){
+// 			int yPos = 0; //壓慄偺埵抲
+// 			int height = 0;
+// 			int thickness = 0; // 揔摉側懢偝
+// 			switch (pSettings->FontLoader()) {
+// 			case SETTING_FONTLOADER_FREETYPE:
+// 				yPos = y - otm.otmsUnderscorePosition;
+// 				height = otm.otmTextMetrics.tmHeight; //FT_PosToInt(freetype_face->size->metrics.height);
+// 				thickness =
+// 					MulDiv(freetype_face->underline_thickness,
+// 						FTInfo.font_type.height/*freetype_face->size->metrics.y_ppem*/,
+// 						freetype_face->units_per_EM);
+// 				break;
+// 			case SETTING_FONTLOADER_WIN32:
+// 				yPos = y - otm.otmsUnderscorePosition;
+// 				height = otm.otmTextMetrics.tmHeight;
+// 				thickness = otm.otmsUnderscoreSize;
+// 				break;
+// 			}
+// 			if (yPos >= height) {
+// 				yPos = height - 1;
+// 			}
+// 			cache.DrawHorizontalLine(0, yPos, x, FTInfo.Color(), thickness);
+// 		}
+// 
+// 		if(lf.lfStrikeOut){
+// 			int yPos = y - otm.otmsStrikeoutPosition; 
+// 			int thickness = 0; 
+// 			switch (pSettings->FontLoader()) {
+// 			case SETTING_FONTLOADER_FREETYPE:
+// 				thickness =
+// 					MulDiv(freetype_face->underline_thickness,
+// 						FTInfo.font_type.height,// freetype_face->size->metrics.y_ppem,
+// 						freetype_face->units_per_EM);
+// 				break;
+// 			case SETTING_FONTLOADER_WIN32:
+// 				thickness = otm.otmsStrikeoutSize;
+// 				break;
+// 			}
+// 			cache.DrawHorizontalLine(0, yPos, x, FTInfo.Color(), thickness);
+// 		}
+// 	}
 	return TRUE;
 }
 

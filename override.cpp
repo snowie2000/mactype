@@ -748,10 +748,15 @@ DWORD WINAPI IMPL_GetGlyphOutlineW(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 {
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 	DWORD ret= ORIG_GetGlyphOutlineW(hdc, uChar, fuFormat, lpgm, cjBuffer, pvBuffer, lpmat2);
-	if (pSettings->EnableClipBoxFix())
-	{
-		lpgm->gmptGlyphOrigin.y+=1;
-		lpgm->gmBlackBoxY+=1;
+	if (!cjBuffer || !pvBuffer) {
+		if (!(fuFormat & (GGO_BITMAP | GGO_GRAY2_BITMAP | GGO_GRAY4_BITMAP | GGO_GRAY8_BITMAP | GGO_NATIVE))) {
+			//lpgm->gmptGlyphOrigin.x -= 1;
+			//lpgm->gmptGlyphOrigin.y += 1;
+			//lpgm->gmBlackBoxX += 3;
+			//lpgm->gmBlackBoxY += 2;
+			lpgm->gmptGlyphOrigin.y += 2;
+			lpgm->gmBlackBoxY += 2;
+		}
 	}
 // 	TEXTMETRIC tm;
 // 	GetTextMetrics(hdc, &tm);
@@ -764,10 +769,20 @@ DWORD WINAPI IMPL_GetGlyphOutlineA(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 	//fuFormat |= GGO_UNHINTED;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 	DWORD ret=  ORIG_GetGlyphOutlineA(hdc, uChar, fuFormat, lpgm, cjBuffer, pvBuffer, lpmat2);
-	if (pSettings->EnableClipBoxFix())
-	{
-		lpgm->gmptGlyphOrigin.y+=1;
-		lpgm->gmBlackBoxY+=1;
+// 	if (pSettings->EnableClipBoxFix())
+// 	{
+// 		lpgm->gmptGlyphOrigin.y+=1;
+// 		lpgm->gmBlackBoxY+=1;
+// 	}
+	if (!cjBuffer || !pvBuffer) {
+		if (!(fuFormat & (GGO_BITMAP | GGO_GRAY2_BITMAP | GGO_GRAY4_BITMAP | GGO_GRAY8_BITMAP | GGO_NATIVE))) {
+			//lpgm->gmptGlyphOrigin.x -= 1;
+			//lpgm->gmptGlyphOrigin.y += 1;
+			//lpgm->gmBlackBoxX += 3;
+			//lpgm->gmBlackBoxY += 2;
+			lpgm->gmptGlyphOrigin.y += 2;
+			lpgm->gmBlackBoxY+=2;
+		}
 	}
 	return ret;
 }
@@ -1503,7 +1518,7 @@ ETO_TRY();
 		tm.tmAveCharWidth = DCTrans->TransformXAB(tm.tmAveCharWidth);
 // 		if (!DCTrans->TransformMode() && !lf.lfWidth && DCTrans->MirrorX()) 
 // 			lf.lfWidth = tm.tmAveCharWidth; 
-		if (lpDx)
+		if (lpDx)	//firefox使用ETO_PDY的y坐标转换来生成纵向文字
 		{
 			int szDx=fuOptions|ETO_PDY ? cbString*2:cbString;
 			outlpDx = new int[szDx];
@@ -1597,9 +1612,9 @@ ETO_TRY();
 		}*/
 	
 	textSize.cx = width;
-	textSize.cy = tm.tmHeight;
+	textSize.cy = FTInfo.y + tm.tmHeight;
 	realSize.cx = FTInfo.x;
-	realSize.cy = tm.tmHeight;
+	realSize.cy = FTInfo.y + tm.tmHeight;
 
 	//******************
 
@@ -1629,7 +1644,7 @@ ETO_TRY();
 		switch (vert) {
 		case TA_BASELINE:
 			rc.top = curPos.y - tm.tmAscent;
-			rc.bottom = curPos.y + tm.tmDescent;
+			rc.bottom = curPos.y + tm.tmDescent + FTInfo.y;
 			//trace(L"ascent=%d descent=%d\n", metric.tmAscent, metric.tmDescent);
 			break;
 		case TA_BOTTOM:
