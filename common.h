@@ -24,9 +24,14 @@
 #include "ownedcs.h"
 #include "undocAPI.h"
 #include <d2d1.h>
+#include <d2d1_1.h>
+#include <d2d1_3.h>
 #include <dwrite.h>
-#include <wincodec.h>
-#include <wincodecsdk.h>
+#include <dwrite_1.h>
+#include <dwrite_2.h>
+#include <dwrite_3.h>
+//#include <wincodec.h>
+//#include <wincodecsdk.h>
 
 #define for if(0);else for
 

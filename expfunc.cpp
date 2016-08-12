@@ -5,6 +5,9 @@
 #include <shlwapi.h>	//DLLVERSIONINFO
 #include "undocAPI.h"
 #include <windows.h>
+#include <dwrite_1.h>
+#include <dwrite_2.h>
+#include <dwrite_3.h>
 
 // win2kà»ç~
 //#pragma comment(linker, "/subsystem:windows,5.0")

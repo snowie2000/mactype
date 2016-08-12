@@ -90,58 +90,8 @@ HOOK_DEFINE(BOOL, RemoveFontResourceExW, (__in LPCWSTR name, __in DWORD fl, __re
 HOOK_DEFINE(HGDIOBJ, GetStockObject, (__in int i))
 HOOK_DEFINE(BOOL, BeginPath, (HDC hdc))
 HOOK_DEFINE(BOOL, EndPath, (HDC hdc))
-HOOK_DEFINE(BOOL, AbortPath, (HDC hdc))
-//HOOK_DEFINE(BOOL, PlayEnhMetaFileRecord())
-//HOOK_DEFINE(int, GdipCreateFontFamilyFromName, (const WCHAR *name, void *fontCollection, void **FontFamily))
+HOOK_DEFINE(BOOL, AbortPath, (HDC hdc));
 
-//HOOK_DEFINE(HRESULT, ScriptItemize, (const WCHAR* pwcInChars,int cInChars,int cMaxItems,const SCRIPT_CONTROL* psControl,const SCRIPT_STATE* psState,SCRIPT_ITEM* pItems,int* pcItems))
-
-/*
-HOOK_DEFINE(HRESULT, ScriptShape, (\
-			HDC hdc, \
-			SCRIPT_CACHE* psc, \
-			const WCHAR* pwcChars, \
-			int cChars, \
-			int cMaxGlyphs, \
-			SCRIPT_ANALYSIS* psa, \
-			WORD* pwOutGlyphs, \
-			WORD* pwLogClust, \
-			SCRIPT_VISATTR* psva, \
-			int* pcGlyphs \
-			))*/
-
-
-/*
-HOOK_DEFINE(HRESULT, ScriptTextOut, (\
-			const HDC hdc, \
-			SCRIPT_CACHE* psc, \
-			int x, \
-			int y, \
-			UINT fuOptions, \
-			const RECT* lprc, \
-			const SCRIPT_ANALYSIS* psa, \
-			const WCHAR* pwcReserved, \
-			int iReserved, \
-			const WORD* pwGlyphs, \
-			int cGlyphs, \
-			const int* piAdvance, \
-			const int* piJustify, \
-			const GOFFSET* pGoffset \
-			))
-
-HOOK_DEFINE(HRESULT, ScriptStringOut, (\
-			__in  SCRIPT_STRING_ANALYSIS ssa,\
-			__in  int iX, \
-			__in  int iY, \
-			__in  UINT uOptions, \
-			__in  const RECT *prc, \
-			__in  int iMinSel, \
-			__in  int iMaxSel, \
-			__in  BOOL fDisabled \
-			))*/
-
-//HOOK_DEFINE(int, GetTextFace, (HDC hdc, int c,  LPWSTR lpName))
-//HOOK_DEFINE(HRESULT, ScriptIsComplex, (const WCHAR *pwcInChars,int cInChars,DWORD dwFlags))
 /*
 
 HOOK_MANUALLY(LONG, LdrLoadDll, (IN PWCHAR               PathToFile OPTIONAL,
@@ -150,12 +100,15 @@ HOOK_MANUALLY(LONG, LdrLoadDll, (IN PWCHAR               PathToFile OPTIONAL,
 			   OUT HANDLE*             ModuleHandle ))
 */
 
-HOOK_MANUALLY(void, DrawGlyphRun, (
-			   ID2D1RenderTarget* self,
-			   D2D1_POINT_2F baselineOrigin,
-			   const DWRITE_GLYPH_RUN *glyphRun,
-			   ID2D1Brush *foregroundBrush,
-			   DWRITE_MEASURING_MODE measuringMode))
+HOOK_MANUALLY(HRESULT, DrawGlyphRun, (
+	IDWriteBitmapRenderTarget* This,
+	FLOAT baselineOriginX,
+	FLOAT baselineOriginY,
+	DWRITE_MEASURING_MODE measuringMode,
+	DWRITE_GLYPH_RUN const* glyphRun,
+	IDWriteRenderingParams* renderingParams,
+	COLORREF textColor,
+	RECT* blackBoxRect))
 
 /*
 HOOK_MANUALLY(void, SetTextAntialiasMode, (
@@ -170,6 +123,91 @@ HOOK_MANUALLY(HRESULT, DWriteCreateFactory,  (
 			  __in DWRITE_FACTORY_TYPE factoryType,
 			  __in REFIID iid,
 			  __out IUnknown **factory))
+
+HOOK_MANUALLY(HRESULT, D2D1CreateDevice, (
+			  IDXGIDevice* dxgiDevice,
+			  CONST D2D1_CREATION_PROPERTIES* creationProperties,
+			  ID2D1Device** d2dDevice))
+
+HOOK_MANUALLY(HRESULT, D2D1CreateDeviceContext, (
+			  IDXGISurface* dxgiSurface,
+			  CONST D2D1_CREATION_PROPERTIES* creationProperties,
+			  ID2D1DeviceContext** d2dDeviceContext))
+
+HOOK_MANUALLY(HRESULT, D2D1CreateFactory, (
+				D2D1_FACTORY_TYPE factoryType,
+				REFIID riid,
+				const D2D1_FACTORY_OPTIONS* pFactoryOptions,
+				void** ppIFactory))
+
+HOOK_MANUALLY(HRESULT, GetGdiInterop, (
+			  IDWriteFactory* This,
+			  IDWriteGdiInterop** gdiInterop
+			  ))
+
+HOOK_MANUALLY(HRESULT, CreateGlyphRunAnalysis, (
+			  IDWriteFactory* This,
+			  DWRITE_GLYPH_RUN const* glyphRun,
+			  FLOAT pixelsPerDip,
+			  DWRITE_MATRIX const* transform,
+			  DWRITE_RENDERING_MODE renderingMode,
+			  DWRITE_MEASURING_MODE measuringMode,
+			  FLOAT baselineOriginX,
+			  FLOAT baselineOriginY,
+			  IDWriteGlyphRunAnalysis** glyphRunAnalysis
+			  ))
+
+HOOK_MANUALLY(HRESULT, CreateGlyphRunAnalysis2, (
+			  IDWriteFactory2* This,
+			  DWRITE_GLYPH_RUN const* glyphRun,
+			  DWRITE_MATRIX const* transform,
+			  DWRITE_RENDERING_MODE renderingMode,
+			  DWRITE_MEASURING_MODE measuringMode,
+			  DWRITE_GRID_FIT_MODE gridFitMode,
+			  DWRITE_TEXT_ANTIALIAS_MODE antialiasMode,
+			  FLOAT baselineOriginX,
+			  FLOAT baselineOriginY,
+			  IDWriteGlyphRunAnalysis** glyphRunAnalysis
+			  ))
+
+HOOK_MANUALLY(HRESULT, CreateGlyphRunAnalysis3, (
+			  IDWriteFactory3* This,
+			  DWRITE_GLYPH_RUN const* glyphRun,
+			  DWRITE_MATRIX const* transform,
+			  DWRITE_RENDERING_MODE1 renderingMode,
+			  DWRITE_MEASURING_MODE measuringMode,
+			  DWRITE_GRID_FIT_MODE gridFitMode,
+			  DWRITE_TEXT_ANTIALIAS_MODE antialiasMode,
+			  FLOAT baselineOriginX,
+			  FLOAT baselineOriginY,
+			  IDWriteGlyphRunAnalysis** glyphRunAnalysis
+			  ))
+
+HOOK_MANUALLY(HRESULT, GetAlphaBlendParams, (
+			  IDWriteGlyphRunAnalysis* This,
+			  IDWriteRenderingParams* renderingParams,
+			  FLOAT* blendGamma,
+			  FLOAT* blendEnhancedContrast,
+			  FLOAT* blendClearTypeLevel
+			  ))
+			  
+HOOK_MANUALLY(HRESULT, CreateDeviceContext, (
+			  ID2D1Device* This,
+			  D2D1_DEVICE_CONTEXT_OPTIONS options,
+			  ID2D1DeviceContext** deviceContext
+			  ))
+
+HOOK_MANUALLY(HRESULT, CreateDeviceContext2, (
+			  ID2D1Device1* This,
+			  D2D1_DEVICE_CONTEXT_OPTIONS options,
+			  ID2D1DeviceContext1** deviceContext
+			  ))
+
+HOOK_MANUALLY(HRESULT, CreateDeviceContext3, (
+			  ID2D1Device2* This,
+			  D2D1_DEVICE_CONTEXT_OPTIONS options,
+			  ID2D1DeviceContext2** deviceContext
+			  ))
 
 HOOK_MANUALLY(HRESULT, CreateTextFormat, (
 			   IDWriteFactory* self,
@@ -187,7 +225,32 @@ HOOK_MANUALLY(HRESULT, CreateFontFace, (
 			  __out IDWriteFontFace** fontFace
 			  ))
 
+HOOK_MANUALLY(HRESULT, CreateBitmapRenderTarget, (
+			  IDWriteGdiInterop* This,
+			  HDC hdc,
+			  UINT32 width,
+			  UINT32 height,
+			  IDWriteBitmapRenderTarget** renderTarget
+			  ))
 
+HOOK_MANUALLY(HRESULT, CreateCompatibleRenderTarget, (
+			  ID2D1RenderTarget* This,
+			  CONST D2D1_SIZE_F* desiredSize,
+			  CONST D2D1_SIZE_U* desiredPixelSize,
+			  CONST D2D1_PIXEL_FORMAT* desiredFormat,
+			  D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS options,
+			  ID2D1BitmapRenderTarget** bitmapRenderTarget
+			  ))
+
+HOOK_MANUALLY(void, SetTextAntialiasMode, (
+			  ID2D1RenderTarget* This,
+			  D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode));
+
+HOOK_MANUALLY(void, SetTextRenderingParams, (
+				  ID2D1RenderTarget* This,
+				  _In_opt_ IDWriteRenderingParams* textRenderingParams));
+
+			  /*
 HOOK_MANUALLY(GpStatus, GdipDrawString, (
 			  GpGraphics               *graphics,
 			  GDIPCONST WCHAR          *string,
@@ -196,5 +259,45 @@ HOOK_MANUALLY(GpStatus, GdipDrawString, (
 			  GDIPCONST RectF          *layoutRect,
 			  GDIPCONST GpStringFormat *stringFormat,
 			  GDIPCONST GpBrush        *brush
-			  ))
+			  ))*/
+
+HOOK_MANUALLY(HRESULT, CreateWicBitmapRenderTarget, (
+	ID2D1Factory* This,
+	IWICBitmap* target,
+	const D2D1_RENDER_TARGET_PROPERTIES* renderTargetProperties,
+	ID2D1RenderTarget** renderTarget));
+
+HOOK_MANUALLY(HRESULT, CreateHwndRenderTarget, (
+	ID2D1Factory* This,
+	const D2D1_RENDER_TARGET_PROPERTIES* renderTargetProperties,
+	const D2D1_HWND_RENDER_TARGET_PROPERTIES* hwndRenderTargetProperties,
+	ID2D1HwndRenderTarget** hwndRenderTarget));
+
+HOOK_MANUALLY(HRESULT, CreateDxgiSurfaceRenderTarget, (
+	ID2D1Factory* This,
+	IDXGISurface* dxgiSurface,
+	const D2D1_RENDER_TARGET_PROPERTIES* renderTargetProperties,
+	ID2D1RenderTarget** renderTarget));
+
+HOOK_MANUALLY(HRESULT, CreateDCRenderTarget, (
+	ID2D1Factory* This,
+	const D2D1_RENDER_TARGET_PROPERTIES* renderTargetProperties,
+	ID2D1DCRenderTarget** dcRenderTarget));
+
+HOOK_MANUALLY(HRESULT, CreateDevice1, (
+	ID2D1Factory1* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device** d2dDevice));
+
+HOOK_MANUALLY(HRESULT, CreateDevice2, (
+	ID2D1Factory2* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device1** d2dDevice1
+	));
+
+HOOK_MANUALLY(HRESULT, CreateDevice3, (
+	ID2D1Factory3* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device2** d2dDevice2
+	));
 //EOF

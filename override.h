@@ -9,8 +9,12 @@
 #include "cache.h"
 #include "settings.h"
 #include <set>
+#include <dwrite_1.h>
+#include <dwrite_2.h>
+#include <dwrite_3.h>
 
 using namespace std;
+
 
 /*
 typedef struct _STRING {
@@ -136,7 +140,7 @@ void AddFontToFT(LPCTSTR lpszFace, int weight, bool italic);
 int MyGetProcAddress(HMODULE dll, LPSTR funcname);
 
 #define HOOK_MANUALLY(rettype, name, argtype) \
-	LONG hook_demand_##name();
+	LONG hook_demand_##name(bool bForce);
 #define HOOK_DEFINE(rettype, name, argtype) ;
 #include "hooklist.h"
 #undef HOOK_DEFINE

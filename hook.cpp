@@ -16,6 +16,9 @@
 #include <locale.h>
 #include "undocAPI.h"
 #include "delayimp.h"
+#include <dwrite_2.h>
+#include <dwrite_3.h>
+#include <VersionHelpers.h>
 
 #pragma comment(lib, "delayimp")
 
@@ -181,10 +184,13 @@ ERROR_ABORT:
 
 #define HOOK_DEFINE(rettype, name, argtype);
 #define HOOK_MANUALLY(rettype, name, argtype) \
-	LONG hook_demand_##name(){ \
+	LONG hook_demand_##name(bool bForce = false){ \
 	NTSTATUS NtStatus; \
-	ULONG ACLEntries[1] = {0}; \
-	if (&ORIG_##name) { \
+	ULONG ACLEntries[1] = { 0 }; \
+	if (bForce) {  \
+		memset((void*)&HOOK_##name, 0, sizeof(HOOK_TRACE_INFO));  \
+	}  \
+	if (&ORIG_##name) {	\
 	FORCE(LhInstallHook((PVOID&)ORIG_##name, IMPL_##name, (PVOID)0, &HOOK_##name)); \
 	*(void**)&ORIG_##name =  (void*)HOOK_##name.Link->OldProc; \
 	FORCE(LhSetExclusiveACL(ACLEntries, 0, &HOOK_##name)); } \
@@ -269,6 +275,9 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 	BOOL IsUnload = false, bEnableDW = true;
 	switch(reason) {
 	case DLL_PROCESS_ATTACH:
+#ifdef DEBUG
+		MessageBox(0, L"Load", NULL, MB_OK);
+#endif
 		g_dllInstance = instance;
 		//弶婜壔弴彉
 		//DLL_PROCESS_DETACH偱偼偙傟偺媡弴偵偡傞
@@ -343,13 +352,13 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			if (hook_init()!=NOERROR)
 				return FALSE;
 			//hook d2d if already loaded
-			DWORD dwVersion = GetVersion();
-			/*if (bEnableDW && (DWORD)(LOBYTE(LOWORD(dwVersion)))>5)	//vista or later
+			if (bEnableDW && IsWindowsVistaOrGreater())	//vista or later
 			{
 				//ORIG_LdrLoadDll = LdrLoadDll;
+				//MessageBox(0, L"Test", NULL, MB_OK);
 				HookD2DDll();
 				//hook_demand_LdrLoadDll();
-			}*/
+			}
 //			InstallManagerHook();
 		}
 		//获得当前加载模式
