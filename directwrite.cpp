@@ -1,10 +1,12 @@
-#include "directwrite.h"
+ï»¿#include "directwrite.h"
 #include "settings.h"
 
 #define SET_VAL(x, y) *(DWORD_PTR*)&(x) = *(DWORD_PTR*)&(y)
 #define HOOK(obj, name, index) { \
-	SET_VAL(ORIG_##name, (*reinterpret_cast<void***>(obj.p))[index]);  \
-	hook_demand_##name(false);  \
+	if (!HOOK_##name.Link) {  \
+		SET_VAL(ORIG_##name, (*reinterpret_cast<void***>(obj.p))[index]);  \
+		hook_demand_##name(false);  \
+	}  \
 };
 
 struct Params {
@@ -840,7 +842,7 @@ bool hookD2D1() {
 
 
 #define FAILEXIT { /*CoUninitialize();*/ return false;}
-bool hookDirectWrite(IUnknown ** factory)	//´Ëº¯ÊıĞèÒª¸Ä½øÒÔÅĞ¶ÏÊÇ·ñ³É¹¦hook
+bool hookDirectWrite(IUnknown ** factory)	//æ­¤å‡½æ•°éœ€è¦æ”¹è¿›ä»¥åˆ¤æ–­æ˜¯å¦æˆåŠŸhook
 {
 	//CoInitialize(NULL);
 	//MessageBox(NULL, L"HookDW", NULL, MB_OK);
@@ -874,9 +876,9 @@ bool hookDirectWrite(IUnknown ** factory)	//´Ëº¯ÊıĞèÒª¸Ä½øÒÔÅĞ¶ÏÊÇ·ñ³É¹¦hook
 	return true;
 
 	/*
-	if (FAILED(g_pDWriteFactory->GetGdiInterop(&g_pGdiInterop))) FAILEXIT;	//ÅĞ¶Ï²»ÕıÈ·
+	if (FAILED(g_pDWriteFactory->GetGdiInterop(&g_pGdiInterop))) FAILEXIT;	//åˆ¤æ–­ä¸æ­£ç¡®
 
-	if (!MakeD2DParams(g_pDWriteFactory)) FAILEXIT;	//×¼±¸´´½¨äÖÈ¾ÓÃµÄ²ÎÊı
+	if (!MakeD2DParams(g_pDWriteFactory)) FAILEXIT;	//å‡†å¤‡åˆ›å»ºæ¸²æŸ“ç”¨çš„å‚æ•°
 
 	const D2D1_PIXEL_FORMAT format =D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,	D2D1_ALPHA_MODE_PREMULTIPLIED);
 	const D2D1_RENDER_TARGET_PROPERTIES properties =
@@ -886,10 +888,10 @@ bool hookDirectWrite(IUnknown ** factory)	//´Ëº¯ÊıĞèÒª¸Ä½øÒÔÅĞ¶ÏÊÇ·ñ³É¹¦hook
 	void* pDraw = (*reinterpret_cast<void***>(target.p))[29];
 	//void* pRenderParam = (*reinterpret_cast<void***>(target.p))[36];
 	//void* pAAParam = (*reinterpret_cast<void***>(target.p))[34];
-	*(DWORD_PTR*)&ORIG_DrawGlyphRun= *(DWORD_PTR*)&pDraw;	//Ç¿ÖÆ¸³Öµ£¬ÎŞÊÓÀàĞÍ×ª»»
+	*(DWORD_PTR*)&ORIG_DrawGlyphRun= *(DWORD_PTR*)&pDraw;	//å¼ºåˆ¶èµ‹å€¼ï¼Œæ— è§†ç±»å‹è½¬æ¢
 	//*(DWORD_PTR*)&ORIG_SetTextRenderingParams= *(DWORD_PTR*)&pRenderParam;
 	//*(DWORD_PTR*)&ORIG_SetTextAntialiasMode= *(DWORD_PTR*)&pAAParam;
-	hook_demand_DrawGlyphRun();	//¼ÓÔØD2D hook
+	hook_demand_DrawGlyphRun();	//åŠ è½½D2D hook
 	//hook_demand_SetTextAntialiasMode();
 	//hook_demand_SetTextRenderingParams();
 	void* pTextFormat = (*reinterpret_cast<void***>(g_pDWriteFactory))[15];
@@ -902,7 +904,7 @@ bool hookDirectWrite(IUnknown ** factory)	//´Ëº¯ÊıĞèÒª¸Ä½øÒÔÅĞ¶ÏÊÇ·ñ³É¹¦hook
 	ffamily->Release();
 	fontcollection->Release();
 	void* pCreateFontFace = (*reinterpret_cast<void***>(dfont))[13];
-	*(DWORD_PTR*)&ORIG_CreateTextFormat= *(DWORD_PTR*)&pTextFormat;	//Ç¿ÖÆ¸³Öµ£¬ÎŞÊÓÀàĞÍ×ª»»
+	*(DWORD_PTR*)&ORIG_CreateTextFormat= *(DWORD_PTR*)&pTextFormat;	//å¼ºåˆ¶èµ‹å€¼ï¼Œæ— è§†ç±»å‹è½¬æ¢
 	*(DWORD_PTR*)&ORIG_CreateFontFace= *(DWORD_PTR*)&pCreateFontFace;
 	hook_demand_CreateTextFormat();
 	hook_demand_CreateFontFace();
@@ -911,6 +913,7 @@ bool hookDirectWrite(IUnknown ** factory)	//´Ëº¯ÊıĞèÒª¸Ä½øÒÔÅĞ¶ÏÊÇ·ñ³É¹¦hook
 	return true;*/
 }
 
+#define FAILEXIT {return;}
 void HookD2DDll()
 {
 	typedef HRESULT (WINAPI *PFN_DWriteCreateFactory)(
@@ -949,6 +952,15 @@ void HookD2DDll()
 			__uuidof(IDWriteFactory),
 			reinterpret_cast<IUnknown**>(&pDWriteFactory));
 		MakeD2DParams(pDWriteFactory);
+		if (FAILED(pDWriteFactory->GetGdiInterop(&g_pGdiInterop))) FAILEXIT;	//åˆ¤æ–­ä¸æ­£ç¡®
+		HOOK(pDWriteFactory, CreateTextFormat, 15);
+		CComPtr<IDWriteFont> dfont = NULL;
+		CComPtr<IDWriteFontCollection> fontcollection = NULL;
+		CComPtr<IDWriteFontFamily> ffamily = NULL;
+		if (FAILED(pDWriteFactory->GetSystemFontCollection(&fontcollection, false))) FAILEXIT;
+		if (FAILED(fontcollection->GetFontFamily(0, &ffamily))) FAILEXIT;
+		if (FAILED(ffamily->GetFont(0, &dfont))) FAILEXIT;
+		HOOK(dfont, CreateFontFace, 13);
 	}
 }
 
@@ -1032,7 +1044,7 @@ HRESULT WINAPI IMPL_CreateFontFace(IDWriteFont* self,
 			if (FAILED(g_pGdiInterop->CreateFontFromLOGFONT(&lf, &writefont)))
 				return ret;
 			(*fontFace)->Release();
-			writefont->CreateFontFace(fontFace);
+			ORIG_CreateFontFace(writefont, fontFace);
 			writefont->Release();
 		}
 	}
