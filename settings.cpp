@@ -864,6 +864,9 @@ bool CGdippSettings::IsProcessExcluded() const
 	if (m_bRunFromGdiExe) {
 		return false;
 	}
+	GetEnvironmentVariableW(L"MACTYPE_FORCE_EXCLUDE", NULL, 0);
+	if (GetLastError() != ERROR_ENVVAR_NOT_FOUND)
+		return true;
 	GetEnvironmentVariableW(L"MACTYPE_FORCE_LOAD", NULL, 0);
 	if (GetLastError()!=ERROR_ENVVAR_NOT_FOUND)
 		return false;

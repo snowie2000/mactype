@@ -716,8 +716,8 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_FLAT;
 	}
 
-	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE;
-	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC;
+	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
+	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL_SYMMETRIC;
 	g_D2DParams.GrayscaleEnhancedContrast = 0.5f;
 	g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
 	g_D2DParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
@@ -835,10 +835,20 @@ bool hookD2D1() {
 
 }
 
-
-
-
 #define FAILEXIT { /*CoUninitialize();*/ return false;}
+bool hookFontCreation(CComPtr<IDWriteFactory>& pDWriteFactory) {
+	if (FAILED(pDWriteFactory->GetGdiInterop(&g_pGdiInterop))) FAILEXIT;	//判断不正确
+	HOOK(pDWriteFactory, CreateTextFormat, 15);
+	CComPtr<IDWriteFont> dfont = NULL;
+	CComPtr<IDWriteFontCollection> fontcollection = NULL;
+	CComPtr<IDWriteFontFamily> ffamily = NULL;
+	if (FAILED(pDWriteFactory->GetSystemFontCollection(&fontcollection, false))) FAILEXIT;
+	if (FAILED(fontcollection->GetFontFamily(0, &ffamily))) FAILEXIT;
+	if (FAILED(ffamily->GetFont(0, &dfont))) FAILEXIT;
+	HOOK(dfont, CreateFontFace, 13);
+	return true;
+}
+
 bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否成功hook
 {
 	//CoInitialize(NULL);
@@ -851,6 +861,8 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 	CComPtr<IDWriteFactory> pDWriteFactory;
 	HRESULT hr1 = (*factory)->QueryInterface(&pDWriteFactory);
 	if (FAILED(hr1)) FAILEXIT;
+	hookFontCreation(pDWriteFactory);
+
 	HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
 	HOOK(pDWriteFactory, GetGdiInterop, 17);
 	MyDebug(L"DW1 hooked");
@@ -906,7 +918,7 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 	return true;*/
 }
 
-
+#undef FAILEXIT
 #define FAILEXIT {return;}
 void HookD2DDll()
 {
@@ -947,15 +959,6 @@ void HookD2DDll()
 			__uuidof(IDWriteFactory),
 			reinterpret_cast<IUnknown**>(&pDWriteFactory));
 		MakeD2DParams(pDWriteFactory);
-		if (FAILED(pDWriteFactory->GetGdiInterop(&g_pGdiInterop))) FAILEXIT;	//判断不正确
-		HOOK(pDWriteFactory, CreateTextFormat, 15);
-		CComPtr<IDWriteFont> dfont = NULL;
-		CComPtr<IDWriteFontCollection> fontcollection = NULL;
-		CComPtr<IDWriteFontFamily> ffamily = NULL;
-		if (FAILED(pDWriteFactory->GetSystemFontCollection(&fontcollection, false))) FAILEXIT;
-		if (FAILED(fontcollection->GetFontFamily(0, &ffamily))) FAILEXIT;
-		if (FAILED(ffamily->GetFont(0, &dfont))) FAILEXIT;
-		HOOK(dfont, CreateFontFace, 13);
 	}
 }
 
