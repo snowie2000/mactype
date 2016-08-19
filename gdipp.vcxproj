@@ -80,7 +80,7 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
-    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype-2.6.5\include;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype-2.6.5\include;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.10586.0\shared;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ReferencePath>D:\Program Files\Microsoft Research\Detours Express 2.1\lib;$(ReferencePath)</ReferencePath>

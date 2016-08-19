@@ -1,13 +1,30 @@
 ﻿#include "directwrite.h"
 #include "settings.h"
 
+void MyDebug(const TCHAR * sz, ...)
+{
+#ifdef DEBUG
+	TCHAR szData[512] = { 0 };
+
+	va_list args;
+	va_start(args, sz);
+	StringCchPrintf(szData, sizeof(szData)-1, sz, args);
+	va_end(args);
+
+	OutputDebugString(szData);
+#endif
+}
+
 #define SET_VAL(x, y) *(DWORD_PTR*)&(x) = *(DWORD_PTR*)&(y)
 #define HOOK(obj, name, index) { \
 	if (!HOOK_##name.Link) {  \
 		SET_VAL(ORIG_##name, (*reinterpret_cast<void***>(obj.p))[index]);  \
 		hook_demand_##name(false);  \
+		if (!HOOK_##name.Link) { MyDebug(L"##name hook failed"); }  \
 	}  \
 };
+
+
 
 struct Params {
 	D2D1_TEXT_ANTIALIAS_MODE AntialiasMode;
@@ -57,16 +74,19 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 }
 
 void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
-	CComQIPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
+	static bool loaded = false;
+	if (!loaded) {
+		loaded = true;
+		CComQIPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
 
-	HOOK(ptr, CreateCompatibleRenderTarget, 12);
-	HOOK(ptr, SetTextAntialiasMode, 34);
-	HOOK(ptr, SetTextRenderingParams, 36);
+		HOOK(ptr, CreateCompatibleRenderTarget, 12);
+		HOOK(ptr, SetTextAntialiasMode, 34);
+		HOOK(ptr, SetTextRenderingParams, 36);
 
-	ID2D1Factory* pD2D1Factory;
-	pD2D1RenderTarget->GetFactory(&pD2D1Factory);
-	HookFactory(pD2D1Factory);
-
+		ID2D1Factory* pD2D1Factory;
+		pD2D1RenderTarget->GetFactory(&pD2D1Factory);
+		HookFactory(pD2D1Factory);
+	}
 	pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
 	pD2D1RenderTarget->SetTextRenderingParams(g_D2DParams.RenderingParams);
 }
@@ -101,6 +121,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 {
 	HRESULT hr = E_FAIL;
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE_ALIASED) {
+		MyDebug(L"Try DW3");
 		IDWriteFactory3* f;
 		hr = This->QueryInterface(&f);
 		if (SUCCEEDED(hr)) {
@@ -112,8 +133,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 				m.m22 *= pixelsPerDip;
 				pm = &m;
 			}
-			hr = ORIG_CreateGlyphRunAnalysis3(
-				f,
+			hr = f->CreateGlyphRunAnalysis(
 				glyphRun,
 				pm,
 				(DWRITE_RENDERING_MODE1)renderingMode,
@@ -128,6 +148,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 		}
 	}
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE_ALIASED) {
+		MyDebug(L"Try DW2");
 		IDWriteFactory2* f;
 		hr = This->QueryInterface(&f);
 		if (SUCCEEDED(hr)) {
@@ -139,8 +160,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 				m.m22 *= pixelsPerDip;
 				pm = &m;
 			}
-			hr = ORIG_CreateGlyphRunAnalysis2(
-				f,
+			hr = f->CreateGlyphRunAnalysis(
 				glyphRun,
 				pm,
 				renderingMode,
@@ -156,6 +176,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 	}
 
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE_ALIASED) {
+		MyDebug(L"Try DW1");
 		hr = ORIG_CreateGlyphRunAnalysis(
 			This,
 			glyphRun,
@@ -169,6 +190,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 			);
 	}
 	if (FAILED(hr)) {
+		MyDebug(L"Try Original Params");
 		hr = ORIG_CreateGlyphRunAnalysis(
 			This,
 			glyphRun,
@@ -182,6 +204,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 			);
 	}
 	if (SUCCEEDED(hr)) {
+		MyDebug(L"CreateGlyphRunAnalysis hooked");
 		static bool loaded = false;
 		if (!loaded) {
 			loaded = true;
@@ -205,6 +228,7 @@ HRESULT WINAPI IMPL_GetGdiInterop(
 		CComQIPtr<IDWriteGdiInterop> gdip = *gdiInterop;
 		HOOK(gdip, CreateBitmapRenderTarget, 7);
 	}
+	MyDebug(L"IMPL_GetGdiInterop hooked");
 	return hr;
 }
 
@@ -231,6 +255,7 @@ HRESULT WINAPI IMPL_CreateBitmapRenderTarget(
 			HOOK(ptr, DrawGlyphRun, 3);
 		}
 	}
+	MyDebug(L"CreateBitmapRenderTarget hooked");
 	return hr;
 }
 
@@ -261,6 +286,7 @@ HRESULT WINAPI IMPL_GetAlphaBlendParams(
 			blendClearTypeLevel
 			);
 	}
+	MyDebug(L"GetAlphaBlendParams hooked");
 	return hr;
 }
 
@@ -282,8 +308,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis2(
 		IDWriteFactory3* f;
 		hr = This->QueryInterface(&f);
 		if (SUCCEEDED(hr)) {
-			hr = ORIG_CreateGlyphRunAnalysis3(
-				f,
+			hr = f->CreateGlyphRunAnalysis(
 				glyphRun,
 				transform,
 				(DWRITE_RENDERING_MODE1)renderingMode,
@@ -326,6 +351,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis2(
 			);
 	}
 	if (SUCCEEDED(hr)) {
+		MyDebug(L"CreateGlyphRunAnalysis2 hooked");
 		static bool loaded = false;
 		if (!loaded) {
 			loaded = true;
@@ -349,6 +375,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 	IDWriteGlyphRunAnalysis** glyphRunAnalysis
 	)
 {
+	MyDebug(L"CreateGlyphRunAnalysis3 hooked");
 	HRESULT hr = E_FAIL;
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE1_ALIASED) {
 		hr = ORIG_CreateGlyphRunAnalysis3(
@@ -365,6 +392,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 			);
 	}
 	if (FAILED(hr)) {
+		MyDebug(L"CreateGlyphRunAnalysis3 failed");
 		hr = ORIG_CreateGlyphRunAnalysis3(
 			This,
 			glyphRun,
@@ -379,6 +407,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 			);
 	}
 	if (SUCCEEDED(hr)) {
+		MyDebug(L"CreateGlyphRunAnalysis3 hooked");
 		static bool loaded = false;
 		if (!loaded) {
 			loaded = true;
@@ -419,9 +448,7 @@ HRESULT WINAPI IMPL_D2D1CreateDeviceContext(
 		creationProperties,
 		d2dDeviceContext
 		);
-	static bool loaded = false;
-	if (!loaded) {
-		loaded = true;
+	if SUCCEEDED(hr) {
 		HookRenderTarget(*d2dDeviceContext);
 	}
 	return hr;
@@ -458,12 +485,9 @@ HRESULT WINAPI IMPL_CreateWicBitmapRenderTarget(
 		renderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
-			HookRenderTarget(*renderTarget);
-		}
+		HookRenderTarget(*renderTarget);
 	}
+	MyDebug(L"IMPL_CreateWicBitmapRenderTarget hooked");
 	return hr;
 }
 
@@ -480,11 +504,7 @@ HRESULT WINAPI IMPL_CreateHwndRenderTarget(
 		hwndRenderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
-			HookRenderTarget(*hwndRenderTarget);
-		}
+		HookRenderTarget(*hwndRenderTarget);
 	}
 	return hr;
 }
@@ -502,11 +522,7 @@ HRESULT WINAPI IMPL_CreateDxgiSurfaceRenderTarget(
 		renderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
-			HookRenderTarget(*renderTarget);
-		}
+		HookRenderTarget(*renderTarget);
 	}
 	return hr;
 }
@@ -522,11 +538,7 @@ HRESULT WINAPI IMPL_CreateDCRenderTarget(
 		dcRenderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
-			HookRenderTarget(*dcRenderTarget);
-		}
+		HookRenderTarget(*dcRenderTarget);
 	}
 	return hr;
 }
@@ -548,11 +560,7 @@ HRESULT WINAPI IMPL_CreateCompatibleRenderTarget(
 		bitmapRenderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
-			HookRenderTarget(*bitmapRenderTarget);
-		}
+		HookRenderTarget(*bitmapRenderTarget);
 	}
 	return hr;
 }
@@ -561,6 +569,7 @@ void WINAPI IMPL_SetTextAntialiasMode(
 	ID2D1RenderTarget* This,
 	D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode
 	) {
+	MyDebug(L"IMPL_SetTextAntialiasMode hooked");
 	ORIG_SetTextAntialiasMode(This, D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
 }
 
@@ -568,6 +577,7 @@ void WINAPI IMPL_SetTextRenderingParams(
 	ID2D1RenderTarget* This,
 	_In_opt_ IDWriteRenderingParams* textRenderingParams
 	) {
+	MyDebug(L"IMPL_SetTextRenderingParams hooked");
 	ORIG_SetTextRenderingParams(This, g_D2DParams.RenderingParams);
 }
 
@@ -582,11 +592,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext(
 		deviceContext
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
-			HookRenderTarget(*deviceContext);
-		}
+		HookRenderTarget(*deviceContext);
 	}
 	return hr;
 }
@@ -602,11 +608,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext2(
 		deviceContext1
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
-			HookRenderTarget(*deviceContext1);
-		}
+		HookRenderTarget(*deviceContext1);
 	}
 	return hr;
 }
@@ -622,11 +624,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext3(
 		deviceContext2
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
-			HookRenderTarget(*deviceContext2);
-		}
+		HookRenderTarget(*deviceContext2);
 	}
 	return hr;
 }
@@ -694,10 +692,10 @@ HRESULT WINAPI IMPL_CreateDevice3(
 
 bool MakeD2DParams(IDWriteFactory* dw_factory)
 {
-	CComPtr<IDWriteRenderingParams> dwrpm;
+	//CComPtr<IDWriteRenderingParams> dwrpm;
 
-	if (FAILED(dw_factory->CreateRenderingParams(&dwrpm)))
-		return false;
+	//if (FAILED(dw_factory->CreateRenderingParams(&dwrpm)))
+	//	return false;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 	//
 
@@ -718,13 +716,12 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_FLAT;
 	}
 
-	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
-	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL_SYMMETRIC;
+	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE;
+	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC;
 	g_D2DParams.GrayscaleEnhancedContrast = 0.5f;
 	g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
 	g_D2DParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
 
-	DWORD dwVersion = GetVersion();
 	if (IsWindows8OrGreater()) {	//optimized for win8/win10
 		g_D2DParams.GrayscaleEnhancedContrast = 1.0f;
 		g_D2DParams.EnhancedContrast = 1.0f;
@@ -845,34 +842,30 @@ bool hookD2D1() {
 bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否成功hook
 {
 	//CoInitialize(NULL);
-	//MessageBox(NULL, L"HookDW", NULL, MB_OK);
+#ifdef DEBUG
+	MessageBox(NULL, L"HookDW", NULL, MB_OK);
+#endif
 	if (InterlockedExchange((LONG*)&bDWLoaded, true)) return false;
 
 	//dwrite 1
 	CComPtr<IDWriteFactory> pDWriteFactory;
 	HRESULT hr1 = (*factory)->QueryInterface(&pDWriteFactory);
 	if (FAILED(hr1)) FAILEXIT;
-	void** COM_DW1 = (*reinterpret_cast<void***>(pDWriteFactory.p));
-	*(DWORD_PTR*)&ORIG_GetGdiInterop = *(DWORD_PTR*)&COM_DW1[17];
-	*(DWORD_PTR*)&ORIG_CreateGlyphRunAnalysis = *(DWORD_PTR*)&COM_DW1[23];
-	hook_demand_GetGdiInterop();
-	hook_demand_CreateGlyphRunAnalysis();
-
+	HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
+	HOOK(pDWriteFactory, GetGdiInterop, 17);
+	MyDebug(L"DW1 hooked");
 	//dwrite2
 	CComPtr<IDWriteFactory2> pDWriteFactory2;
 	HRESULT hr2 = (*factory)->QueryInterface(&pDWriteFactory2);
 	if (FAILED(hr2)) FAILEXIT;
-	void** COM_DW2 = (*reinterpret_cast<void***>(pDWriteFactory2.p));
-	*(DWORD_PTR*)&ORIG_CreateGlyphRunAnalysis2 = *(DWORD_PTR*)&COM_DW2[30];
-	hook_demand_CreateGlyphRunAnalysis2();
-
+	HOOK(pDWriteFactory2, CreateGlyphRunAnalysis2, 30);
+	MyDebug(L"DW2 hooked");
 	//dwrite3
 	CComPtr<IDWriteFactory3> pDWriteFactory3;
 	HRESULT hr3 = (*factory)->QueryInterface(&pDWriteFactory3);
 	if (FAILED(hr3)) FAILEXIT;
-	void** COM_DW3 = (*reinterpret_cast<void***>(pDWriteFactory3.p));
-	*(DWORD_PTR*)&ORIG_CreateGlyphRunAnalysis3 = *(DWORD_PTR*)&COM_DW3[31];
-	hook_demand_CreateGlyphRunAnalysis3();
+	HOOK(pDWriteFactory3, CreateGlyphRunAnalysis3, 31);
+	MyDebug(L"DW3 hooked");
 	return true;
 
 	/*
@@ -913,6 +906,7 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 	return true;*/
 }
 
+
 #define FAILEXIT {return;}
 void HookD2DDll()
 {
@@ -947,8 +941,9 @@ void HookD2DDll()
 		hook_demand_D2D1CreateDeviceContext();
 	}
 	if (dw) {
+		MyDebug(L"DW hooked for PID %d", GetCurrentProcessId());
 		CComPtr<IDWriteFactory> pDWriteFactory;
-		PFN_DWriteCreateFactory(DWFactory)(DWRITE_FACTORY_TYPE_ISOLATED,
+		(PFN_DWriteCreateFactory(DWFactory))(DWRITE_FACTORY_TYPE_ISOLATED,
 			__uuidof(IDWriteFactory),
 			reinterpret_cast<IUnknown**>(&pDWriteFactory));
 		MakeD2DParams(pDWriteFactory);
@@ -1092,6 +1087,9 @@ HRESULT WINAPI IMPL_DrawGlyphRun(
 			textColor,
 			blackBoxRect
 			);
+		if SUCCEEDED(hr) {
+			MyDebug(L"DrawGlyphRun hooked");
+		}
 	}
 	if (FAILED(hr)) {
 		hr = ORIG_DrawGlyphRun(
@@ -1104,6 +1102,10 @@ HRESULT WINAPI IMPL_DrawGlyphRun(
 			textColor,
 			blackBoxRect
 			);
+		if SUCCEEDED(hr) {
+			MyDebug(L"DrawGlyphRun failed");
+		}
 	}
+	MyDebug(L"DrawGlyphRun hooked");
 	return hr;
 }
