@@ -20,17 +20,24 @@ Here I will show you the steps I do to make the compilation.
 	- FreeType
 		
         Always build multi-thread release.
+
 		Remember to enable options you want in ftoptions.h
+	
 		Compile freetype as Freetype.lib for x86 and freetype64.lib for x64
+	
 		Static library is preferred, you are free to build freetype as independent dlls with better interchangeability but you will lose some compatibility in return, for some programs are delivered with their own copies of freetype which will conflict with your file.
+	
 	- EasyHook
 		
         Only EasyHookDll project is required.
+
 		Build it as easyhk32.lib and easyhk64.lib.
+	
 		Dll filename is not important but you'd better give it a special name to avoid dll confliction as I stated above.
 	- Windows SDK
 		
         Actually it's not something you need to build, but the installation is tricky.
+
 		One word to rule them all: download **ALL COMPONENTS**  in the installation list! Unless you want to waste several hours looking for these mysterious dependencies it pops to you. Don't worry, you will have a second chance to choose which component you want to install after download.
 		
 4. **Build**
