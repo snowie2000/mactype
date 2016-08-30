@@ -71,6 +71,20 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 			HOOK(ptr, CreateDevice3, 28);
 		}
 	}
+	{//factory4
+		CComPtr<ID2D1Factory4> ptr;
+		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+		if (SUCCEEDED(hr)){
+			HOOK(ptr, CreateDevice4, 29);
+		}
+	}
+	{//factory5
+		CComPtr<ID2D1Factory5> ptr;
+		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+		if (SUCCEEDED(hr)){
+			HOOK(ptr, CreateDevice5, 30);
+		}
+	}
 }
 
 void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
@@ -80,12 +94,14 @@ void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
 		CComQIPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
 
 		HOOK(ptr, CreateCompatibleRenderTarget, 12);
+		//HOOK(ptr, DrawGlyphRun2, 29);
 		HOOK(ptr, SetTextAntialiasMode, 34);
 		HOOK(ptr, SetTextRenderingParams, 36);
 
 		ID2D1Factory* pD2D1Factory;
 		pD2D1RenderTarget->GetFactory(&pD2D1Factory);
-		HookFactory(pD2D1Factory);
+		if (pD2D1Factory)
+			HookFactory(pD2D1Factory);
 	}
 	pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
 	pD2D1RenderTarget->SetTextRenderingParams(g_D2DParams.RenderingParams);
@@ -103,7 +119,17 @@ void HookDevice(ID2D1Device* d2dDevice){
 	CComPtr<ID2D1Device2> ptr3;
 	hr = (d2dDevice)->QueryInterface(&ptr3);
 	if SUCCEEDED(hr) {
-		HOOK(ptr2, CreateDeviceContext3, 12);
+		HOOK(ptr3, CreateDeviceContext3, 12);
+	}
+	CComPtr<ID2D1Device3> ptr4;
+	hr = (d2dDevice)->QueryInterface(&ptr4);
+	if SUCCEEDED(hr) {
+		HOOK(ptr4, CreateDeviceContext4, 15);
+	}
+	CComPtr<ID2D1Device4> ptr5;
+	hr = (d2dDevice)->QueryInterface(&ptr5);
+	if SUCCEEDED(hr) {
+		HOOK(ptr5, CreateDeviceContext5, 16);
 	}
 }
 
@@ -629,6 +655,38 @@ HRESULT WINAPI IMPL_CreateDeviceContext3(
 	return hr;
 }
 
+HRESULT WINAPI IMPL_CreateDeviceContext4(
+	ID2D1Device3* This,
+	D2D1_DEVICE_CONTEXT_OPTIONS options,
+	ID2D1DeviceContext3** deviceContext2
+	) {
+	HRESULT hr = ORIG_CreateDeviceContext4(
+		This,
+		options,
+		deviceContext2
+		);
+	if (SUCCEEDED(hr)) {
+		HookRenderTarget(*deviceContext2);
+	}
+	return hr;
+}
+
+HRESULT WINAPI IMPL_CreateDeviceContext5(
+	ID2D1Device4* This,
+	D2D1_DEVICE_CONTEXT_OPTIONS options,
+	ID2D1DeviceContext4** deviceContext
+	) {
+	HRESULT hr = ORIG_CreateDeviceContext5(
+		This,
+		options,
+		deviceContext
+		);
+	if (SUCCEEDED(hr)) {
+		HookRenderTarget(*deviceContext);
+	}
+	return hr;
+}
+
 HRESULT WINAPI IMPL_CreateDevice1(
 	ID2D1Factory1* This,
 	IDXGIDevice* dxgiDevice,
@@ -684,6 +742,46 @@ HRESULT WINAPI IMPL_CreateDevice3(
 		if (!loaded) {
 			loaded = true;
 			HookDevice(*d2dDevice2);
+		}
+	}
+	return hr;
+}
+
+HRESULT WINAPI IMPL_CreateDevice4(
+	ID2D1Factory4* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device3** d2dDevice3
+	){
+	HRESULT hr = ORIG_CreateDevice4(
+		This,
+		dxgiDevice,
+		d2dDevice3
+		);
+	if (SUCCEEDED(hr)) {
+		static bool loaded = false;
+		if (!loaded) {
+			loaded = true;
+			HookDevice(*d2dDevice3);
+		}
+	}
+	return hr;
+}
+
+HRESULT WINAPI IMPL_CreateDevice5(
+	ID2D1Factory5* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device4** d2dDevice4
+	){
+	HRESULT hr = ORIG_CreateDevice5(
+		This,
+		dxgiDevice,
+		d2dDevice4
+		);
+	if (SUCCEEDED(hr)) {
+		static bool loaded = false;
+		if (!loaded) {
+			loaded = true;
+			HookDevice(*d2dDevice4);
 		}
 	}
 	return hr;
@@ -853,7 +951,7 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 {
 	//CoInitialize(NULL);
 #ifdef DEBUG
-	MessageBox(NULL, L"HookDW", NULL, MB_OK);
+	//MessageBox(NULL, L"HookDW", NULL, MB_OK);
 #endif
 	if (InterlockedExchange((LONG*)&bDWLoaded, true)) return false;
 
@@ -928,7 +1026,7 @@ void HookD2DDll()
 		_COM_Outptr_ IUnknown **factory
 		);
 #ifdef DEBUG
-	MessageBox(0, L"HookD2DDll", NULL, MB_OK);
+	//MessageBox(0, L"HookD2DDll", NULL, MB_OK);
 #endif
 	HMODULE d2d1 = LoadLibrary(_T("d2d1.dll"));
 	HMODULE dw = LoadLibrary(_T("dwrite.dll"));
@@ -1112,3 +1210,13 @@ HRESULT WINAPI IMPL_DrawGlyphRun(
 	MyDebug(L"DrawGlyphRun hooked");
 	return hr;
 }
+
+/*
+void WINAPI IMPL_DrawGlyphRun2(
+	D2D1_POINT_2F baselineOrigin,
+	_In_ CONST DWRITE_GLYPH_RUN *glyphRun,
+	_In_ ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode = DWRITE_MEASURING_MODE_NATURAL) 
+{
+	return ORIG_DrawGlyphRun2(baselineOrigin, glyphRun, foregroundBrush, measuringMode);
+}*/

@@ -209,6 +209,18 @@ HOOK_MANUALLY(HRESULT, CreateDeviceContext3, (
 			  ID2D1DeviceContext2** deviceContext
 			  ))
 
+HOOK_MANUALLY(HRESULT, CreateDeviceContext4, (
+			  ID2D1Device3* This,
+			  D2D1_DEVICE_CONTEXT_OPTIONS options,
+			  ID2D1DeviceContext3** deviceContext
+			  ))
+
+HOOK_MANUALLY(HRESULT, CreateDeviceContext5, (
+			  ID2D1Device4* This,
+			  D2D1_DEVICE_CONTEXT_OPTIONS options,
+			  ID2D1DeviceContext4** deviceContext
+			  ))
+
 HOOK_MANUALLY(HRESULT, CreateTextFormat, (
 			   IDWriteFactory* self,
 			   __in_z WCHAR const* fontFamilyName,
@@ -300,4 +312,25 @@ HOOK_MANUALLY(HRESULT, CreateDevice3, (
 	IDXGIDevice* dxgiDevice,
 	ID2D1Device2** d2dDevice2
 	));
+
+HOOK_MANUALLY(HRESULT, CreateDevice4, (
+	ID2D1Factory4* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device3** d2dDevice3
+	));
+
+HOOK_MANUALLY(HRESULT, CreateDevice5, (
+	ID2D1Factory5* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device4** d2dDevice4
+	));
+
+/*
+HOOK_MANUALLY(void, DrawGlyphRun2, (
+	D2D1_POINT_2F baselineOrigin,
+	_In_ CONST DWRITE_GLYPH_RUN *glyphRun,
+	_In_ ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	));*/
+
 //EOF

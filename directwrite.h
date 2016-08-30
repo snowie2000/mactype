@@ -3,6 +3,7 @@
 #include "easyhook.h"
 
 #pragma once
+
 #define HOOK_MANUALLY HOOK_DEFINE
 #define HOOK_DEFINE(rettype, name, argtype) \
 	extern rettype(WINAPI * ORIG_##name) argtype;  \
