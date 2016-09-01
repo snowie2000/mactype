@@ -4,6 +4,7 @@
 #include "gdiPlusFlat2.h"
 #include "cache.h"
 #include "hash_list.h"
+#include <VersionHelpers.h>
 
 #define MACTYPE_VERSION		20160830
 #define MAX_FONT_SETTINGS	16

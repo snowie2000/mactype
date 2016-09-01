@@ -116,8 +116,8 @@ void CGdippSettings::DelayedInit()
 		g_pFTEngine->AddFont(lpszFace, FW_NORMAL, false);*/
 
 
-	DWORD dwVersion = GetVersion();
-/*
+/*	DWORD dwVersion = GetVersion();
+
 	if (m_bDirectWrite && (DWORD)(LOBYTE(LOWORD(dwVersion)))>5)	//vista or later
 	{
 		if (GetModuleHandle(_T("d2d1.dll")))	//directwrite support
@@ -405,7 +405,7 @@ SKIP:
 	m_nCacheMaxBytes = _GetFreeTypeProfileInt(_T("CacheMaxBytes"), 10485760, lpszFile);
 
 	//experimental settings:
-	m_bEnableClipBoxFix = !!_GetFreeTypeProfileIntFromSection(_T("Experimental"), _T("ClipBoxFix"), 0, lpszFile);
+	m_bEnableClipBoxFix = !!_GetFreeTypeProfileIntFromSection(_T("Experimental"), _T("ClipBoxFix"), 1, lpszFile);
 
 	if (m_nFontLoader == SETTING_FONTLOADER_WIN32) {
 		// APIが処理してくれるはずなので自前処理は無効化
@@ -432,9 +432,9 @@ SKIP:
 	InitTuneTable(nTextTuningB, m_nTuneTableB);
 
 	// OSのバージョンがXP以降かどうか
-	OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
-	GetVersionEx(&osvi);
-	m_bIsWinXPorLater = ((osvi.dwMajorVersion > 5) || ((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion >= 1)));
+	//OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
+	//GetVersionEx(&osvi);
+	m_bIsWinXPorLater = IsWindowsXPOrGreater(); 
 
 	STARTUPINFO si = { sizeof(STARTUPINFO) };
 	GetStartupInfo(&si);
