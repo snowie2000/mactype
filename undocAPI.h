@@ -65,7 +65,10 @@ typedef LONG (WINAPI * PFNLdrLoadDll)(
 						 IN UNICODE_STRING2*      ModuleFileName,
 						 OUT HANDLE*             ModuleHandle 
 						 );
-
+typedef BOOL(WINAPI * PFNSetProcessMitigationPolicy)(
+	_In_ PROCESS_MITIGATION_POLICY MitigationPolicy,
+	_In_ PVOID                     lpBuffer,
+	_In_ SIZE_T                    dwLength);
 static TGetTransform GetTransform = (TGetTransform)GetProcAddress(LoadLibrary(_T("gdi32.dll")), "GetTransform");
  /***********************************************************************
   *           GetTransform    (GDI32.@)
@@ -92,3 +95,4 @@ static PFNCreateProcessInternalW CreateProcessInternalW = CreateProcessInternalW
 //static PFNIsWow64Process IsWow64Process=(PFNIsWow64Process)GetProcAddress(LoadLibrary(L"Kernel32.dll"), "IsWow64Process");
 static PFNGetFontResourceInfo GetFontResourceInfo=(PFNGetFontResourceInfo)GetProcAddress(LoadLibrary(L"gdi32.dll"), "GetFontResourceInfoW");
 static PFNLdrLoadDll LdrLoadDll=(PFNLdrLoadDll)GetProcAddress(LoadLibrary(L"ntdll.dll"), "LdrLoadDll");
+static PFNSetProcessMitigationPolicy MySetProcessMitigationPolicy = (PFNSetProcessMitigationPolicy)GetProcAddress(LoadLibrary(L"kernel32.dll"), "SetProcessMitigationPolicy");

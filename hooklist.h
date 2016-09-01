@@ -325,6 +325,12 @@ HOOK_MANUALLY(HRESULT, CreateDevice5, (
 	ID2D1Device4** d2dDevice4
 	));
 
+HOOK_MANUALLY(BOOL, MySetProcessMitigationPolicy, (
+	_In_ PROCESS_MITIGATION_POLICY MitigationPolicy,
+	_In_ PVOID                     lpBuffer,
+	_In_ SIZE_T                    dwLength
+	));
+
 /*
 HOOK_MANUALLY(void, DrawGlyphRun2, (
 	D2D1_POINT_2F baselineOrigin,

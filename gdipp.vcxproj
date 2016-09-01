@@ -174,7 +174,7 @@
       <OutputFile>$(OutDir)MacType.dll</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <ModuleDefinitionFile>expfunc.def</ModuleDefinitionFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -206,7 +206,7 @@
       <OutputFile>$(OutDir)MacType64.dll</OutputFile>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <ModuleDefinitionFile>expfunc.def</ModuleDefinitionFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -220,6 +220,7 @@
     <ClCompile Include="delayhlp.cpp" />
     <ClCompile Include="directwrite.cpp" />
     <ClCompile Include="dll.cpp" />
+    <ClCompile Include="dynCodeHelper.cpp" />
     <ClCompile Include="expfunc.cpp" />
     <ClCompile Include="ft.cpp" />
     <ClCompile Include="ft2vert.c" />
@@ -245,6 +246,7 @@
     <ClInclude Include="delayimp.h" />
     <ClInclude Include="directwrite.h" />
     <ClInclude Include="dll.h" />
+    <ClInclude Include="dynCodeHelper.h" />
     <ClInclude Include="ft.h" />
     <ClInclude Include="ft2build.h" />
     <ClInclude Include="ft2vert.h" />

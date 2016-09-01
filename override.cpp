@@ -1536,6 +1536,18 @@ ETO_CATCH();
 	return ret;
 }
 
+BOOL WINAPI IMPL_MySetProcessMitigationPolicy(
+	_In_ PROCESS_MITIGATION_POLICY MitigationPolicy,
+	_In_ PVOID                     lpBuffer,
+	_In_ SIZE_T                    dwLength
+	)
+{
+	if (MitigationPolicy == ProcessDynamicCodePolicy) {
+		PPROCESS_MITIGATION_DYNAMIC_CODE_POLICY(lpBuffer)->ProhibitDynamicCode = false;
+	}
+	return ORIG_MySetProcessMitigationPolicy(MitigationPolicy, lpBuffer, dwLength);
+}
+
 /*
 HRESULT WINAPI IMPL_ScriptItemize(
   const WCHAR* pwcInChars, 

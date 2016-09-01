@@ -1,5 +1,6 @@
 ﻿#include "directwrite.h"
 #include "settings.h"
+#include "dynCodeHelper.h"
 
 void MyDebug(const TCHAR * sz, ...)
 {
@@ -17,6 +18,7 @@ void MyDebug(const TCHAR * sz, ...)
 
 #define SET_VAL(x, y) *(DWORD_PTR*)&(x) = *(DWORD_PTR*)&(y)
 #define HOOK(obj, name, index) { \
+	AutoEnableDynamicCodeGen dynHelper(true);  \
 	if (!HOOK_##name.Link) {  \
 		SET_VAL(ORIG_##name, (*reinterpret_cast<void***>(obj.p))[index]);  \
 		hook_demand_##name(false);  \
@@ -41,8 +43,131 @@ struct Params {
 };
 
 Params g_D2DParams, g_D2DParamsLarge;
+LONG bDWLoaded = false, bD2D1Loaded = false, bParamInited = false;
+IDWriteFactory* g_pDWriteFactory = NULL;
+IDWriteGdiInterop* g_pGdiInterop = NULL;
+
+bool MakeD2DParams(IDWriteFactory* dw_factory)
+{
+	//CComPtr<IDWriteRenderingParams> dwrpm;
+
+	//if (FAILED(dw_factory->CreateRenderingParams(&dwrpm)))
+	//	return false;
+	if (InterlockedExchange((LONG*)&bParamInited, true)) return false;
+
+	CComPtr<IDWriteFactory> pDWriteFactory;
+	if (NULL == dw_factory) {
+		ORIG_DWriteCreateFactory(DWRITE_FACTORY_TYPE_ISOLATED,
+			__uuidof(IDWriteFactory),
+			reinterpret_cast<IUnknown**>(&pDWriteFactory));
+		dw_factory = pDWriteFactory;
+	}
+
+	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+	//
+
+	g_D2DParams.Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
+	g_D2DParams.EnhancedContrast = 0.5f;
+	g_D2DParams.ClearTypeLevel = 1.0f;
+	switch (pSettings->GetFontSettings().GetAntiAliasMode())
+	{
+	case 2:
+	case 4:
+		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_RGB;
+		break;
+	case 3:
+	case 5:
+		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_BGR;
+		break;
+	default:
+		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_FLAT;
+	}
+
+	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
+	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL_SYMMETRIC;
+	g_D2DParams.GrayscaleEnhancedContrast = 0.5f;
+	g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
+	g_D2DParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
+
+	if (IsWindows8OrGreater()) {	//optimized for win8/win10
+		g_D2DParams.GrayscaleEnhancedContrast = 1.0f;
+		g_D2DParams.EnhancedContrast = 1.0f;
+	}
+
+
+	IDWriteFactory3* dw3 = NULL;
+	IDWriteFactory2* dw2 = NULL;
+	IDWriteFactory1* dw1 = NULL;
+	IDWriteRenderingParams3* r3 = NULL;
+	IDWriteRenderingParams2* r2 = NULL;
+	IDWriteRenderingParams1* r1 = NULL;
+
+	HRESULT hr = dw_factory->QueryInterface(&dw3);
+	if SUCCEEDED(hr) {
+		hr = dw3->CreateCustomRenderingParams(
+			g_D2DParams.Gamma,
+			g_D2DParams.EnhancedContrast,
+			g_D2DParams.GrayscaleEnhancedContrast,
+			g_D2DParams.ClearTypeLevel,
+			g_D2DParams.PixelGeometry,
+			g_D2DParams.RenderingMode1,
+			g_D2DParams.GridFitMode,
+			&r3);
+		dw3->Release();
+		if SUCCEEDED(hr) {
+			g_D2DParams.RenderingParams = r3;
+			return true;
+		}
+	}
+
+	hr = dw_factory->QueryInterface(&dw2);
+	if SUCCEEDED(hr) {
+		hr = dw2->CreateCustomRenderingParams(
+			g_D2DParams.Gamma,
+			g_D2DParams.EnhancedContrast,
+			g_D2DParams.GrayscaleEnhancedContrast,
+			g_D2DParams.ClearTypeLevel,
+			g_D2DParams.PixelGeometry,
+			g_D2DParams.RenderingMode,
+			g_D2DParams.GridFitMode,
+			&r2);
+		dw2->Release();
+		if SUCCEEDED(hr) {
+			g_D2DParams.RenderingParams = r2;
+			return true;
+		}
+	}
+
+	hr = dw_factory->QueryInterface(&dw1);
+	if SUCCEEDED(hr) {
+		hr = dw1->CreateCustomRenderingParams(
+			g_D2DParams.Gamma,
+			g_D2DParams.EnhancedContrast,
+			g_D2DParams.GrayscaleEnhancedContrast,
+			g_D2DParams.ClearTypeLevel,
+			g_D2DParams.PixelGeometry,
+			g_D2DParams.RenderingMode,
+			&r1);
+		dw1->Release();
+		if SUCCEEDED(hr) {
+			g_D2DParams.RenderingParams = r1;
+			return true;
+		}
+	}
+
+	if (FAILED(dw_factory->CreateCustomRenderingParams(
+		g_D2DParams.Gamma,
+		g_D2DParams.EnhancedContrast,
+		g_D2DParams.ClearTypeLevel,
+		g_D2DParams.PixelGeometry,
+		g_D2DParams.RenderingMode,
+		&g_D2DParams.RenderingParams)))
+		return false;
+	return true;
+}
 
 void HookFactory(ID2D1Factory* pD2D1Factory) {
+	MakeD2DParams(NULL);
 	{//factory
 		CComQIPtr<ID2D1Factory> ptr = pD2D1Factory;
 		HOOK(ptr, CreateWicBitmapRenderTarget, 13);
@@ -788,115 +913,6 @@ HRESULT WINAPI IMPL_CreateDevice5(
 }
 
 
-bool MakeD2DParams(IDWriteFactory* dw_factory)
-{
-	//CComPtr<IDWriteRenderingParams> dwrpm;
-
-	//if (FAILED(dw_factory->CreateRenderingParams(&dwrpm)))
-	//	return false;
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	//
-
-	g_D2DParams.Gamma = pSettings->GammaValue()*pSettings->GammaValue()>1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
-	g_D2DParams.EnhancedContrast = 0.5f;
-	g_D2DParams.ClearTypeLevel = 1.0f;
-	switch (pSettings->GetFontSettings().GetAntiAliasMode())
-	{
-	case 2:
-	case 4:
-		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_RGB;
-		break;
-	case 3:
-	case 5:
-		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_BGR;
-		break;
-	default:
-		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_FLAT;
-	}
-
-	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
-	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL_SYMMETRIC;
-	g_D2DParams.GrayscaleEnhancedContrast = 0.5f;
-	g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
-	g_D2DParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
-
-	if (IsWindows8OrGreater()) {	//optimized for win8/win10
-		g_D2DParams.GrayscaleEnhancedContrast = 1.0f;
-		g_D2DParams.EnhancedContrast = 1.0f;
-	}
-
-
-	IDWriteFactory3* dw3 = NULL;
-	IDWriteFactory2* dw2 = NULL;
-	IDWriteFactory1* dw1 = NULL;
-	IDWriteRenderingParams3* r3 = NULL;
-	IDWriteRenderingParams2* r2 = NULL;
-	IDWriteRenderingParams1* r1 = NULL;
-
-	HRESULT hr = dw_factory->QueryInterface(&dw3);
-	if SUCCEEDED(hr) {
-		hr = dw3->CreateCustomRenderingParams(
-			g_D2DParams.Gamma,
-			g_D2DParams.EnhancedContrast,
-			g_D2DParams.GrayscaleEnhancedContrast,
-			g_D2DParams.ClearTypeLevel,
-			g_D2DParams.PixelGeometry,
-			g_D2DParams.RenderingMode1,
-			g_D2DParams.GridFitMode,
-			&r3);
-		dw3->Release();
-		if SUCCEEDED(hr) {
-			g_D2DParams.RenderingParams = r3;
-			return true;
-		}
-	}
-
-	hr = dw_factory->QueryInterface(&dw2);
-	if SUCCEEDED(hr) {
-		hr = dw2->CreateCustomRenderingParams(
-			g_D2DParams.Gamma,
-			g_D2DParams.EnhancedContrast,
-			g_D2DParams.GrayscaleEnhancedContrast,
-			g_D2DParams.ClearTypeLevel,
-			g_D2DParams.PixelGeometry,
-			g_D2DParams.RenderingMode,
-			g_D2DParams.GridFitMode,
-			&r2);
-		dw2->Release();
-		if SUCCEEDED(hr) {
-			g_D2DParams.RenderingParams = r2;
-			return true;
-		}
-	}
-
-	hr = dw_factory->QueryInterface(&dw1);
-	if SUCCEEDED(hr) {
-		hr = dw1->CreateCustomRenderingParams(
-			g_D2DParams.Gamma,
-			g_D2DParams.EnhancedContrast,
-			g_D2DParams.GrayscaleEnhancedContrast,
-			g_D2DParams.ClearTypeLevel,
-			g_D2DParams.PixelGeometry,
-			g_D2DParams.RenderingMode,
-			&r1);
-		dw1->Release();
-		if SUCCEEDED(hr) {
-			g_D2DParams.RenderingParams = r1;
-			return true;
-		}
-	}
-
-	if (FAILED(dw_factory->CreateCustomRenderingParams(
-		g_D2DParams.Gamma,
-		g_D2DParams.EnhancedContrast,
-		g_D2DParams.ClearTypeLevel,
-		g_D2DParams.PixelGeometry,
-		g_D2DParams.RenderingMode,
-		&g_D2DParams.RenderingParams)))
-		return false;
-	return true;
-}
-
 /*
 bool CreateFontFace(IDWriteGdiInterop* gdi, IDWriteFont*** dfont, LOGFONT* lf)
 {
@@ -922,11 +938,6 @@ void WINAPI IMPL_SetTextAntialiasMode(ID2D1RenderTarget* self,  D2D1_TEXT_ANTIAL
 return ORIG_SetTextAntialiasMode(self, g_D2DParamsLarge.AntialiasMode);
 }*/
 
-BOOL bDWLoaded = false, bD2D1Loaded = false;
-IDWriteFactory* g_pDWriteFactory = NULL;
-IDWriteGdiInterop* g_pGdiInterop = NULL;
-
-
 bool hookD2D1() {
 	//MessageBox(NULL, L"HookD2D1", NULL, MB_OK);
 	if (InterlockedExchange((LONG*)&bD2D1Loaded, true)) return false;
@@ -936,6 +947,14 @@ bool hookD2D1() {
 #define FAILEXIT { /*CoUninitialize();*/ return false;}
 bool hookFontCreation(CComPtr<IDWriteFactory>& pDWriteFactory) {
 	if (FAILED(pDWriteFactory->GetGdiInterop(&g_pGdiInterop))) FAILEXIT;	//判断不正确
+
+/*
+	HDC dc = CreateCompatibleDC(0);
+	CComQIPtr<IDWriteBitmapRenderTarget> rt;
+	g_pGdiInterop->CreateBitmapRenderTarget(dc, 1, 1, &rt);	//used to trigger CreateBitmapRenderTarget->DrawGlyphRun hook
+	rt.Release();
+	DeleteDC(dc);*/
+
 	HOOK(pDWriteFactory, CreateTextFormat, 15);
 	CComPtr<IDWriteFont> dfont = NULL;
 	CComPtr<IDWriteFontCollection> fontcollection = NULL;
@@ -959,10 +978,11 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 	CComPtr<IDWriteFactory> pDWriteFactory;
 	HRESULT hr1 = (*factory)->QueryInterface(&pDWriteFactory);
 	if (FAILED(hr1)) FAILEXIT;
-	hookFontCreation(pDWriteFactory);
-
 	HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
 	HOOK(pDWriteFactory, GetGdiInterop, 17);
+	hookFontCreation(pDWriteFactory);
+	MakeD2DParams(pDWriteFactory);
+
 	MyDebug(L"DW1 hooked");
 	//dwrite2
 	CComPtr<IDWriteFactory2> pDWriteFactory2;
@@ -1018,6 +1038,14 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 
 #undef FAILEXIT
 #define FAILEXIT {return;}
+void TriggerHook(ID2D1Factory* d2d_factory) {
+	const D2D1_PIXEL_FORMAT format = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED);
+	const D2D1_RENDER_TARGET_PROPERTIES properties =
+		D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT, format, 0.0f, 0.0f, D2D1_RENDER_TARGET_USAGE_NONE);
+	CComPtr<ID2D1DCRenderTarget>target;
+	if (FAILED(d2d_factory->CreateDCRenderTarget(&properties, &target))) FAILEXIT;
+}
+
 void HookD2DDll()
 {
 	typedef HRESULT (WINAPI *PFN_DWriteCreateFactory)(
@@ -1025,6 +1053,14 @@ void HookD2DDll()
 		_In_ REFIID iid,
 		_COM_Outptr_ IUnknown **factory
 		);
+
+	typedef HRESULT (WINAPI *PFN_D2D1CreateFactory)(
+		D2D1_FACTORY_TYPE factoryType,
+		REFIID riid,
+		const D2D1_FACTORY_OPTIONS* pFactoryOptions,
+		void** ppIFactory
+		);
+	//Sleep(30 * 1000);
 #ifdef DEBUG
 	//MessageBox(0, L"HookD2DDll", NULL, MB_OK);
 #endif
@@ -1050,14 +1086,20 @@ void HookD2DDll()
 	if (D2D1Context) {
 		hook_demand_D2D1CreateDeviceContext();
 	}
-	if (dw) {
+	/*if (dw) {
 		MyDebug(L"DW hooked for PID %d", GetCurrentProcessId());
 		CComPtr<IDWriteFactory> pDWriteFactory;
 		(PFN_DWriteCreateFactory(DWFactory))(DWRITE_FACTORY_TYPE_ISOLATED,
 			__uuidof(IDWriteFactory),
 			reinterpret_cast<IUnknown**>(&pDWriteFactory));
 		MakeD2DParams(pDWriteFactory);
-	}
+	}*/
+	/*if (d2d1) {
+		CComQIPtr<ID2D1Factory> pD2dfactory;
+		D2D1_FACTORY_OPTIONS d2d1Option = { D2D1_DEBUG_LEVEL_NONE };
+		(PFN_D2D1CreateFactory(D2D1Factory))(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), &d2d1Option, reinterpret_cast<void**>(&pD2dfactory));
+		TriggerHook(pD2dfactory);
+	}*/
 }
 
 /*
@@ -1118,7 +1160,7 @@ HRESULT WINAPI IMPL_DWriteCreateFactory(__in DWRITE_FACTORY_TYPE factoryType,
 	__in REFIID iid,
 	__out IUnknown **factory)
 {
-	HRESULT ret = ORIG_DWriteCreateFactory(factoryType, iid, factory);
+	HRESULT ret = ORIG_DWriteCreateFactory(factoryType, iid, factory); 
 	if (!bDWLoaded && SUCCEEDED(ret))
 		hookDirectWrite(factory);
 	return ret;

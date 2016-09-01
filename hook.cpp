@@ -359,6 +359,10 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 				HookD2DDll();
 				//hook_demand_LdrLoadDll();
 			}
+			/*if (IsWindows8OrGreater()) {
+				*(DWORD_PTR*)&(ORIG_MySetProcessMitigationPolicy) = *(DWORD_PTR*)&(MySetProcessMitigationPolicy);
+				//hook_demand_MySetProcessMitigationPolicy();
+			}*/
 //			InstallManagerHook();
 		}
 		//获得当前加载模式
