@@ -1,6 +1,12 @@
 MacType
 ========================
 
+Binary Installer
+------------------
+
+Visit MacType official site to download: 
+
+http://www.mactype.net
 
 How to build
 -------------
