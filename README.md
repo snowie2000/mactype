@@ -17,3 +17,10 @@ How to build
 -------------
 
 Check how to build [document](https://github.com/snowie2000/mactype/blob/master/doc/HOWTOBUILD.md)
+
+Known issue
+---------------
+
+The installer may report a file missing when you do updating from old version. This is a bug in my installer.
+
+Grab a installer and do a fresh install instead.
