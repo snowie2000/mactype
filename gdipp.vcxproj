@@ -221,6 +221,7 @@
     <ClCompile Include="directwrite.cpp" />
     <ClCompile Include="dll.cpp" />
     <ClCompile Include="dynCodeHelper.cpp" />
+    <ClCompile Include="EventLogging.cpp" />
     <ClCompile Include="expfunc.cpp" />
     <ClCompile Include="ft.cpp" />
     <ClCompile Include="ft2vert.c" />
@@ -247,6 +248,7 @@
     <ClInclude Include="directwrite.h" />
     <ClInclude Include="dll.h" />
     <ClInclude Include="dynCodeHelper.h" />
+    <ClInclude Include="EventLogging.h" />
     <ClInclude Include="ft.h" />
     <ClInclude Include="ft2build.h" />
     <ClInclude Include="ft2vert.h" />
