@@ -254,6 +254,7 @@ private:
 	int  m_nBolderMode;
 	int  m_nGammaMode;
 	float m_fGammaValue;
+	float m_fGammaValueForDW;
 	float m_fRenderWeight;
 	float m_fContrast;
 	int  m_nMaxHeight;
@@ -345,6 +346,7 @@ private:
 		, m_nBolderMode(0)
 		, m_nGammaMode(0)
 		, m_fGammaValue(1.0f)
+		, m_fGammaValueForDW(0.0f)
 		, m_fRenderWeight(1.0f)
 		, m_fContrast(1.0f)
 		, m_nMaxHeight(0)
@@ -391,6 +393,7 @@ public:
 	int BolderMode() const { return m_nBolderMode; }
 	int GammaMode() const { return m_nGammaMode; }
 	float GammaValue() const { return m_fGammaValue; }
+	float GammaValueForDW() const {	return m_fGammaValueForDW;	}
 	float RenderWeight() const { return m_fRenderWeight; }
 	float Contrast() const { return m_fContrast; }
 	int MaxHeight() const { return m_nMaxHeight; }

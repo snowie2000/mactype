@@ -63,10 +63,11 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 		dw_factory = pDWriteFactory;
 	}
 
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
 	//
-
-	g_D2DParams.Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
+	g_D2DParams.Gamma = pSettings->GammaValueForDW();	//user defined value preferred.
+	if (g_D2DParams.Gamma == 0)
+		g_D2DParams.Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
 	g_D2DParams.EnhancedContrast = 0.5f;
 	g_D2DParams.ClearTypeLevel = 1.0f;
 	switch (pSettings->GetFontSettings().GetAntiAliasMode())
