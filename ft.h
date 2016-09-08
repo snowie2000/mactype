@@ -334,7 +334,7 @@ struct FreeTypeDrawInfo
 
 	FreeTypeDrawInfo(FREETYPE_PARAMS& fp, HDC dc, LOGFONTW* lf = NULL, CBitmapCache* ca = NULL, const int* dx = NULL, int cbString =0, int xs=0, int ys = 0)
 		: freetype_face(&dummy_freetype_face), cmap_index(0), useKerning(0)
-		, pfi(NULL), pfs(NULL), pftCache(NULL), face_id_list_num(0)
+		, pfi(NULL), pfs(NULL), pftCache(NULL), face_id_list_num(0), ggo_font_list(NULL)
 		, hdc(dc), x(0), y(0), yBase(0), yTop(0), face_id_simsun(NULL), px(0), xBase(0)
 	{
 		render_mode = FT_RENDER_MODE_NORMAL;

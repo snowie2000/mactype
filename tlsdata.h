@@ -19,8 +19,8 @@ public:
 			return pT;
 
 		pT = new T;
-		if(!pT)
-			return NULL;
+ 		if(!pT)
+ 			return NULL;
 
 		if(!::TlsSetValue(tlsindex, pT)) {
 			delete pT;

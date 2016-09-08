@@ -447,7 +447,7 @@ FreeTypeFontCache* FreeTypeFontInfo::GetCache(FTC_ScalerRec& scaler, const LOGFO
 	int weight = lf.lfWeight;
 	weight = weight < FW_BOLD ? 0: 1/*FW_BOLD*/;
 	const bool italic = !!lf.lfItalic;
-	if (scaler.height>0xfff || scaler.width>0xfff || scaler.height<0 || scaler.width<0)	//超大字体不渲染
+	if (scaler.height>0xfff || scaler.width>0xfff/* || scaler.height<0 || scaler.width<0*/)	//超大字体不渲染
 		return NULL;
 	FreeTypeFontCache* p = NULL;
 	UINT hash=getCacheHash(scaler.height, weight, italic, lf.lfWidth ? scaler.width : 0);	//计算hash
@@ -597,7 +597,7 @@ FreeTypeFontInfo* FreeTypeFontEngine::AddFont(void* lpparams)
 	FREETYPE_PARAMS* params = (FREETYPE_PARAMS*)lpparams;
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_FONTENG);
 	const LOGFONT& lplf = *params->lplf;
-	if(lplf.lfFaceName == NULL || _tcslen(lplf.lfFaceName) == 0)
+	if(!*lplf.lfFaceName || _tcslen(lplf.lfFaceName) == 0)
 		return NULL;
 
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
@@ -610,7 +610,7 @@ FreeTypeFontInfo* FreeTypeFontEngine::AddFont(void* lpparams)
 		{
 			delete pfi;
 			ReleaseFaceID();
-			return false;
+			return NULL;
 		}
 /*
 	TCHAR buff[255]={0};
@@ -687,7 +687,7 @@ FreeTypeFontInfo* FreeTypeFontEngine::AddFont(LPCTSTR lpFaceName, int weight, bo
 	{
 		delete pfi;
 		ReleaseFaceID();
-		return false;
+		return NULL;
 	}
 
 	FullNameMap::const_iterator it = m_mfullMap.find(pfi->GetFullName()); //是否在主map表中存在了

@@ -429,10 +429,10 @@ void DeleteCachedFont(HFONT lfont)
 	}
 }
 
-BOOL WINAPI IMPL_GetTextFaceAliasW(HDC hdc, int nLen, LPWSTR lpAliasW)
+int WINAPI IMPL_GetTextFaceAliasW(HDC hdc, int nLen, LPWSTR lpAliasW)
 {
 	//CThreadCounter __counter;
-	BOOL bResult = ORIG_GetTextFaceAliasW(hdc, nLen, lpAliasW);
+	int bResult = ORIG_GetTextFaceAliasW(hdc, nLen, lpAliasW);
 	//LOGFONT lf, lf2;
 	//StringCchCopy(lf.lfFaceName, LF_FACESIZE, lpAliasW);
 	//LOGFONT * lplf = &lf;
@@ -613,6 +613,7 @@ int WINAPI IMPL_GetObjectW(__in HANDLE h, __in int c, __out_bcount_opt(c) LPVOID
 
 HFONT WINAPI IMPL_CreateFontIndirectExW(CONST ENUMLOGFONTEXDV *penumlfex)
 {
+	if (!penumlfex) return NULL;
 	TRACE(L"Creating font \"%s\"\n", penumlfex->elfEnumLogfontEx.elfLogFont.lfFaceName);
 	{
 		if (penumlfex->elfEnumLogfontEx.elfLogFont.lfClipPrecision == FONT_MAGIC_NUMBER)
@@ -1152,8 +1153,9 @@ ETO_TRY();
 
 	const bool bVertical = pSettings->FontLoader()==SETTING_FONTLOADER_FREETYPE?  strFamilyName.c_str()[0]==L'@' :false;
 
-	if (pSettings->MaxHeight() && (bZoomedDC ? DCTrans->TransformYAB(tm.tmHeight) : tm.tmHeight) > pSettings->MaxHeight()) {
-		ETO_THROW(ETOE_INVALIDHDC);	//比较是否是有效大小
+	int nFontHeight = bZoomedDC ? DCTrans->TransformYAB(tm.tmHeight) : tm.tmHeight;
+	if ((pSettings->MaxHeight() && nFontHeight > pSettings->MaxHeight()) || (pSettings->MinHeight() && nFontHeight < pSettings->MinHeight()))  {
+		ETO_THROW(ETOE_INVALIDHDC);	//Font size too small or too big.
 	}
 
 	if (pSettings->IsFontExcluded(strFamilyName.c_str())) {	//比较是否是排除掉的字体

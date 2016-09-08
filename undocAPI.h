@@ -13,7 +13,7 @@ const DWORD GT_WORLD_TO_DEVICE = 0x0204;
 const DWORD GT_WORLD_TO_PAGE = 0x0203;
 const DWORD GT_PAGE_TO_DEVICE = 0x0304;
 
-typedef BOOL(__stdcall * TGetTextFA)(HDC, int, LPWSTR);
+typedef int(__stdcall * TGetTextFA)(HDC, int, LPWSTR);
 typedef BOOL (__stdcall *PFNCreateProcessInternalW) 
 ( 
  HANDLE hToken, 

@@ -8,9 +8,12 @@
 #include <dwrite_1.h>
 #include <dwrite_2.h>
 #include <dwrite_3.h>
+#include "wow64ext.h"
+#include <VersionHelpers.h>
 
 // win2k埲崀
 //#pragma comment(linker, "/subsystem:windows,5.0")
+#pragma comment(lib, "wow64ext.lib")
 
 EXTERN_C LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
 {
@@ -228,7 +231,7 @@ FARPROC K32GetProcAddress(LPCSTR lpProcName)
 
 	CMemLoadDll MemDll;
 	MemDll.MemLoadLibrary(pMem, dwSize, false, false);
-	delete pMem;
+	delete[] pMem;
 	return FARPROC((DWORD_PTR)MemDll.MemGetProcAddress(lpProcName)-MemDll.GetImageBase());	//返回偏移值
 
 #endif
@@ -356,6 +359,62 @@ emit_dw(0xD0FF);	//call eax
 		// gdi++.dll偺僷僗
 		return !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
 	}
+	bool init64From32(DWORD64* remoteaddr, DWORD64 orgEIP)
+	{
+		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
+
+		register BYTE* p = code;
+
+#define emit_(t,x)	*(t* UNALIGNED)p = (t)(x); p += sizeof(t)
+#define emit_db(b)	emit_(BYTE, b)
+#define emit_dw(w)	emit_(WORD, w)
+#define emit_dd(d)	emit_(DWORD, d)
+#define emit_ddp(dp) emit_(DWORD64, dp)
+
+		//側偤偐GetProcAddress偱LoadLibraryW偺傾僪儗僗偑惓偟偔庢傟側偄偙偲偑偁傞偺偱
+		//kernel32偺僿僢僟偐傜帺慜偱庢摼偡傞
+		WCHAR x64Addr[30] = { 0 };
+		if (!GetEnvironmentVariable(L"MACTYPE_X64ADDR", x64Addr, 29)) return false;
+		DWORD64 pfn = wcstoull(x64Addr, NULL, 10);
+		//DWORD64 pfn = getenv("MACTYPE_X64ADDR"); //GetProcAddress64(GetModuleHandle64(L"kernelbase.dll"), "LoadLibraryW");
+		if(!pfn)
+			return false;
+
+		emit_db(0x50);		//push rax
+		emit_db(0x51);		//push rcx
+		emit_db(0x52);		//push rdx
+		emit_db(0x53);		//push rbx
+		emit_dd(0x28ec8348);	//sub rsp,28h
+		emit_db(0x48);		//mov rcx, dllpath
+		emit_db(0xB9);
+		emit_ddp((DWORD64)remoteaddr + offsetof(opcode_data, dllpath));
+		emit_db(0x48);		//mov rsi, LoadLibraryW
+		emit_db(0xBE);
+		emit_ddp(pfn);
+		//emit_db(0x48);
+		emit_db(0xFF);	//call rdi
+		emit_db(0xD6);
+
+		emit_dd(0x28c48348);	//add rsp,28h
+		emit_db(0x5B);
+		emit_db(0x5A);
+		emit_db(0x59);
+		emit_db(0x58);		//popad		
+
+		emit_db(0x48);		//mov rdi, orgRip
+		emit_db(0xBE);
+		emit_ddp(orgEIP);
+		emit_db(0xFF);		//jmp rdi
+		emit_db(0xE6);
+
+		// gdi++.dll偺僷僗
+
+		bool bDll = !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		if (bDll && wcsstr(dllpath, L".dll"))
+			wcscpy(wcsstr(dllpath, L".dll"), L"64.dll");
+		return bDll;
+
+	}
 
 	bool init(DWORD_PTR* remoteaddr, DWORD_PTR orgEIP)
 	{
@@ -363,6 +422,7 @@ emit_dw(0xD0FF);	//call eax
 		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
 
 		register BYTE* p = code;
+#undef emit_ddp
 
 #define emit_(t,x)	*(t* UNALIGNED)p = (t)(x); p += sizeof(t)
 #define emit_db(b)	emit_(BYTE, b)
@@ -411,30 +471,87 @@ emit_dw(0xD0FF);	//call eax
 };
 #include <poppack.h>
 
+// 安全的取得真实系统信息
+VOID SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo)
+{
+	if (NULL == lpSystemInfo)    return;
+	typedef VOID(WINAPI *LPFN_GetNativeSystemInfo)(LPSYSTEM_INFO lpSystemInfo);
+	LPFN_GetNativeSystemInfo fnGetNativeSystemInfo = (LPFN_GetNativeSystemInfo)GetProcAddress(GetModuleHandle(_T("kernel32")), "GetNativeSystemInfo");;
+	if (NULL != fnGetNativeSystemInfo)
+	{
+		fnGetNativeSystemInfo(lpSystemInfo);
+	}
+	else
+	{
+		GetSystemInfo(lpSystemInfo);
+	}
+}
+
+// 获取操作系统位数
+int GetSystemBits()
+{
+	SYSTEM_INFO si;
+	SafeGetNativeSystemInfo(&si);
+	if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 ||
+		si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64)
+	{
+		return 64;
+	}
+	return 32;
+}
+
+static bool bIsOS64 = GetSystemBits() == 64;	// check if running in a x64 system.
+
 #ifdef _M_IX86
 // 巭傔偰偄傞僾儘僙僗偵LoadLibrary偡傞僐乕僪傪拲擖
 EXTERN_C BOOL WINAPI GdippInjectDLL(const PROCESS_INFORMATION* ppi)
 {
-	CONTEXT ctx = { 0 };
-	ctx.ContextFlags = CONTEXT_CONTROL;
-	//CREATE_SUSPENDED側偺偱婎杮揑偵惉岟偡傞偼偢
-	if(!GetThreadContext(ppi->hThread, &ctx))
-		return false;
+	BOOL bIsX64Proc = false;
+	if (bIsOS64 && IsWow64Process(ppi->hProcess, &bIsX64Proc) && !bIsX64Proc)
+	{
+		//x86 process launches a x64 process
+		_CONTEXT64 ctx = { 0 };
+		ctx.ContextFlags = CONTEXT_CONTROL;
+		if (!GetThreadContext64(ppi->hThread, &ctx))
+			return false;
+		opcode_data local;
+		DWORD64 remote = VirtualAllocEx64(ppi->hProcess, NULL, sizeof(opcode_data), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+		if (!remote)
+			return false;
 
-	opcode_data local;
-	opcode_data* remote = (opcode_data*)VirtualAllocEx(ppi->hProcess, NULL, sizeof(opcode_data), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-	if(!remote)
-		return false;
+		if (!local.init64From32((DWORD64*)remote, ctx.Rip)
+			|| !WriteProcessMemory64(ppi->hProcess, remote, &local, sizeof(opcode_data), NULL)) {
+			VirtualFreeEx64(ppi->hProcess, remote, 0, MEM_RELEASE);
+			return false;
+		}
 
-	if(!local.init32((LPDWORD)remote, ctx.Eip)
-		|| !WriteProcessMemory(ppi->hProcess, remote, &local, sizeof(opcode_data), NULL)) {
+		//FlushInstructionCache64(ppi->hProcess, remote, sizeof(opcode_data));
+		//FARPROC a=(FARPROC)remote;
+		//a();
+		ctx.Rip = (DWORD64)remote;
+		return !!SetThreadContext64(ppi->hThread, &ctx);
+	}
+	else {
+		CONTEXT ctx = { 0 };
+		ctx.ContextFlags = CONTEXT_CONTROL;
+		if (!GetThreadContext(ppi->hThread, &ctx))
+			return false;
+
+		opcode_data local;
+		opcode_data* remote = (opcode_data*)VirtualAllocEx(ppi->hProcess, NULL, sizeof(opcode_data), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+		if (!remote)
+			return false;
+
+		if (!local.init32((LPDWORD)remote, ctx.Eip)
+			|| !WriteProcessMemory(ppi->hProcess, remote, &local, sizeof(opcode_data), NULL)) {
 			VirtualFreeEx(ppi->hProcess, remote, 0, MEM_RELEASE);
 			return false;
-	}
+		}
 
-	FlushInstructionCache(ppi->hProcess, remote, sizeof(opcode_data));
-	ctx.Eip = (DWORD)remote;
-	return !!SetThreadContext(ppi->hThread, &ctx);
+		FlushInstructionCache(ppi->hProcess, remote, sizeof(opcode_data));
+		ctx.Eip = (DWORD)remote;
+		return !!SetThreadContext(ppi->hThread, &ctx);
+	}
 }
 #else
 EXTERN_C BOOL WINAPI GdippInjectDLL(const PROCESS_INFORMATION* ppi)
@@ -599,6 +716,25 @@ bool AddPathEnv(CArray<LPWSTR>& arr, LPWSTR dir, int dirlen)
 	return false;
 }
 
+bool AddX64Env(CArray<LPWSTR>& arr)
+{
+	FARPROC k32 = /*IsWindows7OrGreater()? GetProcAddress(GetModuleHandle(L"kernelbase.dll"), "LoadLibraryW") :*/ GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryW");
+	WCHAR szAddr[20] = { 0 };
+	_ui64tow((DWORD64)k32, szAddr, 10);
+	//wsprintf(szAddr, L"%Ld", (DWORD_PTR)k32);
+	size_t cch = wcslen(szAddr) + sizeof("MACTYPE_X64ADDR=") + 1;
+	LPWSTR p = (LPWSTR)calloc(sizeof(WCHAR), cch);
+	if (p) {
+		StringCchCopyW(p, cch, L"MACTYPE_X64ADDR=");
+		StringCchCatW(p, cch, szAddr);
+		if (arr.Add(p)) {
+			return true;
+		}
+		free(p);
+	}
+	return false;
+}
+
 EXTERN_C LPWSTR WINAPI GdippEnvironment(DWORD& dwCreationFlags, LPVOID lpEnvironment)
 {
 	TCHAR dir[MAX_PATH];
@@ -640,6 +776,14 @@ EXTERN_C LPWSTR WINAPI GdippEnvironment(DWORD& dwCreationFlags, LPVOID lpEnviron
 	if (ret) {
 		ret = AddPathEnv(envs, dir, dirlen);
 	}
+#ifdef _WIN64
+	{
+		GetEnvironmentVariableW(L"MACTYPE_X64ADDR", NULL, 0);
+		if (GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
+			ret = AddX64Env(envs);
+		}
+	}
+#endif
 	if (ret) {
 		pEnvW = ArrayToMultiSz(envs);
 	}

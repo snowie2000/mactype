@@ -1153,7 +1153,7 @@ BOOL FreeTypePrepare(FreeTypeDrawInfo& FTInfo)
 	if (FTInfo.params->alpha < 1)
 		FTInfo.params->alpha = 1;
 
-	if (lf.lfFaceName == NULL)
+	if (!*lf.lfFaceName)
 		return FALSE;	//optimized
 	FTInfo.face_id_list_num = 0;
 	//Assert(_tcsicmp(lf.lfFaceName, _T("@Arial Unicode MS")) != 0);

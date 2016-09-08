@@ -40,7 +40,7 @@ HOOK_DEFINE(BOOL, CreateProcessInternalW, (\
 // HOOK_DEFINE(BOOL, GetTextExtentPoint32W, (HDC hdc, LPCWSTR lpString, int cbString, LPSIZE lpSize))
 HOOK_DEFINE(int, GetObjectW,  (__in HANDLE h, __in int c, __out_bcount_opt(c) LPVOID pv))
 HOOK_DEFINE(int, GetObjectA,  (__in HANDLE h, __in int c, __out_bcount_opt(c) LPVOID pv))
-HOOK_DEFINE(BOOL, GetTextFaceAliasW, (HDC hdc, int nLen, LPWSTR lpAliasW))
+HOOK_DEFINE(int, GetTextFaceAliasW, (HDC hdc, int nLen, LPWSTR lpAliasW))
 HOOK_DEFINE(BOOL, DeleteObject, ( HGDIOBJ hObject))
 HOOK_DEFINE(int, GetTextFaceW, ( __in HDC hdc, __in int c, __out_ecount_part_opt(c, return)  LPWSTR lpName))
 HOOK_DEFINE(int, GetTextFaceA, ( __in HDC hdc, __in int c, __out_ecount_part_opt(c, return)  LPSTR lpName))

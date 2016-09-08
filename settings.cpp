@@ -144,7 +144,7 @@ bool CGdippSettings::LoadSettings(HINSTANCE hModule)
 	if (wcsstr(m_szFileName, L"64"))
 		wcscpy(wcsstr(m_szFileName, L"64"), wcsstr(m_szFileName, L"64")+2);	//删掉其中的64，统一使用mactype.ini配置文件
 #endif
-	wcsncat(m_szFileName, _T(".ini"), MAX_PATH);
+	wcsncat(m_szFileName, _T(".ini"), MAX_PATH-1);
 	//StringCchCat(m_szFileName, MAX_PATH, _T(".ini"));
 	return LoadAppSettings(m_szFileName);
 }
@@ -378,6 +378,7 @@ SKIP:
 
 	m_bIsInclude	= !!_GetFreeTypeProfileInt(_T("UseInclude"), false, lpszFile);
 	m_nMaxHeight	= _GetFreeTypeProfileBoundInt(_T("MaxHeight"), 0, 0, 0xfff, lpszFile);	//最高只能到65535，cache的限制，而且大字体无实际价值
+	m_nMinHeight = _GetFreeTypeProfileBoundInt(_T("MinHeight"), 0, 0, m_nMaxHeight, lpszFile);	//Minimum size of rendered font. DPI aware alternative.
 	m_nBitmapHeight = _GetFreeTypeProfileBoundInt(_T("MaxBitmap"), 0, 0, 255, lpszFile);
 	m_bHintSmallFont = _GetFreeTypeProfileInt(_T("HintSmallFont"), 0, lpszFile);
 	m_bDirectWrite = _GetFreeTypeProfileInt(_T("DirectWrite"), 0, lpszFile);
@@ -1151,8 +1152,8 @@ void CFontLinkInfo::init()
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 	if (pSettings->FontSubstitutes()>=SETTING_FONTSUBSTITUTE_INIONLY && pSettings->CopyForceFont(truefont, syslf))	//使用完全替换模式时，替换掉系统字体
 	{
-		WCHAR envname[30];
-		WCHAR envvalue[30];
+		WCHAR envname[30] = L"MT_SYSFONT";
+		WCHAR envvalue[30] = { 0 };
 		HFONT tempfont;
 		if (GetEnvironmentVariable(L"MT_SYSFONT", envvalue, 29) && GetObjectType(tempfont = (HFONT)wcstoull(envvalue, 0 ,10)) == OBJ_FONT)//已经有字体存在
 		{
@@ -1189,7 +1190,7 @@ void CFontLinkInfo::init()
 	
 	for (int i=0; i<FF_DECORATIVE+1; ++i)	//转换字体名称
 	{
-		if (DefaultFontLink[i])
+		if (!*DefaultFontLink[i])
 			GetFontLocalName(DefaultFontLink[i], DefaultFontLink[i]);
 	}
 
@@ -1397,7 +1398,7 @@ void GetMacTypeInternalFontName(LOGFONT* lf, LPTSTR fn)
 const LOGFONT *
 CFontSubstitutesInfo::lookup(LOGFONT& lf) const
 {
-	if (GetSize() <= 0) return false;
+	if (GetSize() <= 0) return NULL;
 	//bFontExist = true;
 	CFontSubstituteData v;
 	CFontSubstituteData k;

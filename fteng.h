@@ -370,7 +370,7 @@ public:
 	bool IsPixel;
 	UINT getCacheHash(int px, int weight, bool italic, int width) {return ((px<<20)|(width<<8)|(weight<<1)|(int)italic); };	//计算一个hash值来定位cache
 	FreeTypeFontInfo(int n, LPCTSTR name, int weight, bool italic, int mru, wstring fullname, wstring familyname)
-		: m_id(n), m_weight(weight), m_italic(italic), m_OS2Table(NULL)
+		: m_id(n), m_weight(weight), m_italic(italic), m_OS2Table(NULL), IsPixel(false)
 		, FreeTypeMruCounter(mru), m_isSimSun(false), m_ggoFont(NULL), m_linkinited(false), m_linknum(0)
 		, m_SimSunID(0), count(1), m_fullname(fullname), m_familyname(familyname), m_hashinting(3), m_nFontFamily(0)
 	{

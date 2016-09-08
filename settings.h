@@ -150,7 +150,7 @@ public:
 	void clear();
 	const bool IsAllowFontLink(BYTE aCharset) const { return AllowDefaultLink[aCharset]; }
 	const LPCWSTR sysfn(int nFontFamily) const { 
-		return DefaultFontLink[nFontFamily] ? DefaultFontLink[nFontFamily] : DefaultFontLink[1];	}
+		return *DefaultFontLink[nFontFamily] ? DefaultFontLink[nFontFamily] : DefaultFontLink[1];	}
 	const LPCWSTR * lookup(LPCWSTR fontname) const;
 	LPCWSTR get(int row, int col) const;
 };
@@ -258,6 +258,7 @@ private:
 	float m_fRenderWeight;
 	float m_fContrast;
 	int  m_nMaxHeight;
+	int  m_nMinHeight;
 	int  m_nBitmapHeight;
 	int  m_nLcdFilter;
 	int  m_nShadow[4];
@@ -350,6 +351,7 @@ private:
 		, m_fRenderWeight(1.0f)
 		, m_fContrast(1.0f)
 		, m_nMaxHeight(0)
+		, m_nMinHeight(0)
 		, m_nBitmapHeight(0)
 		, m_nLcdFilter(0)
 		, m_nCacheMaxFaces(0)
@@ -397,6 +399,7 @@ public:
 	float RenderWeight() const { return m_fRenderWeight; }
 	float Contrast() const { return m_fContrast; }
 	int MaxHeight() const { return m_nMaxHeight; }
+	int MinHeight() const { return m_nMinHeight; }
 	int BitmapHeight() const { return m_nBitmapHeight; }
 	int LcdFilter() const { return m_nLcdFilter; }
 	const unsigned char* LcdFilterWeights() const { return m_arrLcdFilterWeights; }
@@ -653,7 +656,7 @@ public:
 				}
 				else
 				{
-					pSettings->m_nShadowLightColor = pSettings->m_nShadowLightColor;		//否则和浅色阴影相同
+					//pSettings->m_nShadowLightColor = pSettings->m_nShadowLightColor;		//否则和浅色阴影相同
 					pSettings->m_nShadow[3] = pSettings->m_nShadow[2];		//深度也相同
 				}
 				RefreshAlphaTable();

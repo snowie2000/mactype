@@ -122,6 +122,7 @@
       <SubSystem>Windows</SubSystem>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalOptions>/DEBUG</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -150,6 +151,7 @@
       <SubSystem>Windows</SubSystem>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX64</TargetMachine>
+      <AdditionalOptions>/DEBUG %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -267,6 +269,7 @@
     <ClInclude Include="supinfo.h" />
     <ClInclude Include="tlsdata.h" />
     <ClInclude Include="undocAPI.h" />
+    <ClInclude Include="wow64ext.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="gdidll.rc" />

@@ -18,8 +18,8 @@ void MyDebug(const TCHAR * sz, ...)
 
 #define SET_VAL(x, y) *(DWORD_PTR*)&(x) = *(DWORD_PTR*)&(y)
 #define HOOK(obj, name, index) { \
-	AutoEnableDynamicCodeGen dynHelper(true);  \
 	if (!HOOK_##name.Link) {  \
+		AutoEnableDynamicCodeGen dynHelper(true);  \
 		SET_VAL(ORIG_##name, (*reinterpret_cast<void***>(obj.p))[index]);  \
 		hook_demand_##name(false);  \
 		if (!HOOK_##name.Link) { MyDebug(L"##name hook failed"); }  \
