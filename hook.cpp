@@ -21,6 +21,10 @@
 #include <VersionHelpers.h>
 #include "EventLogging.h"
 
+#ifndef _WIN64
+#include "wow64ext.h"
+#endif
+
 #pragma comment(lib, "delayimp")
 
 HINSTANCE g_dllInstance;
@@ -459,18 +463,9 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 
 		//5
 		if (!IsProcessExcluded() && !IsUnload) {
-			//6 乣 9
-			// FreeType
-			//新的缓存
-// 			for (int i=0;i<CACHE_SIZE;i++)
-// 				g_AACache2[i] = new COLORCACHE;//生成默认的20个缓存
-
-			//g_charmapCache = (FT_Int*)malloc(100*sizeof(FT_Int));
-			//memset(g_charmapCache, 0xff, 100*sizeof(FT_Int));
-			//AACache = new BYTE[CACHE_SIZE *3 *256 * 256];
-			//AACacheFull = new BYTE[CACHE_SIZE *3 *256 * 256];
-			//memset(AACache, 0xcc, CACHE_SIZE *3 *256 * 256);
-			//memset(AACacheFull, 0xcc, CACHE_SIZE *3 *256 * 256);
+#ifndef _WIN64
+			InitWow64ext();
+#endif
 			if (!FontLInit()) {
 				return FALSE;
 			}
