@@ -379,7 +379,7 @@ emit_dw(0xD0FF);	//call eax
 		if (!GetEnvironmentVariable(L"MACTYPE_X64ADDR", x64Addr, 29)) return false;
 		DWORD64 pfn = wcstoull(x64Addr, NULL, 10);
 		//DWORD64 pfn = getenv("MACTYPE_X64ADDR"); //GetProcAddress64(GetModuleHandle64(L"kernelbase.dll"), "LoadLibraryW");
-		if(!pfn)
+		if (!pfn)
 			return false;
 
 		emit_db(0x50);		//push rax
@@ -415,7 +415,97 @@ emit_dw(0xD0FF);	//call eax
 		if (bDll && wcsstr(dllpath, L".dll"))
 			wcscpy(wcsstr(dllpath, L".dll"), L"64.dll");
 		return bDll;
+	}
 
+	bool init64From32(DWORD64* remoteaddr, DWORD64 orgEIP, DWORD dwLoaderOffset)
+	{
+		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
+
+		register BYTE* p = code;
+
+#define emit_(t,x)	*(t* UNALIGNED)p = (t)(x); p += sizeof(t)
+#define emit_db(b)	emit_(BYTE, b)
+#define emit_dw(w)	emit_(WORD, w)
+#define emit_dd(d)	emit_(DWORD, d)
+#define emit_ddp(dp) emit_(DWORD64, dp)
+
+//get kernelbase.dll imagebase
+//credit to http://www.52pojie.cn/thread-162625-1-1.html
+/*asm:
+	mov rsi, [gs:60h]   ;     peb from teb
+	mov rsi, [rsi+18h]    ;_peb_ldr_data from peb
+	mov rsi, [rsi+30h]   ;InInitializationOrderModuleList.Flink,
+	mov rsi, [rsi]  ;kernelbase.dll
+	;mov rsi, [rsi]      ;kernel32.dll (not used for win7+)
+	mov rsi, [rsi+10h]
+*/
+		emit_db(0x65);
+		emit_db(0x48);
+		emit_db(0x8B);
+		emit_db(0x34);
+		emit_db(0x25);
+		emit_db(0x60);
+		emit_db(0x00);
+		emit_db(0x00);
+		emit_db(0x00);
+		emit_db(0x48);
+		emit_db(0x8B);
+		emit_db(0x76);
+		emit_db(0x18);
+		emit_db(0x48);
+		emit_db(0x8B);
+		emit_db(0x76);
+		emit_db(0x30);
+		emit_db(0x48);
+		emit_db(0x8B);
+		emit_db(0x36);
+		emit_db(0x48);
+		emit_db(0x8B);
+		emit_db(0x76);
+		emit_db(0x10);
+//rsi = kernelbase.dll baseaddress
+
+		emit_db(0x50);		//push rax
+		emit_db(0x51);		//push rcx
+		emit_db(0x52);		//push rdx
+		emit_db(0x53);		//push rbx
+		emit_dd(0x28ec8348);	//sub rsp,28h
+		emit_db(0x48);		//mov rcx, dllpath
+		emit_db(0xB9);
+		emit_ddp((DWORD64)remoteaddr + offsetof(opcode_data, dllpath));
+		emit_db(0x45);
+		emit_db(0x31);
+		emit_db(0xC0);
+		emit_db(0x31);
+		emit_db(0xD2);	//xor r8d, r8d; xor edx,edx
+		//emit_db(0x48);		//mov rsi, LoadLibraryExW
+		//emit_db(0xBE);
+		emit_db(0x48);
+		emit_db(0x81);
+		emit_db(0xC6);	//add rsi, offset LoadLibraryExW
+		emit_dd(dwLoaderOffset);
+		//emit_db(0x48);
+		emit_db(0xFF);	//call rsi
+		emit_db(0xD6);
+
+		emit_dd(0x28c48348);	//add rsp,28h
+		emit_db(0x5B);
+		emit_db(0x5A);
+		emit_db(0x59);
+		emit_db(0x58);		//popad		
+
+		emit_db(0x48);		//mov rdi, orgRip
+		emit_db(0xBE);
+		emit_ddp(orgEIP);
+		emit_db(0xFF);		//jmp rdi
+		emit_db(0xE6);
+
+		// gdi++.dll‚ÌƒpƒX
+
+		bool bDll = !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		if (bDll && wcsstr(dllpath, L".dll"))
+			wcscpy(wcsstr(dllpath, L".dll"), L"64.dll");
+		return bDll;
 	}
 
 	bool init(DWORD_PTR* remoteaddr, DWORD_PTR orgEIP)
@@ -516,13 +606,34 @@ EXTERN_C BOOL WINAPI GdippInjectDLL(const PROCESS_INFORMATION* ppi)
 		ctx.ContextFlags = CONTEXT_CONTROL;
 		if (!GetThreadContext64(ppi->hThread, &ctx))
 			return false;
+		static bool bTryLoadDll64 = false;
+		static DWORD dwLoaderOffset = 0;
+		if (!bTryLoadDll64) {
+			bTryLoadDll64 = true;
+			GetEnvironmentVariable(L"MACTYPE_X64ADDR", NULL, 0);
+			if (GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
+				// kernel32.dll not loaded
+				DWORD64 hKernel32Dll = 0;
+				if (IsWindows7OrGreater())
+					hKernel32Dll = LoadLibraryW64(L"kernelbase.dll");
+				else
+					hKernel32Dll = LoadLibraryW64(L"kernel32.dll");
+
+				if (hKernel32Dll) {
+					DWORD64 pfnLdrAddr = GetProcAddress64(hKernel32Dll, "LoadLibraryExW");
+					if (pfnLdrAddr) {
+						dwLoaderOffset = (DWORD)(pfnLdrAddr - hKernel32Dll);
+					}
+				}
+			}
+		}
+
 		opcode_data local;
 		DWORD64 remote = VirtualAllocEx64(ppi->hProcess, NULL, sizeof(opcode_data), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 		if (!remote)
 			return false;
-
-		if (!local.init64From32((DWORD64*)remote, ctx.Rip)
-			|| !WriteProcessMemory64(ppi->hProcess, remote, &local, sizeof(opcode_data), NULL)) {
+		bool basmIniter = dwLoaderOffset ? local.init64From32((DWORD64*)remote, ctx.Rip, dwLoaderOffset) : local.init64From32((DWORD64*)remote, ctx.Rip);
+		if (!basmIniter	|| !WriteProcessMemory64(ppi->hProcess, remote, &local, sizeof(opcode_data), NULL)) {
 			VirtualFreeEx64(ppi->hProcess, remote, 0, MEM_RELEASE);
 			return false;
 		}
@@ -720,7 +831,7 @@ bool AddPathEnv(CArray<LPWSTR>& arr, LPWSTR dir, int dirlen)
 
 bool AddX64Env(CArray<LPWSTR>& arr)
 {
-	FARPROC k32 = /*IsWindows7OrGreater()? GetProcAddress(GetModuleHandle(L"kernelbase.dll"), "LoadLibraryW") :*/ GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryW");
+	FARPROC k32 = GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryW");
 	WCHAR szAddr[20] = { 0 };
 	_ui64tow((DWORD64)k32, szAddr, 10);
 	//wsprintf(szAddr, L"%Ld", (DWORD_PTR)k32);
