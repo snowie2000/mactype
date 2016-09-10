@@ -382,6 +382,7 @@ SKIP:
 	m_nBitmapHeight = _GetFreeTypeProfileBoundInt(_T("MaxBitmap"), 0, 0, 255, lpszFile);
 	m_bHintSmallFont = _GetFreeTypeProfileInt(_T("HintSmallFont"), 0, lpszFile);
 	m_bDirectWrite = _GetFreeTypeProfileInt(_T("DirectWrite"), 0, lpszFile);
+	m_nRenderingModeForDW	= _GetFreeTypeProfileInt(_T("RenderingModeForDW"), 5, lpszFile);
 	m_nLcdFilter	= _GetFreeTypeProfileInt(_T("LcdFilter"), 0, lpszFile);
 	m_nFontSubstitutes = _GetFreeTypeProfileBoundInt(_T("FontSubstitutes"),
 													 SETTING_FONTSUBSTITUTE_DISABLE,
