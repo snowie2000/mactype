@@ -85,12 +85,7 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 	}
 
 	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
-	if (IsWindows8Point1OrGreater()) {
-		g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL_SYMMETRIC;
-	} else {
-		// Use DWRITE_RENDERING_MODE_OUTLINE on Windows versions don't have DWRITE_GRID_FIT_MODE support (windows 7/8) for better result
-		g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_OUTLINE;
-	}
+	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL_SYMMETRIC;
 	g_D2DParams.GrayscaleEnhancedContrast = 0.5f;
 	g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
 	g_D2DParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
