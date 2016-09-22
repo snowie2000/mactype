@@ -24,7 +24,6 @@
 #ifndef _WIN64
 #include "wow64ext.h"
 #endif
-
 #pragma comment(lib, "delayimp")
 
 HINSTANCE g_dllInstance;
@@ -408,12 +407,16 @@ extern COLORCACHE* g_AACache2[MAX_CACHE_SIZE];
 HANDLE hDelayHook = 0;
 BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 {
+	static bool bDllInited = false;
 	BOOL IsUnload = false, bEnableDW = true;
 	switch(reason) {
 	case DLL_PROCESS_ATTACH:
 #ifdef DEBUG
 		//MessageBox(0, L"Load", NULL, MB_OK);
 #endif
+		if (bDllInited)
+			return true;
+		bDllInited = true;
 		g_dllInstance = instance;
 		//弶婜壔弴彉
 		//DLL_PROCESS_DETACH偱偼偙傟偺媡弴偵偡傞
@@ -526,6 +529,9 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 		break;
 	case DLL_PROCESS_DETACH:
 //		RemoveManagerHook();
+		if (!bDllInited)
+			return true;
+		bDllInited = false;
 		if (InterlockedExchange(&g_bHookEnabled, FALSE) && lpReserved == NULL) {	//如果是进程终止，则不需要释放
 			hook_term();
 			//delete AACacheFull;

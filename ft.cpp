@@ -1346,7 +1346,7 @@ BOOL FreeTypePrepare(FreeTypeDrawInfo& FTInfo)
 		}
 	}
 
-	if (pSettings->HintSmallFont() && font_type.flags & FT_LOAD_TARGET_LIGHT && font_type.height!=-1 && font_type.height<12)  //通用设置不使用hinting，但是打开了小字体hinting开关
+	if (pSettings->HintSmallFont() /*&& font_type.flags & FT_LOAD_TARGET_LIGHT*/ && font_type.height!=-1 && font_type.height<12)  //通用设置不使用hinting，但是打开了小字体hinting开关
 	{	
 		/*
 		if (!(freetype_face->face_flags & FT_FACE_FLAG_TRICKY))	//如果不是tricky字体
