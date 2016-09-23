@@ -76,12 +76,14 @@ void CGdippSettings::DelayedInit()
 	
 	m_bDelayedInit = true;
 
+	HDC hdc = GetDC(NULL);
 	//ForceChangeFont
 	if (m_szForceChangeFont[0]) {
-		HDC hdc = GetDC(NULL);
 		EnumFontFamilies(hdc, m_szForceChangeFont, EnumFontFamProc, reinterpret_cast<LPARAM>(this));
-		ReleaseDC(NULL, hdc);
 	}
+	//fetch screen dpi
+	m_nScreenDpi = GetDeviceCaps(hdc, LOGPIXELSX);
+	ReleaseDC(NULL, hdc);
 
 // 	//FontLink
 // 	if (FontLink()) {

@@ -266,6 +266,7 @@ private:
 	int	 m_bFontLink;	//改为可以使用多种参数
 	int  m_nWidthMode;
 	int  m_nFontLoader;
+	int	 m_nScreenDpi;	// screen dpi
 	DWORD m_nShadowLightColor;
 	DWORD m_nShadowDarkColor;
 	unsigned char m_arrLcdFilterWeights[5];
@@ -359,6 +360,7 @@ private:
 		, m_nCacheMaxBytes(0)
 		, m_bHintSmallFont(true)
 		, m_bDirectWrite(true)
+		, m_nScreenDpi(96)
 	{
 		ZeroMemory(m_nTuneTable,		sizeof(m_nTuneTable));
 		ZeroMemory(m_nTuneTableR,		sizeof(m_nTuneTableR));
@@ -401,6 +403,7 @@ public:
 	int MaxHeight() const { return m_nMaxHeight; }
 	int MinHeight() const { return m_nMinHeight; }
 	int BitmapHeight() const { return m_nBitmapHeight; }
+	int ScreenDpi() const { return m_nScreenDpi;  }
 	int LcdFilter() const { return m_nLcdFilter; }
 	const unsigned char* LcdFilterWeights() const { return m_arrLcdFilterWeights; }
 	bool UseCustomLcdFilter() const { return m_bUseCustomLcdFilter; }
