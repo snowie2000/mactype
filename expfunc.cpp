@@ -361,7 +361,7 @@ emit_dw(0xD0FF);	//call eax
 		// gdi++.dll‚ÌƒpƒX
 		return !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
 	}
-	bool init64From32(DWORD64* remoteaddr, DWORD64 orgEIP)
+	bool init64From32(DWORD64 remoteaddr, DWORD64 orgEIP)
 	{
 		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
 
@@ -417,7 +417,7 @@ emit_dw(0xD0FF);	//call eax
 		return bDll;
 	}
 
-	bool init64From32(DWORD64* remoteaddr, DWORD64 orgEIP, DWORD dwLoaderOffset)
+	bool init64From32(DWORD64 remoteaddr, DWORD64 orgEIP, DWORD dwLoaderOffset)
 	{
 		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
 
@@ -632,7 +632,7 @@ EXTERN_C BOOL WINAPI GdippInjectDLL(const PROCESS_INFORMATION* ppi)
 		DWORD64 remote = VirtualAllocEx64(ppi->hProcess, NULL, sizeof(opcode_data), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 		if (!remote)
 			return false;
-		bool basmIniter = dwLoaderOffset ? local.init64From32((DWORD64*)remote, ctx.Rip, dwLoaderOffset) : local.init64From32((DWORD64*)remote, ctx.Rip);
+		bool basmIniter = dwLoaderOffset ? local.init64From32(remote, ctx.Rip, dwLoaderOffset) : local.init64From32(remote, ctx.Rip);
 		if (!basmIniter	|| !WriteProcessMemory64(ppi->hProcess, remote, &local, sizeof(opcode_data), NULL)) {
 			VirtualFreeEx64(ppi->hProcess, remote, 0, MEM_RELEASE);
 			return false;
