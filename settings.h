@@ -251,6 +251,7 @@ private:
 
 	BOOL m_bHintSmallFont;
 	BOOL m_bDirectWrite;
+	int  m_nRenderingModeForDW;
 	int  m_nBolderMode;
 	int  m_nGammaMode;
 	float m_fGammaValue;
@@ -359,6 +360,7 @@ private:
 		, m_nCacheMaxBytes(0)
 		, m_bHintSmallFont(true)
 		, m_bDirectWrite(true)
+		, m_nRenderingModeForDW(5)
 	{
 		ZeroMemory(m_nTuneTable,		sizeof(m_nTuneTable));
 		ZeroMemory(m_nTuneTableR,		sizeof(m_nTuneTableR));
@@ -389,6 +391,7 @@ public:
 	bool LoadOnDemand() const { return m_bLoadOnDemand; }
 	char FontLink() const { return m_bFontLink; }
 	BOOL DirectWrite() const { return m_bDirectWrite; }
+	int  RenderingModeForDW() const { return m_nRenderingModeForDW; }
 	BOOL HintSmallFont() const { return m_bHintSmallFont; }
 //	bool EnableKerning() const { return m_bEnableKerning; }
 
