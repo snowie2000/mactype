@@ -1749,7 +1749,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 								GetCharABCWidths(FTInfo.hdc, wch, wch, &abc);*/
 							//FTInfo.px = FTInfo.x+Max(clpdx.get(cx), abc.abcA+(int)abc.abcB+abc.abcC);	//无效文字的情况下，绘图宽度=鼠标位置
 							FTInfo.px = FTInfo.x + cx;	
-							FTInfo.x += dxWidth;//Max(clpdx.get(cx), cx);/*(int)abc.abcB+abc.abcC*///Max(clpdx.get(cx), abc.abcB? abc.abcA:0);
+							FTInfo.x += cx;// dxWidth;//Max(clpdx.get(cx), cx);/*(int)abc.abcB+abc.abcC*///Max(clpdx.get(cx), abc.abcB? abc.abcA:0);
 						//}
 					}
 				if (!isc)
