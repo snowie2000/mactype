@@ -120,12 +120,6 @@ BOOL IsProcessExcluded();
 BOOL IsProcessUnload();
 BOOL IsExeUnload(LPCTSTR lpApp);
 
-FORCEINLINE BOOL IsOSXPorLater()
-{
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	return pSettings->IsWinXPorLater();
-}
-
 #define HOOK_MANUALLY HOOK_DEFINE
 #define HOOK_DEFINE(rettype, name, argtype) \
 	extern rettype (WINAPI * ORIG_##name) argtype; \

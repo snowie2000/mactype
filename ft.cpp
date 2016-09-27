@@ -188,7 +188,7 @@ void CAlphaBlend::initRGB()
 
 void CAlphaBlend::init()
 {
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
 	const float gamma = pSettings->GammaValue();
 	const float weight = pSettings->RenderWeight();
 	const float contrast = pSettings->Contrast();

@@ -78,7 +78,7 @@ BOOL IsProcessExcluded()
 //		return TRUE;
 //	}
 
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
 	if (pSettings->IsInclude()) {
 		if (pSettings->IsProcessIncluded()) {
 			return FALSE;
@@ -98,7 +98,7 @@ BOOL IsProcessUnload()
 //		return TRUE;
 //	}
 
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
 	if (pSettings->IsInclude()) {
 		if (pSettings->IsProcessIncluded()) {
 			return FALSE;
@@ -114,7 +114,7 @@ BOOL IsProcessUnload()
 
 BOOL IsExeUnload(LPCTSTR lpApp)
 {
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
 	if (pSettings->IsInclude()) {
 		if (pSettings->IsExeInclude(lpApp)) {
 			return FALSE;
