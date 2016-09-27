@@ -273,33 +273,6 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 {
 	HRESULT hr = E_FAIL;
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE_ALIASED) {
-		MyDebug(L"Try DW3");
-		IDWriteFactory3* f;
-		hr = This->QueryInterface(&f);
-		if (SUCCEEDED(hr)) {
-			DWRITE_MATRIX m;
-			DWRITE_MATRIX const* pm = transform;
-			if (pm) {
-				m = *transform;
-				m.m11 *= pixelsPerDip;
-				m.m22 *= pixelsPerDip;
-				pm = &m;
-			}
-			hr = f->CreateGlyphRunAnalysis(
-				glyphRun,
-				pm,
-				(DWRITE_RENDERING_MODE1)renderingMode,
-				measuringMode,
-				DWRITE_GRID_FIT_MODE_DEFAULT,
-				DWRITE_TEXT_ANTIALIAS_MODE_CLEARTYPE,
-				baselineOriginX,
-				baselineOriginY,
-				glyphRunAnalysis
-				);
-			f->Release();
-		}
-	}
-	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE_ALIASED) {
 		MyDebug(L"Try DW2");
 		IDWriteFactory2* f;
 		hr = This->QueryInterface(&f);

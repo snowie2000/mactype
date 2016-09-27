@@ -1224,10 +1224,9 @@ ETO_TRY();
 // 			lf.lfWidth = tm.tmAveCharWidth; 
 		if (lpDx && cbString)	//firefox使用ETO_PDY的y坐标转换来生成纵向文字
 		{
-			int szDx=fuOptions|ETO_PDY ? cbString*2:cbString;
+			int szDx=fuOptions&ETO_PDY ? cbString*2:cbString;
 			outlpDx = new int[szDx];
-			memset(outlpDx, 0, sizeof(int)*szDx);
-			DCTrans->TransformlpDx(lpDx, outlpDx, fuOptions | ETO_PDY ? szDx-2:szDx-1);	//lpDx has a size of cbString -1
+			DCTrans->TransformlpDx(lpDx, outlpDx, szDx);	//lpDx has a size of cbString -1
 		}
 	}
 	FREETYPE_PARAMS params(fuOptions & ~ETO_OPAQUE, hdc, &lf, otm, &strFamilyName);
