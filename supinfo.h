@@ -243,7 +243,7 @@ BOOL _CreateProcessInternalW(HANDLE hToken, LPCTSTR lpApp, LPTSTR lpCmd, LPSECUR
 	const bool hookCP = true;
 	const bool runGdi = true;
 #else
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
 	const bool hookCP = pSettings->HookChildProcesses();
 	const bool runGdi = pSettings->RunFromGdiExe();
 #endif

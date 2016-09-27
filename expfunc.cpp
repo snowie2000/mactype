@@ -527,11 +527,50 @@ emit_dw(0xD0FF);	//call eax
 		FARPROC pfn = GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryW");
 		//if(!pfn)
 		//	return false;
+		//emit_db(0xEB);
+		//emit_db(0xFE);	// make a dead loop
 
 		emit_db(0x50);		//push rax
 		emit_db(0x51);		//push rcx
 		emit_db(0x52);		//push rdx
 		emit_db(0x53);		//push rbx
+		
+#ifdef DEBUG
+		emit_dd(0x28ec8348);
+		emit_db(0x48);
+		emit_db(0x31);
+		emit_db(0xD0);	//xor rax,rax
+		emit_db(0x48);
+		emit_db(0x31);
+		emit_db(0xC9);	//xor rcx,rcx
+		emit_db(0x48);
+		emit_db(0x31);
+		emit_db(0xD2);	//xor rdx,rdx
+		emit_db(0x45);
+		emit_db(0x31);
+		emit_db(0xC0);	//xor r8d,r8d
+		emit_db(0x45);
+		emit_db(0x31);
+		emit_db(0xC9);	//xor r9d,r9d
+
+		emit_db(0x48);		//mov rsi, MessageBoxW
+		emit_db(0xBE);
+		emit_ddp((DWORD_PTR)MessageBoxW);
+		emit_db(0xFF);
+		emit_db(0xD6);
+		emit_dd(0x28c48348);
+#endif
+/*	
+//Debug function2, Sleep for 10sec.
+		emit_dd(0x28ec8348);
+		emit_db(0x48);		//mov rsi, MessageBoxW
+		emit_db(0xBE);
+		emit_ddp((DWORD_PTR)Sleep);
+		emit_db(0x48); emit_db(0xc7); emit_db(0xc1); emit_db(0x10); emit_db(0x27); emit_db(0x00); emit_db(0x00);
+		emit_db(0xFF);
+		emit_db(0xD6);
+		emit_dd(0x28c48348);
+*/
 		emit_dd(0x28ec8348);	//sub rsp,28h
 		emit_db(0x48);		//mov rcx, dllpath
 		emit_db(0xB9);

@@ -1030,22 +1030,23 @@ void CFontLinkInfo::init()
 	//GetVersionEx(&sOsVinfo);	//获得操作系统版本号
 	//const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 
-	WCHAR name[0x2000];
+	WCHAR* name = new WCHAR[0x2000];
 	DWORD namesz;
 	DWORD valuesz;
-	WCHAR value[0x2000];
-	WCHAR buf[0x2000];
+	WCHAR* value = new WCHAR[0x2000];
+	WCHAR* buf = new WCHAR[0x2000];
+	const DWORD nBufSize = 0x2000 * sizeof(WCHAR);
 	LONG rc;
 	DWORD regtype;
 
 	for (int k = 0; ; ++k) {	//获得字体表中的所有字体
-		namesz = sizeof name;
-		valuesz = sizeof value;
+		namesz = nBufSize;
+		valuesz = nBufSize;
 		rc = RegEnumValue(h2, k, name, &namesz, 0, &regtype, (LPBYTE)value, &valuesz);		//从字体表中寻找
 		if (rc == ERROR_NO_MORE_ITEMS) break;
 		if (rc != ERROR_SUCCESS) break;
 		if (regtype != REG_SZ) continue;
-		StringCchCopy(buf, sizeof(buf)/sizeof(buf[0]), name);
+		StringCchCopy(buf, nBufSize / sizeof(buf[0]), name);
 		if (buf[wcslen(buf) - 1] == L')') {				//去掉括号
 			LPWSTR p;
 			if ((p = wcsrchr(buf, L'(')) != NULL) {
@@ -1064,8 +1065,8 @@ void CFontLinkInfo::init()
 	for (int i = 0; row < INFOMAX; ++i) {
 		int col = 0;
 
-		namesz = sizeof name;
-		valuesz = sizeof value;
+		namesz = nBufSize;
+		valuesz = nBufSize;
 		rc = RegEnumValue(h1, i, name, &namesz, 0, &regtype, (LPBYTE)value, &valuesz);	//获得一个字体的字体链接
 		if (rc == ERROR_NO_MORE_ITEMS) break;
 		if (rc != ERROR_SUCCESS) break;
@@ -1084,7 +1085,7 @@ void CFontLinkInfo::init()
 				if (*p == L',' && ((char)*(p+1)<0x30 || (char)*(p+1)>0x39))		//尝试寻找字体链接中“，”后提供的字体名称
 					{
 						LPWSTR lp;
-						StringCchCopy(buf, sizeof(buf)/sizeof(buf[0]), p+1);
+						StringCchCopy(buf, nBufSize / sizeof(buf[0]), p + 1);
 						if (lp=wcschr(buf, L','))
 							*lp = 0;
 						valp = buf;
@@ -1114,7 +1115,7 @@ void CFontLinkInfo::init()
 					break;
 				}*/
 				LPWSTR lp;
-				StringCchCopy(buf, sizeof(buf)/sizeof(buf[0]), linep);
+				StringCchCopy(buf, nBufSize / sizeof(buf[0]), linep);
 				if (lp=wcschr(buf, L','))
 					*lp = 0;
 
@@ -1202,8 +1203,8 @@ void CFontLinkInfo::init()
 
 	for (int i=0; i<0xff; ++i)
 	{
-		namesz = sizeof name;
-		valuesz = sizeof value;
+		namesz = nBufSize;
+		valuesz = nBufSize;
 		rc = RegEnumValue(h4, i, name, &namesz, 0, &regtype, (LPBYTE)value, &valuesz);	//获得一个charset的值
 		if (rc == ERROR_NO_MORE_ITEMS) break;
 		if (rc != ERROR_SUCCESS) break;
@@ -1217,6 +1218,9 @@ void CFontLinkInfo::init()
 		}
 	}
 	RegCloseKey(h4);
+	delete[]name;
+	delete[]value;
+	delete[]buf;
 }
 
 void CFontLinkInfo::clear()
