@@ -889,6 +889,10 @@ bool AddX64Env(CArray<LPWSTR>& arr)
 
 EXTERN_C LPWSTR WINAPI GdippEnvironment(DWORD& dwCreationFlags, LPVOID lpEnvironment)
 {
+#ifndef _WIN64
+	return NULL;
+#endif
+
 	TCHAR dir[MAX_PATH];
 	int dirlen = GetModuleFileName(GetDLLInstance(), dir, MAX_PATH);
 	LPTSTR lpfilename=dir+dirlen;
@@ -925,9 +929,9 @@ EXTERN_C LPWSTR WINAPI GdippEnvironment(DWORD& dwCreationFlags, LPVOID lpEnviron
 	free(pEnvW);
 	pEnvW = NULL;
 	
-	if (ret) {
+	/*if (ret) {
 		ret = AddPathEnv(envs, dir, dirlen);
-	}
+	}*/
 #ifdef _WIN64
 	{
 		GetEnvironmentVariableW(L"MACTYPE_X64ADDR", NULL, 0);
