@@ -418,6 +418,22 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			return true;
 		bDllInited = true;
 		g_dllInstance = instance;
+		{
+			LPWSTR dllPath = new WCHAR[MAX_PATH + 1];
+			int nSize = GetModuleFileName(g_dllInstance, dllPath, MAX_PATH + 1);
+			WCHAR* p = &dllPath[nSize];
+			while (*--p != L'\\');
+			*p = L'\0';
+#ifdef _WIN64
+			wcscat(dllPath, L"\\EasyHk64.dll");
+#else
+			wcscat(dllPath, L"\\EasyHk32.dll");
+#endif
+			HMODULE hEasyhk = LoadLibrary(dllPath);
+			delete[]dllPath;
+			if (!hEasyhk) 
+				return false;			
+		}
 		//‰Šú‰»‡˜
 		//DLL_PROCESS_DETACH‚Å‚Í‚±‚ê‚Ì‹t‡‚É‚·‚é
 		//1. CRTŠÖ”‚Ì‰Šú‰»
