@@ -454,7 +454,7 @@ DWORD WINAPI IMPL_GetGlyphOutlineW(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 			//lpgm->gmptGlyphOrigin.y += 1;
 			//lpgm->gmBlackBoxX += 3;
 			//lpgm->gmBlackBoxY += 2;
-			int n = (int)ceil(2.0*pSettings->ScreenDpi() / 96);
+			static int n = (int)ceil(2.0*pSettings->ScreenDpi() / 96);
 			lpgm->gmptGlyphOrigin.y += n;
 			lpgm->gmBlackBoxY += n*2;
 		}
@@ -481,7 +481,7 @@ DWORD WINAPI IMPL_GetGlyphOutlineA(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 			//lpgm->gmptGlyphOrigin.y += 1;
 			//lpgm->gmBlackBoxX += 3;
 			//lpgm->gmBlackBoxY += 2;
-			int n = (int)ceil(2.0*pSettings->ScreenDpi() / 96);
+			static int n = (int)ceil(2.0*pSettings->ScreenDpi() / 96);
 			lpgm->gmptGlyphOrigin.y += n;
 			lpgm->gmBlackBoxY += n;
 		}
