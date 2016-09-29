@@ -188,7 +188,7 @@ void CAlphaBlend::initRGB()
 
 void CAlphaBlend::init()
 {
-	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
+	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 	const float gamma = pSettings->GammaValue();
 	const float weight = pSettings->RenderWeight();
 	const float contrast = pSettings->Contrast();
@@ -3148,7 +3148,7 @@ BOOL FontLInit(void){
 					(unsigned char*)"\x10\x40\x70\x40\x10" );
 			}
 	}
-	s_AlphaBlendTable.init();
+	//s_AlphaBlendTable.init();
 	s_AlphaBlendTable.initRGB();
 
 	return TRUE;

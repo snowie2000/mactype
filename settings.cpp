@@ -91,6 +91,7 @@ void CGdippSettings::DelayedInit()
 // 		m_fontlinkinfo.init();
 // 	}
 
+
 	const int nTextTuning = _GetFreeTypeProfileInt(_T("TextTuning"), 0, NULL),
 		nTextTuningR = _GetFreeTypeProfileInt(_T("TextTuningR"), 0, NULL),
 		nTextTuningG = _GetFreeTypeProfileInt(_T("TextTuningG"), 0, NULL),
@@ -100,7 +101,7 @@ void CGdippSettings::DelayedInit()
 	InitTuneTable(nTextTuningR, m_nTuneTableR);
 	InitTuneTable(nTextTuningG, m_nTuneTableG);
 	InitTuneTable(nTextTuningB, m_nTuneTableB);
-	
+	RefreshAlphaTable();
 
 	//FontSubstitutes
 	CFontSubstitutesIniArray arrFontSubstitutes;
@@ -111,7 +112,14 @@ void CGdippSettings::DelayedInit()
 		AddListFromSection(_T("FontSubstitutes"), m_szFileName, arrFontSubstitutes);
 	m_FontSubstitutesInfo.init(m_nFontSubstitutes, arrFontSubstitutes);
 
-	WritePrivateProfileString(NULL, NULL, NULL, m_szFileName);
+	names = _T("Individual@") + wstring(m_szexeName);
+	if (_IsFreeTypeProfileSectionExists(names.c_str(), NULL))
+		AddIndividualFromSection(names.c_str(), NULL, m_arrIndividual);
+	else
+		AddIndividualFromSection(_T("Individual"), NULL, m_arrIndividual);
+
+	AddExcludeListFromSection(_T("Exclude"), NULL, m_arrExcludeFont);
+	//WritePrivateProfileString(NULL, NULL, NULL, m_szFileName);
 
 	//m_bDelayedInit = true;
 
@@ -441,7 +449,16 @@ SKIP:
 //	if (!m_bRunFromGdiExe) {
 //		m_bHookChildProcesses = false;
 //	}
-
+/*
+	const int nTextTuning = _GetFreeTypeProfileInt(_T("TextTuning"), 0, lpszFile),
+		nTextTuningR = _GetFreeTypeProfileInt(_T("TextTuningR"), 0, lpszFile),
+		nTextTuningG = _GetFreeTypeProfileInt(_T("TextTuningG"), 0, lpszFile),
+		nTextTuningB = _GetFreeTypeProfileInt(_T("TextTuningB"), 0, lpszFile);
+	InitInitTuneTable();
+	InitTuneTable(nTextTuning, m_nTuneTable);
+	InitTuneTable(nTextTuningR, m_nTuneTableR);
+	InitTuneTable(nTextTuningG, m_nTuneTableG);
+	InitTuneTable(nTextTuningB, m_nTuneTableB);*/
 //	m_bIsHDBench = (GetModuleHandle(_T("HDBENCH.EXE")) == GetModuleHandle(NULL));
 
 	m_arrExcludeFont.clear();
@@ -451,20 +468,18 @@ SKIP:
 	m_arrUnFontSubModule.clear();
 
 	// [Exclude]僙僋僔儑儞偐傜彍奜僼僅儞僩儕僗僩傪撉傒崬傓
-	AddExcludeListFromSection(_T("Exclude"), lpszFile, m_arrExcludeFont);
-	AddExcludeListFromSection(_T("Exclude"), szMainFile, m_arrExcludeFont);
 	// [ExcludeModule]僙僋僔儑儞偐傜彍奜儌僕儏乕儖儕僗僩傪撉傒崬傓
 	AddListFromSection(_T("ExcludeModule"), lpszFile, m_arrExcludeModule);
-	AddListFromSection(_T("ExcludeModule"), szMainFile, m_arrExcludeModule);
+	//AddListFromSection(_T("ExcludeModule"), szMainFile, m_arrExcludeModule);
 	// [IncludeModule]僙僋僔儑儞偐傜懳徾儌僕儏乕儖儕僗僩傪撉傒崬傓
 	AddListFromSection(_T("IncludeModule"), lpszFile, m_arrIncludeModule);
-	AddListFromSection(_T("IncludeModule"), szMainFile, m_arrIncludeModule);
+	//AddListFromSection(_T("IncludeModule"), szMainFile, m_arrIncludeModule);
 	// [UnloadDLL]完全不加载的模块
 	AddListFromSection(_T("UnloadDLL"), lpszFile, m_arrUnloadModule);
-	AddListFromSection(_T("UnloadDLL"), szMainFile, m_arrUnloadModule);
+	//AddListFromSection(_T("UnloadDLL"), szMainFile, m_arrUnloadModule);
 	// [ExcludeSub]不进行字体替换的模块
 	AddListFromSection(L"ExcludeSub", lpszFile, m_arrUnFontSubModule);
-	AddListFromSection(L"ExcludeSub", szMainFile, m_arrUnFontSubModule);
+	//AddListFromSection(L"ExcludeSub", szMainFile, m_arrUnFontSubModule);
 	//如果是排除的模块，则关闭字体替换
 	if (m_nFontSubstitutes)
 	{
@@ -481,18 +496,12 @@ SKIP:
 	}
 
 	// [Individual]僙僋僔儑儞偐傜僼僅儞僩暿愝掕傪撉傒崬傓
-	wstring names = _T("Individual@") + wstring(m_szexeName);
-	if (_IsFreeTypeProfileSectionExists(names.c_str(), lpszFile))
-		AddIndividualFromSection(names.c_str(), lpszFile, m_arrIndividual);
-	else
-		AddIndividualFromSection(_T("Individual"), lpszFile, m_arrIndividual);
-	names = _T("LcdFilterWeight@") + wstring(m_szexeName);
+	wstring names = _T("LcdFilterWeight@") + wstring(m_szexeName);
 	if (_IsFreeTypeProfileSectionExists(names.c_str(), lpszFile))
 		m_bUseCustomLcdFilter = AddLcdFilterFromSection(names.c_str(), lpszFile, m_arrLcdFilterWeights);
 	else
 		m_bUseCustomLcdFilter = AddLcdFilterFromSection(_T("LcdFilterWeight"), lpszFile, m_arrLcdFilterWeights);
 
-	WritePrivateProfileString(NULL, NULL, NULL, lpszFile);
 	return true;
 }
 
