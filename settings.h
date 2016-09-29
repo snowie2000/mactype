@@ -5,6 +5,13 @@
 #include "cache.h"
 #include "hash_list.h"
 #include <VersionHelpers.h>
+#include <IniParser/ParseIni.h>
+
+#ifdef _WIN64
+	#pragma comment (lib, "iniparser64.lib")
+#else
+	#pragma comment (lib, "iniparser.lib")
+#endif
 
 #define MACTYPE_VERSION		20160830
 #define MAX_FONT_SETTINGS	16
@@ -234,6 +241,7 @@ private:
 	static CGdippSettings* s_pInstance;
 	//INI—p
 	CFontSettings m_FontSettings;
+	static CParseIni m_Config;
 	bool m_bHookChildProcesses		: 1;
 	bool m_bUseMapping				: 1;
 	bool m_bLoadOnDemand			: 1;

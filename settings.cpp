@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 CGdippSettings* CGdippSettings::s_pInstance;
+CParseIni CGdippSettings::m_Config;
 CHashedStringList FontNameCache;
 
 static const TCHAR c_szGeneral[]  = _T("General");
@@ -90,6 +91,17 @@ void CGdippSettings::DelayedInit()
 // 		m_fontlinkinfo.init();
 // 	}
 
+	const int nTextTuning = _GetFreeTypeProfileInt(_T("TextTuning"), 0, NULL),
+		nTextTuningR = _GetFreeTypeProfileInt(_T("TextTuningR"), 0, NULL),
+		nTextTuningG = _GetFreeTypeProfileInt(_T("TextTuningG"), 0, NULL),
+		nTextTuningB = _GetFreeTypeProfileInt(_T("TextTuningB"), 0, NULL);
+	InitInitTuneTable();
+	InitTuneTable(nTextTuning,  m_nTuneTable);
+	InitTuneTable(nTextTuningR, m_nTuneTableR);
+	InitTuneTable(nTextTuningG, m_nTuneTableG);
+	InitTuneTable(nTextTuningB, m_nTuneTableB);
+	
+
 	//FontSubstitutes
 	CFontSubstitutesIniArray arrFontSubstitutes;
 	wstring names = _T("FontSubstitutes@") + wstring(m_szexeName);
@@ -98,8 +110,6 @@ void CGdippSettings::DelayedInit()
 	else
 		AddListFromSection(_T("FontSubstitutes"), m_szFileName, arrFontSubstitutes);
 	m_FontSubstitutesInfo.init(m_nFontSubstitutes, arrFontSubstitutes);
-
-
 
 	WritePrivateProfileString(NULL, NULL, NULL, m_szFileName);
 
@@ -154,21 +164,13 @@ bool CGdippSettings::LoadSettings(HINSTANCE hModule)
 int CGdippSettings::_GetFreeTypeProfileIntFromSection(LPCTSTR lpszSection, LPCTSTR lpszKey, int nDefault, LPCTSTR lpszFile)
 {
 	wstring names = wstring((LPTSTR)lpszSection) + _T("@") + wstring((LPTSTR)m_szexeName);
-	int retA = GetPrivateProfileInt(names.c_str(), lpszKey, -1, lpszFile);
-	int retB = GetPrivateProfileInt(names.c_str(), lpszKey, -2, lpszFile);
-
-	if (retA == retB) {
-		return retA;
-	}
-
-	retA = GetPrivateProfileInt(lpszSection, lpszKey, -1, lpszFile);
-	retB = GetPrivateProfileInt(lpszSection, lpszKey, -2, lpszFile);
-
-	if (retA == retB) {
-		return retA;
-	}
-
-	return nDefault;
+	if (m_Config.IsPartExists(names.c_str()) && m_Config[names.c_str()].IsValueExists(lpszKey))
+		return m_Config[names.c_str()][lpszKey].ToInt();
+	else
+	if (m_Config[lpszSection].IsValueExists(lpszKey))
+		return m_Config[lpszSection][lpszKey].ToInt();
+	else
+		return nDefault;
 }
 
 int CGdippSettings::_GetFreeTypeProfileInt(LPCTSTR lpszKey, int nDefault, LPCTSTR lpszFile)
@@ -188,37 +190,27 @@ int CGdippSettings::_GetFreeTypeProfileBoundInt(LPCTSTR lpszKey, int nDefault, i
 
 bool CGdippSettings::_IsFreeTypeProfileSectionExists(LPCTSTR lpszKey, LPCTSTR lpszFile)
 {
-	TCHAR temp[4];
-	return !!GetPrivateProfileSection(lpszKey, temp, 3, lpszFile) ;
+	return m_Config.IsPartExists(lpszKey);
 }
 
 float CGdippSettings::_GetFreeTypeProfileFloat(LPCTSTR lpszKey, float fDefault, LPCTSTR lpszFile)
 {
-	TCHAR TEMP[257];
 	wstring names = wstring((LPTSTR)c_szFreeType) + _T("@") + wstring((LPTSTR)m_szexeName);
-	int retA = GetPrivateProfileInt(names.c_str(), lpszKey, -1, lpszFile);
-	int retB = GetPrivateProfileInt(names.c_str(), lpszKey, -2, lpszFile);
-	if (retA == retB) {
-		GetPrivateProfileString(names.c_str(), lpszKey, _T(""), TEMP, 256, lpszFile);
-		return _StrToFloat(TEMP, fDefault);
+	if (m_Config.IsPartExists(names.c_str()) && m_Config[names.c_str()].IsValueExists(lpszKey))
+		return m_Config[names.c_str()][lpszKey].ToInt();
+	else
+	{
+		names = wstring((LPTSTR)c_szGeneral) + _T("@") + wstring((LPTSTR)m_szexeName);
+		if (m_Config.IsPartExists(names.c_str()) && m_Config[names.c_str()].IsValueExists(lpszKey))
+			return m_Config[names.c_str()][lpszKey].ToDouble();
+		else
+		if (m_Config[c_szFreeType].IsValueExists(lpszKey))
+			return m_Config[c_szFreeType][lpszKey].ToDouble();
+		if (m_Config[c_szGeneral].IsValueExists(lpszKey))
+			return m_Config[c_szGeneral][lpszKey].ToDouble();
+		else
+			return fDefault;
 	}
-	names = wstring((LPTSTR)c_szGeneral) + _T("@") + wstring((LPTSTR)m_szexeName);
-	retA = GetPrivateProfileInt(names.c_str(), lpszKey, -1, lpszFile);
-	retB = GetPrivateProfileInt(names.c_str(), lpszKey, -2, lpszFile);
-	if (retA == retB) {
-		GetPrivateProfileString(names.c_str(), lpszKey, _T(""), TEMP, 256, lpszFile);
-		return _StrToFloat(TEMP, fDefault);
-	}
-
-	retA = GetPrivateProfileInt(c_szFreeType, lpszKey, -1, lpszFile);
-	retB = GetPrivateProfileInt(c_szFreeType, lpszKey, -2, lpszFile);
-
-	if (retA == retB) {
-		GetPrivateProfileString(c_szFreeType, lpszKey, _T(""), TEMP, 256, lpszFile);
-		return _StrToFloat(TEMP, fDefault);
-	}
-		GetPrivateProfileString(c_szGeneral, lpszKey, _T(""), TEMP, 256, lpszFile);
-		return _StrToFloat(TEMP, fDefault);
 }
 
 float CGdippSettings::_GetFreeTypeProfileBoundFloat(LPCTSTR lpszKey, float fDefault, float fMin, float fMax, LPCTSTR lpszFile)
@@ -231,27 +223,41 @@ float CGdippSettings::_GetFreeTypeProfileBoundFloat(LPCTSTR lpszKey, float fDefa
 DWORD CGdippSettings::_GetFreeTypeProfileString(LPCTSTR lpszKey, LPCTSTR lpszDefault, LPTSTR lpszRet, DWORD cch, LPCTSTR lpszFile)
 {
 	wstring names = wstring((LPTSTR)c_szFreeType) + _T("@") + wstring((LPTSTR)m_szexeName);
-	int retA = GetPrivateProfileInt(names.c_str(), lpszKey, -1, lpszFile);
-	int retB = GetPrivateProfileInt(names.c_str(), lpszKey, -2, lpszFile);
-
-	if (retA == retB) {
-		return GetPrivateProfileString(names.c_str(), lpszKey, lpszDefault, lpszRet, cch, lpszFile);
+	if (m_Config.IsPartExists(names.c_str()) && m_Config[names.c_str()].IsValueExists(lpszKey))
+	{
+		LPCTSTR p = m_Config[names.c_str()][lpszKey];
+		StringCchCopy(lpszRet, cch, p);
+		return wcslen(p);
 	}
-	names = wstring((LPTSTR)c_szGeneral) + _T("@") + wstring((LPTSTR)m_szexeName);
-	retA = GetPrivateProfileInt(names.c_str(), lpszKey, -1, lpszFile);
-	retB = GetPrivateProfileInt(names.c_str(), lpszKey, -2, lpszFile);
-
-	if (retA == retB) {
-		return GetPrivateProfileString(names.c_str(), lpszKey, lpszDefault, lpszRet, cch, lpszFile);
+	else
+	{
+		names = wstring((LPTSTR)c_szGeneral) + _T("@") + wstring((LPTSTR)m_szexeName);
+		if (m_Config.IsPartExists(names.c_str()) && m_Config[names.c_str()].IsValueExists(lpszKey))
+		{
+			LPCTSTR p = m_Config[names.c_str()][lpszKey];
+			StringCchCopy(lpszRet, cch, p);
+			return wcslen(p);
+		}
+		else
+		if (m_Config[c_szFreeType].IsValueExists(lpszKey))
+		{
+			LPCTSTR p = m_Config[c_szFreeType][lpszKey];
+			StringCchCopy(lpszRet, cch, p);
+			return wcslen(p);
+		}
+		else
+		if (m_Config[c_szGeneral].IsValueExists(lpszKey))
+		{
+			LPCTSTR p = m_Config[c_szGeneral][lpszKey];
+			StringCchCopy(lpszRet, cch, p);
+			return wcslen(p);
+		}
+		else
+		{
+			StringCchCopy(lpszRet, cch, lpszDefault);
+			return wcslen(lpszDefault);
+		}
 	}
-
-	retA = GetPrivateProfileInt(c_szFreeType, lpszKey, -1, lpszFile);
-	retB = GetPrivateProfileInt(c_szFreeType, lpszKey, -2, lpszFile);
-
-	if (retA == retB) {
-		return GetPrivateProfileString(c_szFreeType, lpszKey, lpszDefault, lpszRet, cch, lpszFile);
-	}
-	return GetPrivateProfileString(c_szGeneral, lpszKey, lpszDefault, lpszRet, cch, lpszFile);
 }
 
 int CGdippSettings::_GetAlternativeProfileName(LPTSTR lpszName, LPCTSTR lpszFile)
@@ -301,7 +307,6 @@ bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 	// Shadow=1,1,4
 	// [Individual]
 	// 俵俽 俹僑僔僢僋=0,1,2,3,4,5
-
 	WritePrivateProfileString(NULL, NULL, NULL, lpszFile);
 
 	TCHAR szAlternative[MAX_PATH], szMainFile[MAX_PATH];
@@ -318,6 +323,8 @@ bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 		WritePrivateProfileString(NULL, NULL, NULL, lpszFile);
 	}
 
+	m_Config.Clear();
+	m_Config.LoadFromFile(lpszFile);
 	_GetAlternativeProfileName(m_szexeName, lpszFile);	//获得可能的独立配置名称
 	CFontSettings& fs = m_FontSettings;
 	fs.Clear();
@@ -327,7 +334,6 @@ bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 	fs.SetBoldWeight(_GetFreeTypeProfileBoundInt(_T("BoldWeight"), 0, BWEIGHT_MIN, BWEIGHT_MAX, lpszFile));
 	fs.SetItalicSlant(_GetFreeTypeProfileBoundInt(_T("ItalicSlant"), 0, SLANT_MIN, SLANT_MAX, lpszFile));
 	fs.SetKerning(!!_GetFreeTypeProfileInt(_T("EnableKerning"), 0, lpszFile));
-
 	{
 		TCHAR szShadow[256];
 		CStringTokenizer token;
@@ -424,17 +430,6 @@ SKIP:
 	m_szForceChangeFont[0] = _T('\0');
 	_GetFreeTypeProfileString(_T("ForceChangeFont"), _T(""), m_szForceChangeFont, LF_FACESIZE, lpszFile);
 
-	const int nTextTuning	= _GetFreeTypeProfileInt(_T("TextTuning"),  0, lpszFile),
-			  nTextTuningR	= _GetFreeTypeProfileInt(_T("TextTuningR"), 0, lpszFile),
-			  nTextTuningG	= _GetFreeTypeProfileInt(_T("TextTuningG"), 0, lpszFile),
-			  nTextTuningB	= _GetFreeTypeProfileInt(_T("TextTuningB"), 0, lpszFile);
-
-	InitInitTuneTable();
-	InitTuneTable(nTextTuning,  m_nTuneTable);
-	InitTuneTable(nTextTuningR, m_nTuneTableR);
-	InitTuneTable(nTextTuningG, m_nTuneTableG);
-	InitTuneTable(nTextTuningB, m_nTuneTableB);
-
 	// OS偺僶乕僕儑儞偑XP埲崀偐偳偆偐
 	//OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
 	//GetVersionEx(&osvi);
@@ -529,7 +524,6 @@ bool CGdippSettings::AddExcludeListFromSection(LPCTSTR lpszSection, LPCTSTR lpsz
 		for (; *p; p++);	//来到下一行
 		p++;
 	}
-	delete[] buffer;
 	return false;
 }
 
@@ -551,7 +545,6 @@ bool CGdippSettings::AddListFromSection(LPCTSTR lpszSection, LPCTSTR lpszFile, s
 		for (; *p; p++);	//来到下一行
 			p++;
 	}
-	delete[] buffer;
 	return false;
 }
 
@@ -636,12 +629,12 @@ bool CGdippSettings::AddIndividualFromSection(LPCTSTR lpszSection, LPCTSTR lpszF
 		p = pnext;
 		p++;
 	}
-	delete[] buffer;
 	return false;
 }
 
 LPTSTR CGdippSettings::_GetPrivateProfileSection(LPCTSTR lpszSection, LPCTSTR lpszFile)
 {
+	return const_cast<LPTSTR>((LPCTSTR)m_Config[lpszSection]);
 	LPTSTR buffer = NULL;
 	int nRes = 0;
 	for (int cch = 256; ; cch += 256) {
@@ -655,7 +648,6 @@ LPTSTR CGdippSettings::_GetPrivateProfileSection(LPCTSTR lpszSection, LPCTSTR lp
 		if (nRes < cch - 2) {
 			break;
 		}
-		delete[] buffer;
 		buffer = NULL;
 	}
 	return buffer;
