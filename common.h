@@ -20,6 +20,7 @@
 #include <functional>
 //#include <iterator>
 #include <algorithm>
+#include <memory>
 #include "array.h"
 #include <set>
 #include "ownedcs.h"

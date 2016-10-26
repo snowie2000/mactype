@@ -1060,5 +1060,10 @@ bool FreeTypeSysFontData::OpenFaceByIndex(int index)
 	args.stream		= &m_ftStream;
 
 	// FreeType Ç≈àµÇ¶ÇÈÇ©ÅH
-	return (FT_Open_Face(freetype_library, &args, index, &m_ftFace) == 0);
+	FT_Error ftErrCode = FT_Open_Face(freetype_library, &args, index, &m_ftFace);
+#ifdef DEBUG
+	if (ftErrCode!=0)
+		TRACE(L"Open face failed, error = %d\n", ftErrCode);
+#endif
+	return (ftErrCode == 0);
 }
