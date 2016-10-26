@@ -991,10 +991,11 @@ public:
 
 extern ControlIder CID;
 // 取代Windows的ExtTextOutW
-BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, CONST RECT *lprc, LPCWSTR lpString, UINT cbString, CONST INT *lpDx)
+BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, CONST RECT *lprc, LPCWSTR lpString, UINT cbString, CONST INT *SyslpDx)
 {
 	//CThreadCounter __counter;		//用于安全退出的计数器
-	
+	INT* lpDx = const_cast<INT*>(SyslpDx);
+
 	if (!hdc || !lpString || !cbString || !g_ccbRender) {		//没有有效参数，直接交给Windows处理 或者 控制中心要求停止渲染
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	}
@@ -1008,11 +1009,28 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 	if (DCArray.find(hdc)!=DCArray.end())
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
-
+	CAutoVectorPtr<INT> newdx;
+	if (!lpDx) {
+		newdx.Allocate(cbString);
+		SIZE p = { 0 };
+		BOOL r = false;
+		if (fuOptions & ETO_GLYPH_INDEX)
+			r = GetTextExtentExPointI(hdc, (LPWORD)lpString, cbString, 0, NULL, newdx, &p);
+		else
+			r = GetTextExtentExPointW(hdc, lpString, cbString, 0, NULL, newdx, &p);
+		if (r) {
+			for (int i = cbString - 1; i > 0; --i) {
+				newdx[i] -= newdx[i - 1];
+			}
+			lpDx = newdx;
+		}
+		else{
+			newdx.Free();
+		}
+	}
 
 	if (!(fuOptions & ETO_GLYPH_INDEX) && !(fuOptions & ETO_IGNORELANGUAGE) && !lpDx && CID.myiscomplexscript(lpString,cbString))		//complex script
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
-
 
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance(); //获得一个配置文件实例
 

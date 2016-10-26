@@ -1722,7 +1722,16 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					}
 					BOOL isc = bGlyphIndex ? false : (CID.myiswcntrl(*lpString));
 					if (isc == CNTRL_UNICODE_PLANE)
+					{
+						if (!FTInfo.lpDx) {
+							SIZE p = { 0 };
+							if (GetTextExtentExPointW(FTInfo.hdc, lpString, 2, 99999, NULL, NULL, &p)) {
+								gdi32x = p.cx;
+								cx = gdi32x;
+							}
+						}
 						bUnicodePlane = true;
+					}
 // 					else
 // 						if (isc == CNTRL_ZERO_WIDTH)	//预计算的无宽度控制字
 // 							cx = 0;
