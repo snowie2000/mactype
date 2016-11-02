@@ -1,8 +1,8 @@
-#include "common.h"
+ï»¿#include "common.h"
 #include "settings.h"
 CRITICAL_SECTION CCriticalSectionLock::m_cs[20];
 OWNED_CRITIAL_SECTION COwnedCriticalSectionLock::m_cs[2];
-LONG CThreadCounter::interlock;	//snowie!! C++»¹ĞèÒª¶îÍâÉêÃ÷£¬º¹
+LONG CThreadCounter::interlock;	//snowie!! C++è¿˜éœ€è¦é¢å¤–ç”³æ˜ï¼Œæ±—
 TCHAR CGdippSettings::m_szexeName[MAX_PATH+1] = {0};
 
 #ifdef _UNICODE
@@ -10,7 +10,7 @@ TCHAR CGdippSettings::m_szexeName[MAX_PATH+1] = {0};
 #define CharPrev(s, c)	((c) - 1)
 #endif
 
-//è”²‚«‚ÌƒpƒX‘€ìŠÖ”ŒQ
+//æ‰‹æŠœãã®ãƒ‘ã‚¹æ“ä½œé–¢æ•°ç¾¤
 BOOL WINAPI PathIsRelative(LPCTSTR pszPath)
 {
 	if (!pszPath || !*pszPath) {
@@ -24,7 +24,7 @@ BOOL WINAPI PathIsRelative(LPCTSTR pszPath)
 		return FALSE;
 	}
 	if (ch1 == _T('\\') || (ch1 && ch2 == _T(':'))) {
-		//â‘ÎƒpƒX
+		//çµ¶å¯¾ãƒ‘ã‚¹
 		return FALSE;
 	}
 	return TRUE;
@@ -125,7 +125,7 @@ LPTSTR WINAPI PathCombine(LPTSTR pszDest, LPCTSTR pszDir, LPCTSTR pszFile)
 		return NULL;
 	}
 
-	//‚©‚È‚èè”²‚«
+	//ã‹ãªã‚Šæ‰‹æŠœã
 	TCHAR szCurDir[MAX_PATH], szDir[MAX_PATH+1];
 	GetCurrentDirectory(MAX_PATH, szCurDir);
 	_tcsncpy(szDir, pszDir, MAX_PATH - 1);

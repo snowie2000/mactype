@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <mmsystem.h>	//mmioFOURCC
 #define FOURCC_GDIPP	mmioFOURCC('G', 'D', 'I', 'P')
@@ -9,7 +9,7 @@ typedef struct {
 //	BYTE reserved[256];
 } GDIPP_CREATE_MAGIC;
 
-//QÆ
+//å‚ç…§
 //http://www.catch22.net/tuts/undoc01.asp
 
 #ifdef _GDIPP_EXE
@@ -42,7 +42,7 @@ EXTERN_C LPWSTR WINAPI GdippEnvironment(DWORD& dwCreationFlags, LPVOID lpEnviron
 
 
 
-//qƒvƒƒZƒX‚É‚à©“®‚Ågdi++“K—p
+//å­ãƒ—ãƒ­ã‚»ã‚¹ã«ã‚‚è‡ªå‹•ã§gdi++é©ç”¨
 template <typename _TCHAR, typename _STARTUPINFO, class _Function>
 BOOL _CreateProcessAorW(const _TCHAR* lpApp, _TCHAR* lpCmd, LPSECURITY_ATTRIBUTES pa, LPSECURITY_ATTRIBUTES ta, BOOL bInherit, DWORD dwFlags, LPVOID lpEnv, const _TCHAR* lpDir, _STARTUPINFO* psi, LPPROCESS_INFORMATION ppi, _Function fn)
 {
@@ -157,7 +157,7 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 // 	DWORD aa=0;
 // 	if (GetFileSize(logfile, NULL)==0)
 // 		WriteFile(logfile, "\xff\xfe", 2, &aa, NULL);
-	LPTSTR vlpApp = (LPTSTR)lpApp;	//±ä³É¿ÉÒÔ²Ù×÷µÄ²ÎÊı
+	LPTSTR vlpApp = (LPTSTR)lpApp;	//å˜æˆå¯ä»¥æ“ä½œçš„å‚æ•°
 	if (lpApp)
 	{
 		do 
@@ -165,18 +165,18 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 // 			WriteFile(logfile, L"lpApp=", 12, &aa, NULL);
 // 			WriteFile(logfile, lpApp, _tcslen(lpApp)*2, &aa, NULL);
 // 			WriteFile(logfile, _T("\n"), 2, &aa, NULL);
-			vlpApp = _tcsstr(vlpApp+1, _T(" "));	//»ñµÃµÚÒ»¸ö¿Õ¸ñËùÔÚµÄÎ»ÖÃ
+			vlpApp = _tcsstr(vlpApp+1, _T(" "));	//è·å¾—ç¬¬ä¸€ä¸ªç©ºæ ¼æ‰€åœ¨çš„ä½ç½®
 			ret.assign(lpApp);
 			if (vlpApp)
 				ret.resize(vlpApp-lpApp);
 // 			WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 			WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 			DWORD fa = GetFileAttributes(ret.c_str()); 
-			if (fa!=INVALID_FILE_ATTRIBUTES && fa!=FILE_ATTRIBUTE_DIRECTORY)	//ÎÄ¼şÊÇ·ñ´æÔÚ
+			if (fa!=INVALID_FILE_ATTRIBUTES && fa!=FILE_ATTRIBUTE_DIRECTORY)	//æ–‡ä»¶æ˜¯å¦å­˜åœ¨
 			{		
 				int p = ret.find_last_of(_T("\\"));
 				if (p!=-1)
-					ret.erase(0, p+1);	//Èç¹ûÓĞÂ·¾¶¾ÍÉ¾µôÂ·¾¶
+					ret.erase(0, p+1);	//å¦‚æœæœ‰è·¯å¾„å°±åˆ æ‰è·¯å¾„
 // 				WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 				WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 // 				WriteFile(logfile, _T("==========\n"), 24, &aa, NULL);
@@ -185,13 +185,13 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 			}
 			else
 			{
-				ret+=_T(".exe");	//¼ÓÉÏ.exeÀ©Õ¹ÃûÔÙÊÔ
+				ret+=_T(".exe");	//åŠ ä¸Š.exeæ‰©å±•åå†è¯•
 				DWORD fa = GetFileAttributes(ret.c_str()); 
 				if (fa!=INVALID_FILE_ATTRIBUTES && fa!=FILE_ATTRIBUTE_DIRECTORY)
 				{		
 					int p = ret.find_last_of(_T("\\"));
 					if (p!=-1)
-						ret.erase(0, p+1);	//Èç¹ûÓĞÂ·¾¶¾ÍÉ¾µôÂ·¾¶
+						ret.erase(0, p+1);	//å¦‚æœæœ‰è·¯å¾„å°±åˆ æ‰è·¯å¾„
 // 					WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 					WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 // 					WriteFile(logfile, _T("==========\n"), 24, &aa, NULL);
@@ -210,18 +210,18 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 		int p=0;
 		if ((*lpCmd)==_T('\"'))
 		{
-			ret.erase(0,1);	//É¾³ıµÚÒ»¸öÒıºÅ
-			p=ret.find_first_of(_T("\""));	//²éÕÒÏÂÒ»¸öÒıºÅ
+			ret.erase(0,1);	//åˆ é™¤ç¬¬ä¸€ä¸ªå¼•å·
+			p=ret.find_first_of(_T("\""));	//æŸ¥æ‰¾ä¸‹ä¸€ä¸ªå¼•å·
 		}
 		else
 			p=ret.find_first_of(_T(" "));
 		if (p>0)
-			ret.resize(p);	//»ñµÃCmdÀïÃæµÄÎÄ¼şÃû
+			ret.resize(p);	//è·å¾—Cmdé‡Œé¢çš„æ–‡ä»¶å
 // 		WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 		WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 		p = ret.find_last_of(_T("\\"));
 		if (p>0)
-			ret.erase(0, p+1);	//Èç¹ûÓĞÂ·¾¶¾ÍÉ¾µôÂ·¾¶
+			ret.erase(0, p+1);	//å¦‚æœæœ‰è·¯å¾„å°±åˆ æ‰è·¯å¾„
 // 		WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 		WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 // 		WriteFile(logfile, _T("==========\n"), 24, &aa, NULL);

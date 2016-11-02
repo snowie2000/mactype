@@ -1,4 +1,4 @@
-// dll injection
+ï»¿// dll injection
 #define _CRT_SECURE_NO_DEPRECATE 1
 #define WINVER 0x500
 #define _WIN32_WINNT 0x500
@@ -16,7 +16,7 @@
 #include <strsafe.h>
 #include "gdiexe.rc"
 
-// _vsnwprintf—p
+// _vsnwprintfæ¢¡
 #include <wchar.h>		
 #include <stdarg.h>
 
@@ -116,9 +116,9 @@ void WINAPI _SHFree(void *pv)
 #endif
 
 
-// ‚P‚Â–Ú‚Ìˆø”‚¾‚¯ƒtƒ@ƒCƒ‹‚Æ‚µ‚Äˆµ‚¢AŽÀs‚·‚éB
+// ä¾¾å®æ šåºå ·æ‚¢å©å—åƒ¼å‚½åƒ€å„–å²åŸå°åŸ–å„ä¸„å¹šå³´å¡å‚žä¸…
 //
-// ƒRƒ}ƒ“ƒh‚Í ‚±‚ñ‚ÈŠ´‚¶‚Å˜AŒ‹‚³‚ê‚Ü‚·B
+// åƒå„…å„žåƒªå¼ å™å‚«å´å§¶å å±æ¥¢å¯¢åå‚Ÿå‚‘å¡ä¸…
 //  exe linkpath linkarg cmdarg2 cmdarg3 cmdarg4 ...
 //
 static HRESULT HookAndExecute(int show)
@@ -179,10 +179,10 @@ static HRESULT HookAndExecute(int show)
 		GetModuleFileNameW(NULL, gdippDir, _countof(gdippDir));
 		PathRemoveFileSpec(gdippDir);
 
-		// ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ªgdi++.exe‚Ì’u‚©‚ê‚Ä‚¢‚éƒfƒBƒŒƒNƒgƒŠ‚Æ“¯‚¶‚¾‚Á‚½‚çA
-		// ‹N“®‚µ‚æ‚¤‚Æ‚µ‚Ä‚¢‚éEXE‚Ìƒtƒ‹ƒpƒX‚©‚ç”²‚«o‚µ‚½ƒfƒBƒŒƒNƒgƒŠ–¼‚ðƒJƒŒƒ“ƒg
-		// ƒfƒBƒŒƒNƒgƒŠ‚Æ‚µ‚Ä‹N“®‚·‚éB(ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ªEXE‚Æ“¯‚¶êŠ‚Å‚ ‚é
-		// ‘O’ñ‚Åì‚ç‚ê‚Ä‚¢‚éƒAƒvƒŠ‘Îô)
+		// åƒ‡å„—å„žåƒ©åƒ¨å‚¿å„—åƒ‹åƒ©å„•å‘gdi++.exeåºæŠ²åå‚Ÿå°å„å‚žåƒ¨å‚¿å„—åƒ‹åƒ©å„•å²æ‘¨å å©å­å¨å‚œä¸„
+		// å©²æ‘¦åŸå‚›å†å²åŸå°å„å‚žEXEåºåƒ¼å„–åƒ·åƒ—åå‚œæ•³å’å¼ŒåŸå¨åƒ¨å‚¿å„—åƒ‹åƒ©å„•æŸ¤å‚ªåƒ‡å„—å„žåƒ©
+		// åƒ¨å‚¿å„—åƒ‹åƒ©å„•å²åŸå°å©²æ‘¦å¡å‚žä¸…(åƒ‡å„—å„žåƒ©åƒ¨å‚¿å„—åƒ‹åƒ©å„•å‘EXEå²æ‘¨å å¿œå¼·å±åå‚ž
+		// æ…œæŽ¡å±å¶Œå‚œå‚Ÿå°å„å‚žå‚¾åƒ¾å„•æ‡³å¶”)
 		if (wcscmp(dir, gdippDir) == 0) {
 			StringCchCopyW(dir, _countof(dir), argv[1]);
 			PathRemoveFileSpec(dir);
@@ -203,11 +203,11 @@ static HRESULT HookAndExecute(int show)
 	LPITEMIDLIST pidl = NULL;
 	HRESULT hr;
 
-	//file‚ÌƒAƒCƒeƒ€IDƒŠƒXƒg‚ðŽæ“¾
+	//fileåºå‚¾åƒ€åƒ¥å„‰IDå„•åƒ—åƒ©å‚ªåº¢æ‘¼
 	hr = _SHILCreateFromPath(file, &pidl, NULL);
 	if(SUCCEEDED(hr) && pidl) {
-		//SEE_MASK_INVOKEIDLIST‚ðŽg‚¤‚Æ
-		//explorer‚ÅƒNƒŠƒbƒN‚µ‚Ä‹N“®‚µ‚½‚Ì‚Æ“¯‚¶“®ì‚É‚È‚é
+		//SEE_MASK_INVOKEIDLISTå‚ªå·Šå†å²
+		//explorerå±åƒ‹å„•åƒ¢åƒ‹åŸå°å©²æ‘¦åŸå¨åºå²æ‘¨å æ‘¦å¶Œåµå´å‚ž
 		SHELLEXECUTEINFOW sei = { sizeof(SHELLEXECUTEINFOW) };
 		sei.fMask			= SEE_MASK_INVOKEIDLIST
 								| SEE_MASK_CONNECTNETDRV
@@ -220,8 +220,8 @@ static HRESULT HookAndExecute(int show)
 		sei.nShow			= show;
 		sei.lpIDList		= pidl;
 
-		//ShellExecuteExW‚ª“à•”‚ÅŒÄ‚Ño‚·CreateProcessW‚ðƒtƒbƒN‚µ‚Ä
-		//HookChildProcesses‘Š“–‚Ìˆ—‚ðs‚¤
+		//ShellExecuteExWå‘æ’ªæ™¹å±å±‡å‚ƒå¼Œå¡CreateProcessWå‚ªåƒ¼åƒ¢åƒ‹åŸå°
+		//HookChildProcessesæ†¡æ‘‰åºå¼µæ£Ÿå‚ªå³´å†
 
 		DetourTransactionBegin();
 		DetourUpdateThread(GetCurrentThread());
@@ -257,8 +257,8 @@ int WINAPI wWinMain(HINSTANCE ins, HINSTANCE prev, LPWSTR cmd, int show)
 	WCHAR path [MAX_PATH];
 	if(GetModuleFileNameW(NULL, path, _countof(path))) {
 		PathRenameExtensionW(path, L".dll");
-		//DONT_RESOLVE_DLL_REFERENCES‚ðŽw’è‚·‚é‚ÆˆË‘¶ŠÖŒW‚Ì‰ðŒˆ‚â
-		//DllMain‚ÌŒÄ‚Ño‚µ‚ªs‚í‚ê‚È‚¢
+		//DONT_RESOLVE_DLL_REFERENCESå‚ªå·œæŽ•å¡å‚žå²åŸ¶æ‡šå¨­å­¸åºå¤å¯›å‚—
+		//DllMainåºå±‡å‚ƒå¼ŒåŸå‘å³´å‚¢å‚Ÿå´å„
 		hinstDLL = LoadLibraryExW(path, NULL, DONT_RESOLVE_DLL_REFERENCES);
 	}
 	if(!hinstDLL) {

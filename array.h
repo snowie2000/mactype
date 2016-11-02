@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #ifndef _INC_SHLWAPI
 #define NO_SHLWAPI_STRFCNS

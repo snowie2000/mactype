@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "common.h"
 #include "gdiPlusFlat2.h"
@@ -24,7 +24,7 @@
 	extern rettype (WINAPI * ORIG_##name) argtype; \
 	extern rettype WINAPI IMPL_##name argtype;
 #include "hooklist.h"
-#undef HOOK_DEFINE	//ÎªÁËÈ·±£´ËÎÄ¼şÒ²ÄÜÖ±½ÓÊ¹ÓÃÕıÈ·µÄº¯Êı£¬ĞèÒªÉêÃ÷¡£
+#undef HOOK_DEFINE	//ä¸ºäº†ç¡®ä¿æ­¤æ–‡ä»¶ä¹Ÿèƒ½ç›´æ¥ä½¿ç”¨æ­£ç¡®çš„å‡½æ•°ï¼Œéœ€è¦ç”³æ˜ã€‚
 #undef HOOK_MANUALLY
 
 /*
@@ -143,13 +143,13 @@ class CFontLinkInfo
 {
 public:
 	enum {
-		INFOMAX = 180,	//Ô´ÎÄ¼ş=15
+		INFOMAX = 180,	//æºæ–‡ä»¶=15
 		FONTMAX = 31,
 	};
 private:
 	LPWSTR info[INFOMAX + 1][FONTMAX + 1];
 	bool AllowDefaultLink[256];
-	WCHAR DefaultFontLink[FF_DECORATIVE + 1][LF_FACESIZE + 1];	//´æ·Å¶ÔÓ¦×ÖÌåÀàĞÍµÄÄ¬ÈÏÁ´½Ó
+	WCHAR DefaultFontLink[FF_DECORATIVE + 1][LF_FACESIZE + 1];	//å­˜æ”¾å¯¹åº”å­—ä½“ç±»å‹çš„é»˜è®¤é“¾æ¥
 public:
 	CFontLinkInfo();
 	~CFontLinkInfo();
@@ -239,7 +239,7 @@ class CGdippSettings
 	friend BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID);
 private:
 	static CGdippSettings* s_pInstance;
-	//INI—p
+	//INIç”¨
 	CFontSettings m_FontSettings;
 	static CParseIni m_Config;
 	bool m_bHookChildProcesses		: 1;
@@ -247,7 +247,7 @@ private:
 	bool m_bLoadOnDemand			: 1;
 	bool m_bEnableShadow			: 1;
 
-	//‚»‚êˆÈŠO
+	//ãã‚Œä»¥å¤–
 	bool m_bIsWinXPorLater			: 1;
 	bool m_bRunFromGdiExe			: 1;
 	bool m_bIsInclude				: 1;
@@ -255,7 +255,7 @@ private:
 //	bool m_bIsHDBench				: 1;
 //	bool m_bHaveNewerFreeType		: 1;
 	bool							: 0;
-	bool m_bUseCustomLcdFilter;	//Ê¹ÓÃ×Ô¶¨Òålcdfilter
+	bool m_bUseCustomLcdFilter;	//ä½¿ç”¨è‡ªå®šä¹‰lcdfilter
 
 	BOOL m_bHintSmallFont;
 	BOOL m_bDirectWrite;
@@ -271,7 +271,7 @@ private:
 	int  m_nLcdFilter;
 	int  m_nShadow[4];
 	int  m_nFontSubstitutes;
-	int	 m_bFontLink;	//¸ÄÎª¿ÉÒÔÊ¹ÓÃ¶àÖÖ²ÎÊı
+	int	 m_bFontLink;	//æ”¹ä¸ºå¯ä»¥ä½¿ç”¨å¤šç§å‚æ•°
 	int  m_nWidthMode;
 	int  m_nFontLoader;
 	int	 m_nScreenDpi;	// screen dpi
@@ -282,14 +282,14 @@ private:
 	//settings for experimental
 	bool m_bEnableClipBoxFix;
 
-	//FTC_Manager_New‚É“n‚·ƒpƒ‰ƒ[ƒ^
+	//FTC_Manager_Newã«æ¸¡ã™ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	int  m_nCacheMaxFaces;
 	int  m_nCacheMaxSizes;
 	int  m_nCacheMaxBytes;
 
-	// ƒAƒ“ƒ`ƒGƒCƒŠƒAƒX’²®—pƒe[ƒuƒ‹
+	// ã‚¢ãƒ³ãƒã‚¨ã‚¤ãƒªã‚¢ã‚¹èª¿æ•´ç”¨ãƒ†ãƒ¼ãƒ–ãƒ«
 	int  m_nTuneTable[256];
-	// LCD—p
+	// LCDç”¨
 	int  m_nTuneTableR[256];
 	int  m_nTuneTableG[256];
 	int  m_nTuneTableB[256];
@@ -306,14 +306,14 @@ private:
 	ModuleHashMap	m_arrUnFontSubModule;
 	IndividualArray	m_arrIndividual;
 
-	// w’èƒtƒHƒ“ƒg
+	// æŒ‡å®šãƒ•ã‚©ãƒ³ãƒˆ
 	LOGFONT m_lfForceFont;
 	TCHAR m_szForceChangeFont[LF_FACESIZE];
 
-	//INIƒtƒ@ƒCƒ‹–¼
+	//INIãƒ•ã‚¡ã‚¤ãƒ«å
 	TCHAR m_szFileName[MAX_PATH];
 
-	//INI‚©‚ç‚Ì“Ç‚İ‚İˆ—
+	//INIã‹ã‚‰ã®èª­ã¿è¾¼ã¿å‡¦ç†
 	bool LoadAppSettings(LPCTSTR lpszFile);
 	static bool		_IsFreeTypeProfileSectionExists(LPCTSTR lpszKey, LPCTSTR lpszFile);
 	static LPTSTR _GetPrivateProfileSection    (LPCTSTR lpszSection, LPCTSTR lpszFile);
@@ -392,7 +392,7 @@ public:
 	static CGdippSettings* GetInstance();
 	static const CGdippSettings* GetInstanceNoInit();	//FreeTypeFontEngine
 
-	//INI—p
+	//INIç”¨
 	const CFontSettings& GetFontSettings() const { return m_FontSettings; }
 	bool HookChildProcesses() const { return m_bHookChildProcesses; }
 	bool UseMapping() const { return m_bUseMapping; }
@@ -420,7 +420,7 @@ public:
 	bool EnableClipBoxFix() const { return m_bEnableClipBoxFix; }
 	DWORD ShadowLightColor() const { return m_nShadowLightColor; }
 	DWORD ShadowDarkColor() const { return m_nShadowDarkColor; }
-	int FontSubstitutes() const { return m_nFontSubstitutes; }	//ÅĞ¶ÏÌæ»»Ä£Ê½
+	int FontSubstitutes() const { return m_nFontSubstitutes; }	//åˆ¤æ–­æ›¿æ¢æ¨¡å¼
 	int CacheMaxFaces() const { return m_nCacheMaxFaces; }
 	int CacheMaxSizes() const { return m_nCacheMaxSizes; }
 	int CacheMaxBytes() const { return m_nCacheMaxBytes; }
@@ -428,7 +428,7 @@ public:
 	bool EnableShadow()  const { return m_bEnableShadow; }
 	const int* GetShadowParams() const { return m_nShadow; }
 
-	// ƒtƒHƒ“ƒg–¼‚æ‚İ‚Æ‚è
+	// ãƒ•ã‚©ãƒ³ãƒˆåã‚ˆã¿ã¨ã‚Š
 	LPCTSTR GetForceFontName() const
 	{
 		_ASSERTE(m_bDelayedInit);
@@ -438,7 +438,7 @@ public:
 
 	bool CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const;
 
-	//‚»‚êˆÈŠO
+	//ãã‚Œä»¥å¤–
 	bool IsWinXPorLater() const { return m_bIsWinXPorLater; }
 	bool IsInclude() const { return m_bIsInclude; }
 //	bool IsHDBench() const { return m_bIsHDBench; }
@@ -459,7 +459,7 @@ public:
 	bool IsProcessUnload() const;
 	bool IsExeUnload(LPCTSTR lpApp) const;
 	bool IsExeInclude(LPCTSTR lpApp) const;
-	void AddFontExclude(LPCWSTR lpFaceName);	//µãÕó×ÖÌåÖ±½Ó×Ô¶¯Ìí¼Óµ½´ËÁĞ±í
+	void AddFontExclude(LPCWSTR lpFaceName);	//ç‚¹é˜µå­—ä½“ç›´æ¥è‡ªåŠ¨æ·»åŠ åˆ°æ­¤åˆ—è¡¨
 	bool IsProcessExcluded() const;
 	bool IsProcessIncluded() const;
 	const CFontSettings& FindIndividual(LPCTSTR lpFaceName) const;
@@ -631,17 +631,17 @@ public:
 			break;
 		case ATTR_LcdFilterWeight:
 			if (!nValue)
-				pSettings->m_bUseCustomLcdFilter = false;	//´«NULL¹ıÀ´¾ÍÊÇ¹Ø±Õ×Ô¶¨Òå¹ıÂËÆ÷
+				pSettings->m_bUseCustomLcdFilter = false;	//ä¼ NULLè¿‡æ¥å°±æ˜¯å…³é—­è‡ªå®šä¹‰è¿‡æ»¤å™¨
 			else
 			{
-				pSettings->m_bUseCustomLcdFilter = true;	//·ñÔò´ò¿ª¹ıÂËÆ÷
-				if (!IsBadReadPtr((void*)nValue, sizeof(pSettings->m_arrLcdFilterWeights)))	//Èç¹ûÖ¸ÕëÓĞĞ§
-					memcpy(pSettings->m_arrLcdFilterWeights, (void*)nValue, sizeof(pSettings->m_arrLcdFilterWeights));	//¸´ÖÆÊı¾İ
+				pSettings->m_bUseCustomLcdFilter = true;	//å¦åˆ™æ‰“å¼€è¿‡æ»¤å™¨
+				if (!IsBadReadPtr((void*)nValue, sizeof(pSettings->m_arrLcdFilterWeights)))	//å¦‚æœæŒ‡é’ˆæœ‰æ•ˆ
+					memcpy(pSettings->m_arrLcdFilterWeights, (void*)nValue, sizeof(pSettings->m_arrLcdFilterWeights));	//å¤åˆ¶æ•°æ®
 			}
-			UpdateLcdFilter();	//Ë¢ĞÂ¹ıÂËÆ÷
+			UpdateLcdFilter();	//åˆ·æ–°è¿‡æ»¤å™¨
 			break;
 		case ATTR_ShadowBuffer:
-			if (nValue && !IsBadReadPtr((void*)nValue, sizeof(pSettings->m_nShadow)))	//Ö¸ÕëÓĞĞ§
+			if (nValue && !IsBadReadPtr((void*)nValue, sizeof(pSettings->m_nShadow)))	//æŒ‡é’ˆæœ‰æ•ˆ
 			{
 				LPCTSTR szShadow = (LPCTSTR)nValue;
 				CStringTokenizer token;
@@ -656,19 +656,19 @@ public:
 					}*/
 				}
 				pSettings->m_bEnableShadow = true;
-				if (token.GetCount()>=4)	//Èç¹ûÖ¸¶¨ÁËÇ³É«ÒõÓ°
-					pSettings->m_nShadowDarkColor = pSettings->_httoi(token.GetArgument(3));	//¶ÁÈ¡ÒõÓ°
+				if (token.GetCount()>=4)	//å¦‚æœæŒ‡å®šäº†æµ…è‰²é˜´å½±
+					pSettings->m_nShadowDarkColor = pSettings->_httoi(token.GetArgument(3));	//è¯»å–é˜´å½±
 				else
-					pSettings->m_nShadowDarkColor = 0;	//·ñÔòÎªºÚÉ«
-				if (token.GetCount()>=6)	//Èç¹ûÖ¸¶¨ÁËÉîÉ«ÒõÓ°
+					pSettings->m_nShadowDarkColor = 0;	//å¦åˆ™ä¸ºé»‘è‰²
+				if (token.GetCount()>=6)	//å¦‚æœæŒ‡å®šäº†æ·±è‰²é˜´å½±
 				{
-					pSettings->m_nShadowLightColor = pSettings->_httoi(token.GetArgument(5));	//¶ÁÈ¡ÒõÓ°
-					pSettings->m_nShadow[3] = pSettings->_StrToInt(token.GetArgument(4), pSettings->m_nShadow[2]); //¶ÁÈ¡Éî¶È
+					pSettings->m_nShadowLightColor = pSettings->_httoi(token.GetArgument(5));	//è¯»å–é˜´å½±
+					pSettings->m_nShadow[3] = pSettings->_StrToInt(token.GetArgument(4), pSettings->m_nShadow[2]); //è¯»å–æ·±åº¦
 				}
 				else
 				{
-					//pSettings->m_nShadowLightColor = pSettings->m_nShadowLightColor;		//·ñÔòºÍÇ³É«ÒõÓ°ÏàÍ¬
-					pSettings->m_nShadow[3] = pSettings->m_nShadow[2];		//Éî¶ÈÒ²ÏàÍ¬
+					//pSettings->m_nShadowLightColor = pSettings->m_nShadowLightColor;		//å¦åˆ™å’Œæµ…è‰²é˜´å½±ç›¸åŒ
+					pSettings->m_nShadow[3] = pSettings->m_nShadow[2];		//æ·±åº¦ä¹Ÿç›¸åŒ
 				}
 				RefreshAlphaTable();
 			}
@@ -788,7 +788,7 @@ public:
 			LPTSTR pnext = p;
 			for (; *pnext; pnext++);
 
-			//"‚l‚r ‚oƒSƒVƒbƒN=0,0" ‚İ‚½‚¢‚È•¶š—ñ‚ğ•ªŠ„
+			//"ï¼­ï¼³ ï¼°ã‚´ã‚·ãƒƒã‚¯=0,0" ã¿ãŸã„ãªæ–‡å­—åˆ—ã‚’åˆ†å‰²
 			LPTSTR value = _tcschr(p, _T('='));
 			CStringTokenizer token;
 			int argc = 0;
@@ -797,12 +797,12 @@ public:
 				argc = token.Parse(value);
 			}
 			TCHAR buff[LF_FACESIZE+1];				
-			GetFontLocalName(p, buff); //×ª»»×ÖÌåÃû
+			GetFontLocalName(p, buff); //è½¬æ¢å­—ä½“å
 
 			CFontIndividual fi(buff);
 			const CFontSettings& fsCommon = pSettings->m_FontSettings;
 			CFontSettings& fs = fi.GetIndividual();
-			//Individual‚ª–³‚¯‚ê‚Î‹¤’Êİ’è‚ğg‚¤
+			//IndividualãŒç„¡ã‘ã‚Œã°å…±é€šè¨­å®šã‚’ä½¿ã†
 			fs = fsCommon;
 			for (int i = 0; i < MAX_FONT_SETTINGS; i++) {
 				LPCTSTR arg = token.GetArgument(i);

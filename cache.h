@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 template <int BUFSIZE, bool ignoreCase>
 class StringHashT
@@ -58,11 +58,11 @@ typedef StringHashT<LF_FACESIZE,true>	StringHashFont;
 typedef StringHashT<MAX_PATH,true>		StringHashModule;
 
 
-//COLORREF(RR GG BB 00) ‚ğ DIB32(BB GG RR 00) ‚É•ÏŠ·
+//COLORREF(RR GG BB 00) ã‚’ DIB32(BB GG RR 00) ã«å¤‰æ›
 #define RGB2DIB(rgb)	RGB(GetBValue(rgb), GetGValue(rgb), GetRValue(rgb))
 #define DIB2RGB(dib)	RGB2DIB(dib)
 
-// ExtTextOutW‚Ìƒrƒbƒgƒ}ƒbƒvƒLƒƒƒbƒVƒ…
+// ExtTextOutWã®ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã‚­ãƒ£ãƒƒã‚·ãƒ¥
 class CBitmapCache
 {
 private:
@@ -142,7 +142,7 @@ public:
 		*m_CurrentPixel = RGB2DIB(rgb);
 	}
 
-	//–{‘Ì‚Ícache.cpp
+	//æœ¬ä½“ã¯cache.cpp
 	HDC CreateDC(HDC dc);
 	HBITMAP CreateDIB(int width, int height, BYTE** lplpPixels);
 	void FillSolidRect(COLORREF rgb, const RECT* lprc);

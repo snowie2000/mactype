@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 template <class T>
 class CTlsData
@@ -51,7 +51,7 @@ public:
 		if(tlsindex == INVALID_TLS_VALUE) {
 			return;
 		}
-		ThreadTerm();	//‚±‚ê“ü‚ê‚È‚¢‚ÆƒŠ[ƒN‚·‚é
+		ThreadTerm();	//ã“ã‚Œå…¥ã‚Œãªã„ã¨ãƒªãƒ¼ã‚¯ã™ã‚‹
 		::TlsFree(tlsindex);
 		tlsindex = INVALID_TLS_VALUE;
 

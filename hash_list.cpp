@@ -1,4 +1,4 @@
-#include "hash_list.h"
+ï»¿#include "hash_list.h"
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -23,7 +23,7 @@ void CHashedStringList::Add(TCHAR * String, TCHAR * Value)
 	}
 	else
 		 buff = String;
-	UINT32 hash = SuperFastHash(buff, wcslen(buff))%m_Size;	//»ñµÃÄ£Êı
+	UINT32 hash = SuperFastHash(buff, wcslen(buff))%m_Size;	//è·å¾—æ¨¡æ•°
 	CMHashItem * hashitem = m_hashitem[hash].next;
 	CMHashItem * parent = &m_hashitem[hash];
 	while (hashitem && _wcsicmp(hashitem->String, buff))
@@ -33,7 +33,7 @@ void CHashedStringList::Add(TCHAR * String, TCHAR * Value)
 	}
 	if (!hashitem)
 	{
-		parent->next = (CMHashItem*)malloc(sizeof(CMHashItem));	//»¹²»´æÔÚÕâÒ»Ïî
+		parent->next = (CMHashItem*)malloc(sizeof(CMHashItem));	//è¿˜ä¸å­˜åœ¨è¿™ä¸€é¡¹
 		hashitem = parent->next;
 		if (!m_bCaseSense)
 			hashitem->String = buff;
@@ -44,7 +44,7 @@ void CHashedStringList::Add(TCHAR * String, TCHAR * Value)
 	}
 	else
 		if (!m_bCaseSense)
-			free(buff);		//ÒÑ¾­´æÔÚÕâÒ»ÏîÁË
+			free(buff);		//å·²ç»å­˜åœ¨è¿™ä¸€é¡¹äº†
 }
 
 void CHashedStringList::Delete(TCHAR * String)
@@ -57,7 +57,7 @@ void CHashedStringList::Delete(TCHAR * String)
 	}
 	else
 		buff = String;
-	UINT32 hash = SuperFastHash(buff, wcslen(buff))%m_Size;	//»ñµÃÄ£Êı
+	UINT32 hash = SuperFastHash(buff, wcslen(buff))%m_Size;	//è·å¾—æ¨¡æ•°
 	CMHashItem * hashitem = m_hashitem[hash].next;
 	CMHashItem * parent = &m_hashitem[hash];
 	while (hashitem && _wcsicmp(hashitem->String, buff))
@@ -65,7 +65,7 @@ void CHashedStringList::Delete(TCHAR * String)
 		parent = hashitem;
 		hashitem = hashitem->next;
 	}
-	if (hashitem)	//ÕÒµ½ÁËÕâÒ»Ïî
+	if (hashitem)	//æ‰¾åˆ°äº†è¿™ä¸€é¡¹
 	{
 		parent->next=hashitem->next;
 		free(hashitem->String);
@@ -86,11 +86,11 @@ TCHAR * CHashedStringList::Find(TCHAR * String)
 	}
 	else
 		buff = String;
-	UINT32 hash = SuperFastHash(buff, wcslen(buff))%m_Size;	//»ñµÃÄ£Êı
+	UINT32 hash = SuperFastHash(buff, wcslen(buff))%m_Size;	//è·å¾—æ¨¡æ•°
 	CMHashItem * hashitem = m_hashitem[hash].next;
 	while (hashitem && _wcsicmp(hashitem->String, buff))
 		hashitem = hashitem->next;
-	if (hashitem)	//ÕÒµ½ÁËÕâÒ»Ïî
+	if (hashitem)	//æ‰¾åˆ°äº†è¿™ä¸€é¡¹
 	{
 		if (!m_bCaseSense)
 			free(buff);
@@ -100,7 +100,7 @@ TCHAR * CHashedStringList::Find(TCHAR * String)
 	{
 		if (!m_bCaseSense)
 			free(buff);
-		return NULL;	//ÕÒ²»µ½
+		return NULL;	//æ‰¾ä¸åˆ°
 	}
 }
 
@@ -207,13 +207,13 @@ UINT32 CHashedStringList::SuperFastHash (const TCHAR * data, int len)
 
 CHashedStringList::CHashedStringList():m_Size(100), m_bCaseSense(false), m_Count(0)
 {
-	m_hashitem = (CMHashItem*)malloc(m_Size * sizeof(CMHashItem));	//´´½¨Ò»¸öHashItem×é
+	m_hashitem = (CMHashItem*)malloc(m_Size * sizeof(CMHashItem));	//åˆ›å»ºä¸€ä¸ªHashItemç»„
 	memset(m_hashitem, 0, m_Size * sizeof(CMHashItem));
 }
 
 CHashedStringList::CHashedStringList(int nSize, BOOL bCaseSensative):m_Size(nSize), m_bCaseSense(bCaseSensative), m_Count(0)
 {
-	m_hashitem = (CMHashItem*)malloc(nSize * sizeof(CMHashItem));	//´´½¨Ò»¸öHashItem×é
+	m_hashitem = (CMHashItem*)malloc(nSize * sizeof(CMHashItem));	//åˆ›å»ºä¸€ä¸ªHashItemç»„
 	memset(m_hashitem, 0, nSize * sizeof(CMHashItem));
 }
 
@@ -221,7 +221,7 @@ CHashedStringList::~CHashedStringList()
 {
 	for	(int i=0; i<m_Size; i++)
 	{
-		CMHashItem* hashitem=m_hashitem[i].next;	//µÚÒ»Ïî²»ÓÃÊÍ·Å£¬Ò»»á¶ùÕûÌåÊÍ·Åµô
+		CMHashItem* hashitem=m_hashitem[i].next;	//ç¬¬ä¸€é¡¹ä¸ç”¨é‡Šæ”¾ï¼Œä¸€ä¼šå„¿æ•´ä½“é‡Šæ”¾æ‰
 		CMHashItem* parent = hashitem;
 		while (hashitem)
 		{

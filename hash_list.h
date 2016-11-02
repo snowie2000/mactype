@@ -1,4 +1,4 @@
-//#include "stdint.h"
+ï»¿//#include "stdint.h"
 #include "malloc.h"
 #include "string.h"
 #include "windows.h"
@@ -21,7 +21,7 @@ public:
 	~CHashedStringList();
 protected:
 	UINT32 SuperFastHash (const TCHAR * data, int len);
-	//TCHAR * FindParent(TCHAR * String);	//²éÕÒÕâÒ»ÏîµÄÇ°Ò»Ïî
+	//TCHAR * FindParent(TCHAR * String);	//æŸ¥æ‰¾è¿™ä¸€é¡¹çš„å‰ä¸€é¡¹
 private:
 	int m_Count, m_Len, m_Size;
 	CMHashItem* m_hashitem;

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <ft2build.h>
 #include <freetype/freetype.h>	/* FT_FREETYPE_H */
@@ -21,7 +21,7 @@ typedef set<CBitmapCache*> CTLSDCArray;
 extern CTLSDCArray TLSDCArray;
 
 LOGFONTW* GetFontNameFromFile(LPCTSTR Filename);
-bool GetFontLocalName(TCHAR* pszFontName, __out TCHAR* pszNameOut);	//»ñµÃ×ÖÌåµÄ±¾µØ»¯Ãû³Æ
+bool GetFontLocalName(TCHAR* pszFontName, __out TCHAR* pszNameOut);	//è·å¾—å­—ä½“çš„æœ¬åœ°åŒ–åç§°
 
 struct CFontSetCache
 {
@@ -70,41 +70,41 @@ enum FT_EngineConstants {
 };
 
 /*
-  FreeType‚É•¶š•A‘¾šAÎ‘Ì‚ğƒLƒƒƒbƒVƒ…‚·‚é‹@\‚ª–³‚¢‚Ì‚Å‚»‚ê‚ç‚ğ•â‚¤
+  FreeTypeã«æ–‡å­—å¹…ã€å¤ªå­—ã€æ–œä½“ã‚’ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã™ã‚‹æ©Ÿæ§‹ãŒç„¡ã„ã®ã§ãã‚Œã‚‰ã‚’è£œã†
 
-  1. ‚Ü‚¸DllMain(DLL_PROCESS_ATTACH)‚ÅFreeTypeFontEngine‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ª¶¬‚³‚ê‚éB
-     (‡”Ô‚ÍCGdiPPSettings¨FontLInit(FreeType)¨FreeTypeFontEngine¨ƒtƒbƒN)
-     ForceChangeFont‚à‚±‚±‚Åˆ—‚·‚éB
+  1. ã¾ãšDllMain(DLL_PROCESS_ATTACH)ã§FreeTypeFontEngineã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãŒç”Ÿæˆã•ã‚Œã‚‹ã€‚
+     (é †ç•ªã¯CGdiPPSettingsâ†’FontLInit(FreeType)â†’FreeTypeFontEngineâ†’ãƒ•ãƒƒã‚¯)
+     ForceChangeFontã‚‚ã“ã“ã§å‡¦ç†ã™ã‚‹ã€‚
 
-  2. CreateFont‚ÅFreeTypeFontEngine::AddFont‚ªŒÄ‚Ño‚³‚êAFreeTypeFontInfo‚Æ
-     ƒtƒHƒ“ƒg–¼‚ğŒ‹‚Ñ‚Â‚¯‚éB
-     ‚Â‚¢‚Å‚ÉFreeTypeFontInfo‚ÍIndividual‚Ìİ’è‚ğƒRƒs[‚µ‚Ä‚ÂB
+  2. CreateFontã§FreeTypeFontEngine::AddFontãŒå‘¼ã³å‡ºã•ã‚Œã€FreeTypeFontInfoã¨
+     ãƒ•ã‚©ãƒ³ãƒˆåã‚’çµã³ã¤ã‘ã‚‹ã€‚
+     ã¤ã„ã§ã«FreeTypeFontInfoã¯Individualã®è¨­å®šã‚’ã‚³ãƒ”ãƒ¼ã—ã¦æŒã¤ã€‚
 
-  3. ExtTextOut‚âGetTextExtent‚È‚Ç‚©‚çFreeTypePrepareŠÖ”‚ªŒÄ‚Ño‚³‚ê‚é‚Æ
-     ‚³‚ç‚É“à•”‚ÅFreeTypeFontInfo::GetCache‚ªŒÄ‚Ño‚³‚êAƒtƒHƒ“ƒgƒTƒCƒY‚È‚Ç‚©‚ç
-     FreeTypeFontCache‚ğ“¾‚éB–³‚¯‚ê‚Î¶¬‚·‚éB
-     FreeTypeFontCache‚Í“à•”‚ÉFreeTypeCharData‚Ìƒe[ƒuƒ‹(UCS2‚È‚Ì‚Å2^16ŒÂ)‚ğ
-     ‚Á‚Ä‚¢‚ÄAFreeTypeCharData‚É‚Í•¶š–ˆ‚ÉƒLƒƒƒbƒVƒ…ƒf[ƒ^‚ğ•ÛŠÇ‚·‚éB
+  3. ExtTextOutã‚„GetTextExtentãªã©ã‹ã‚‰FreeTypePrepareé–¢æ•°ãŒå‘¼ã³å‡ºã•ã‚Œã‚‹ã¨
+     ã•ã‚‰ã«å†…éƒ¨ã§FreeTypeFontInfo::GetCacheãŒå‘¼ã³å‡ºã•ã‚Œã€ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºãªã©ã‹ã‚‰
+     FreeTypeFontCacheã‚’å¾—ã‚‹ã€‚ç„¡ã‘ã‚Œã°ç”Ÿæˆã™ã‚‹ã€‚
+     FreeTypeFontCacheã¯å†…éƒ¨ã«FreeTypeCharDataã®ãƒ†ãƒ¼ãƒ–ãƒ«(UCS2ãªã®ã§2^16å€‹)ã‚’
+     æŒã£ã¦ã„ã¦ã€FreeTypeCharDataã«ã¯æ–‡å­—æ¯ã«ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ‡ãƒ¼ã‚¿ã‚’ä¿ç®¡ã™ã‚‹ã€‚
 
-  4. FreeTypeFontCache‚©‚çA•¶š‚Ü‚½‚ÍƒOƒŠƒt”Ô†‚ğŒ³‚ÉFreeTypeCharData‚ğ“¾‚éB
-     ƒLƒƒƒbƒVƒ…‚ª‚ ‚ê‚Î(ƒƒ‚ƒŠ’†‚Éc‚Á‚Ä‚¢‚ê‚Î)AMRUƒJƒEƒ“ƒ^‚ğƒZƒbƒg‚·‚éB
-     –³‚¢ê‡‚Íˆê’UƒXƒ‹[‚µAŒã‚ÅAddCharData‚ÅƒLƒƒƒbƒVƒ…‚ğ’Ç‰Á‚·‚éB
+  4. FreeTypeFontCacheã‹ã‚‰ã€æ–‡å­—ã¾ãŸã¯ã‚°ãƒªãƒ•ç•ªå·ã‚’å…ƒã«FreeTypeCharDataã‚’å¾—ã‚‹ã€‚
+     ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãŒã‚ã‚Œã°(ãƒ¡ãƒ¢ãƒªä¸­ã«æ®‹ã£ã¦ã„ã‚Œã°)ã€MRUã‚«ã‚¦ãƒ³ã‚¿ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ã€‚
+     ç„¡ã„å ´åˆã¯ä¸€æ—¦ã‚¹ãƒ«ãƒ¼ã—ã€å¾Œã§AddCharDataã§ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’è¿½åŠ ã™ã‚‹ã€‚
 
-  5. ’Ç‰Á‚µ‚Ü‚­‚é‚Æƒƒ‚ƒŠ‚ğ‹ò‚ç‚¤‚Ì‚ÅA’Ç‰Á‚ªˆê’è”(FREETYPE_REQCOUNTMAX)‚ğ’´‚¦‚é‚Æ
-     GCƒ‚ƒhƒL‚ÅÅ‹ßQÆ‚³‚ê‚½ƒLƒƒƒbƒVƒ…ƒf[ƒ^‚ğFREETYPE_GC_COUNTERŒÂ‚¾‚¯c‚µA
-     ‚»‚êˆÈŠO‚Ìƒf[ƒ^(FreeTypeCharData)‚ÍŠJ•ú‚³‚ê‚éB
-     ‚±‚Ì2‚Â‚Ì’è”‚Íini‚Åİ’è•ÏX‚Å‚«‚½•û‚ª‚¢‚¢‚æ‚¤‚È‹C‚à‚·‚éB
+  5. è¿½åŠ ã—ã¾ãã‚‹ã¨ãƒ¡ãƒ¢ãƒªã‚’å–°ã‚‰ã†ã®ã§ã€è¿½åŠ ãŒä¸€å®šæ•°(FREETYPE_REQCOUNTMAX)ã‚’è¶…ãˆã‚‹ã¨
+     GCãƒ¢ãƒ‰ã‚­ã§æœ€è¿‘å‚ç…§ã•ã‚ŒãŸã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ‡ãƒ¼ã‚¿ã‚’FREETYPE_GC_COUNTERå€‹ã ã‘æ®‹ã—ã€
+     ãã‚Œä»¥å¤–ã®ãƒ‡ãƒ¼ã‚¿(FreeTypeCharData)ã¯é–‹æ”¾ã•ã‚Œã‚‹ã€‚
+     ã“ã®2ã¤ã®å®šæ•°ã¯iniã§è¨­å®šå¤‰æ›´ã§ããŸæ–¹ãŒã„ã„ã‚ˆã†ãªæ°—ã‚‚ã™ã‚‹ã€‚
 
-  6. ÅŒã‚ÉADllMain(DLL_PROCESS_DETACH)‚ÅFreeTypeFontEngine‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ª”jŠü‚³‚êA
-     ‘S‚Ä‚ÌƒLƒƒƒbƒVƒ…ƒƒ‚ƒŠ‚ªŠJ•ú‚³‚ê‚éB
+  6. æœ€å¾Œã«ã€DllMain(DLL_PROCESS_DETACH)ã§FreeTypeFontEngineã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãŒç ´æ£„ã•ã‚Œã€
+     å…¨ã¦ã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ¡ãƒ¢ãƒªãŒé–‹æ”¾ã•ã‚Œã‚‹ã€‚
 
  */
 
 class FreeTypeGCCounter
 {
 private:
-	int m_addcount;		//’Ç‰Á—p
-	int m_mrucount;		//MRU—p
+	int m_addcount;		////è¿½åŠ ç”¨
+	int m_mrucount;		//MRUç”¨
 
 public:
 	FreeTypeGCCounter()
@@ -125,7 +125,7 @@ public:
 class FreeTypeMruCounter
 {
 private:
-	int m_mrucounter;	//GC—p
+	int m_mrucounter;	//GCç”¨
 
 public:
 	FreeTypeMruCounter(int n)
@@ -133,35 +133,35 @@ public:
 	{
 	}
 
-	//GC—pMRUƒJƒEƒ“ƒ^
+	//GCç”¨MRUã‚«ã‚¦ãƒ³ã‚¿
 	int GetMruCounter() const { return m_mrucounter; }
 	void ResetMruCounter() { m_mrucounter = 0; }
 	void SetMruCounter(FreeTypeGCCounter* p) { m_mrucounter = p->MruIncrement(); }
 };
 
-//•¶š•A(glyph index)AFT_BitmapGlyph(‘¾šAÎ‘Ì‚Ì‚İ)‚ğƒLƒƒƒbƒVƒ…‚·‚é
+//æ–‡å­—å¹…ã€(glyph index)ã€FT_BitmapGlyph(å¤ªå­—ã€æ–œä½“ã®ã¿)ã‚’ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã™ã‚‹
 class FreeTypeCharData : public FreeTypeMruCounter
 {
 private:
 	typedef CValArray<FreeTypeCharData**>	CharDataArray;
-	CharDataArray		m_arrSelfChar;	//©•ª©g‚Ì•Û‘¶Œ³(Char)
+	CharDataArray		m_arrSelfChar;	//è‡ªåˆ†è‡ªèº«ã®ä¿å­˜å…ƒ(Char)
 	FreeTypeCharData**	m_ppSelfGlyph;	//(Glyph)
-	UINT				m_glyphindex;	//ƒOƒŠƒt”Ô†
-	int					m_width;		//•¶š•
-	int					m_gdiWidth;		//Ê¹ÓÃGetCharWidth»ñµÃµÄGDI¿í¶È
-	FT_Referenced_BitmapGlyph		m_glyph;		//ƒJƒ‰[—p
-	FT_Referenced_BitmapGlyph		m_glyphMono;	//ƒ‚ƒmƒNƒ—p
-	int					m_bmpSize;		//ƒrƒbƒgƒ}ƒbƒvƒTƒCƒY
-	int					m_bmpMonoSize;	// V
+	UINT				m_glyphindex;	//ã‚°ãƒªãƒ•ç•ªå·
+	int					m_width;		//æ–‡å­—å¹…
+	int					m_gdiWidth;		//ä½¿ç”¨GetCharWidthè·å¾—çš„GDIå®½åº¦
+	FT_Referenced_BitmapGlyph		m_glyph;		//ã‚«ãƒ©ãƒ¼ç”¨
+	FT_Referenced_BitmapGlyph		m_glyphMono;	//ãƒ¢ãƒã‚¯ãƒ­ç”¨
+	int					m_bmpSize;		//ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã‚µã‚¤ã‚º
+	int					m_bmpMonoSize;	// ã€ƒ
 	int					m_AAMode;
-//	LONG				m_refcounter;	//QÆƒJƒEƒ“ƒ^
+//	LONG				m_refcounter;	//å‚ç…§ã‚«ã‚¦ãƒ³ã‚¿
 
 #ifdef _DEBUG
-	WCHAR				m_wch;			//UCS2•¶š
+	WCHAR				m_wch;			//UCS2æ–‡å­—
 #endif
 	NOCOPY(FreeTypeCharData);
 
-	//FT_Bitmap::buffer‚ÌƒTƒCƒY‚ğ•Ô‚·
+	//FT_Bitmap::bufferã®ã‚µã‚¤ã‚ºã‚’è¿”ã™
 	static inline int FT_Bitmap_CalcSize(FT_BitmapGlyph gl)
 	{
 		return gl->bitmap.pitch * gl->bitmap.rows;
@@ -210,7 +210,7 @@ private:
 	bool m_active;
 	TEXTMETRIC m_tm;
 
-	//4~65536~2512KB‚®‚ç‚¢‚½‚©‚ª’m‚ê‚Ä‚é‚Ì‚ÅŒÅ’è”z—ñ‚Å–â‘è–³‚µ
+	//4Ã—65536Ã—2ï¼512KBãã‚‰ã„ãŸã‹ãŒçŸ¥ã‚Œã¦ã‚‹ã®ã§å›ºå®šé…åˆ—ã§å•é¡Œç„¡ã—
 #ifdef _USE_ARRAY
 	FreeTypeCharData*	m_chars[FT_MAX_CHARS];
 	FreeTypeCharData*	m_glyphs[FT_MAX_CHARS];
@@ -291,7 +291,7 @@ public:
 };
 
 
-// ƒtƒHƒ“ƒg–¼‚ÆFaceID(int‚ğg‚¤‚±‚Æ‚É‚·‚é)
+// ãƒ•ã‚©ãƒ³ãƒˆåã¨FaceID(intã‚’ä½¿ã†ã“ã¨ã«ã™ã‚‹)
 //extern CFontSetCache g_fsetcache;
 extern CHashedStringList FontNameCache;
 class FreeTypeFontInfo : public FreeTypeMruCounter, public FreeTypeGCCounter
@@ -313,7 +313,7 @@ private:
 	wstring	m_fullname, m_familyname;
 	typedef map<UINT, FreeTypeFontCache*>	CacheArray;
 	CacheArray m_cache;
-	//¿ìËÙÁ´½Ó
+	//å¿«é€Ÿé“¾æ¥
 	FTC_FaceID face_id_link[CFontLinkInfo::FONTMAX * 2 + 1];
 	HFONT ggo_link[CFontLinkInfo::FONTMAX * 2 + 1];
 	bool m_linkinited;
@@ -351,15 +351,15 @@ public:
 		{
 			FT_Face freetype_face;
 			CCriticalSectionLock __lock(CCriticalSectionLock::CS_MANAGER);
-			if (FTC_Manager_LookupFace(cache_man, (FTC_FaceID)m_id, &freetype_face))	//²éÑ¯ft face
+			if (FTC_Manager_LookupFace(cache_man, (FTC_FaceID)m_id, &freetype_face))	//æŸ¥è¯¢ft face
 			{
 				m_hashinting = false;
 				return NULL;
 			}
 			FT_ULong length = 0;
-			FT_Error err = FT_Load_Sfnt_Table(freetype_face, TTAG_fpgm, 0, NULL, &length);	//»ñÈ¡fpgm±í³¤¶È
-			if (!err && length>50)		//³É¹¦¶ÁÈ¡±í£¬²¢ÇÒ³¤¶È½Ï³¤
-				m_hashinting = true;		//×ÖÌå´æÔÚhinting
+			FT_Error err = FT_Load_Sfnt_Table(freetype_face, TTAG_fpgm, 0, NULL, &length);	//è·å–fpgmè¡¨é•¿åº¦
+			if (!err && length>50)		//æˆåŠŸè¯»å–è¡¨ï¼Œå¹¶ä¸”é•¿åº¦è¾ƒé•¿
+				m_hashinting = true;		//å­—ä½“å­˜åœ¨hinting
 			else
 				m_hashinting = false;
 		}
@@ -368,7 +368,7 @@ public:
 	wstring GetFullName() {return m_fullname;};
 	bool m_isSimSun;
 	bool IsPixel;
-	UINT getCacheHash(int px, int weight, bool italic, int width) {return ((px<<20)|(width<<8)|(weight<<1)|(int)italic); };	//¼ÆËãÒ»¸öhashÖµÀ´¶¨Î»cache
+	UINT getCacheHash(int px, int weight, bool italic, int width) {return ((px<<20)|(width<<8)|(weight<<1)|(int)italic); };	//è®¡ç®—ä¸€ä¸ªhashå€¼æ¥å®šä½cache
 	FreeTypeFontInfo(int n, LPCTSTR name, int weight, bool italic, int mru, wstring fullname, wstring familyname)
 		: m_id(n), m_weight(weight), m_italic(italic), m_OS2Table(NULL), IsPixel(false)
 		, FreeTypeMruCounter(mru), m_isSimSun(false), m_ggoFont(NULL), m_linkinited(false), m_linknum(0)
@@ -390,13 +390,13 @@ public:
 				m_ggoFont = CreateFont(10,0,0,0,weight,italic,0,0,DEFAULT_CHARSET,0,0,0,0,name);
 			HDC hdc = CreateCompatibleDC(NULL);
 			HFONT old = SelectFont(hdc, m_ggoFont);
-			//»ñµÃ×ÖÌåµÄÈ«³Æ
+			//è·å¾—å­—ä½“çš„å…¨ç§°
 		
 			int nSize=GetOutlineTextMetrics(hdc, 0, NULL);
 			if (nSize==0)
 				m_fullname = L"";
 			else
-			//if (m_fullname.size()==0)	//¹¹Ôìº¯ÊıÖĞ²»Ìá¹©£¬×Ô¼º»ñÈ¡
+			//if (m_fullname.size()==0)	//æ„é€ å‡½æ•°ä¸­ä¸æä¾›ï¼Œè‡ªå·±è·å–
 			{
 				LPOUTLINETEXTMETRIC otm = (LPOUTLINETEXTMETRIC)malloc(nSize);
 				memset(otm, 0, nSize);
@@ -406,19 +406,19 @@ public:
 				TCHAR * localname = (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName);
 				TCHAR buff[LF_FACESIZE+1];				
 				GetFontLocalName(localname, buff);
-				m_nFontFamily = otm->otmTextMetrics.tmPitchAndFamily & 0xF0;	//»ñÈ¡×ÖÌå¼Ò×å£¬¼Ò×å¶ÔÓ¦Ê¹ÓÃÊ²Ã´Ä¬ÈÏÁ´½Ó×ÖÌå
+				m_nFontFamily = otm->otmTextMetrics.tmPitchAndFamily & 0xF0;	//è·å–å­—ä½“å®¶æ—ï¼Œå®¶æ—å¯¹åº”ä½¿ç”¨ä»€ä¹ˆé»˜è®¤é“¾æ¥å­—ä½“
 				m_familyname = (wstring)buff;
 				m_set = pSettings->FindIndividual(m_familyname.c_str());
 				m_ftWeight = CalcBoldWeight(/*weight*/700);
 				m_hash = StringHashFont(name);
-				if (m_familyname.size()>0 && m_familyname.c_str()[0]==L'@')	//¸½¼ÓÒ»¸ö@
+				if (m_familyname.size()>0 && m_familyname.c_str()[0]==L'@')	//é™„åŠ ä¸€ä¸ª@
 					m_fullname = L'@'+m_fullname;
 				free(otm);
 			}
 			SelectFont(hdc, old);
 			DeleteDC(hdc);
 		
-			//Íê³É
+			//å®Œæˆ
 //		g_EngineCreateFont = false;
 		face_id_link[0]=(FTC_FaceID)NULL;
 		ggo_link[0] = NULL;
@@ -468,7 +468,7 @@ public:
 	void UpdateFontSetting()
 	{
 		m_ftWeight = CalcBoldWeight(700/*m_weight*/);
-		//Çå³ı×ÖÌåÁ´½Ó
+		//æ¸…é™¤å­—ä½“é“¾æ¥
 		face_id_link[0]=NULL;
 		ggo_link[0]=NULL;
 		m_linknum = 0;
@@ -590,7 +590,7 @@ public:
 	BOOL RemoveFont(LPCWSTR FontName);
 	BOOL RemoveFont(FreeTypeFontInfo* fontinfo);
 	BOOL RemoveThisFont(FreeTypeFontInfo* fontinfo, LOGFONT* lg);
-	//ƒƒ‚ƒŠg—p—ÊƒJƒEƒ“ƒ^
+	//ãƒ¡ãƒ¢ãƒªä½¿ç”¨é‡ã‚«ã‚¦ãƒ³ã‚¿
 	void AddMemUsed(int x)
 	{
 		m_nMemUsed += x;
@@ -613,7 +613,7 @@ public:
 	}
 	void ReloadAll()
 	{
-		//ÖØĞÂÔØÈëÈ«²¿×ÖÌå£¬¼´Çå¿ÕËùÓĞ×ÖÌå»º´æ
+		//é‡æ–°è½½å…¥å…¨éƒ¨å­—ä½“ï¼Œå³æ¸…ç©ºæ‰€æœ‰å­—ä½“ç¼“å­˜
 		COwnedCriticalSectionLock __olock(2);
 		CCriticalSectionLock __lock;
 		CGdippSettings* pSettings = CGdippSettings::GetInstance();
@@ -625,9 +625,9 @@ public:
 			if (p)
 			{
 				/*
-								if (p->GetFullName()!=iter->first)	//ÊÇÌæ»»×ÖÌå
+								if (p->GetFullName()!=iter->first)	//æ˜¯æ›¿æ¢å­—ä½“
 																{
-																	p->Release();	//ÊÍ·Åµô¶àÖØÒıÓÃ
+																	p->Release();	//é‡Šæ”¾æ‰å¤šé‡å¼•ç”¨
 																	m_mfullMap.erase(iter++);
 																	continue;
 																}*/
@@ -642,7 +642,7 @@ public:
 	}
 };
 
-//GetFontData‚Ìƒƒ‚ƒŠƒXƒgƒŠ[ƒ€
+//GetFontDataã®ãƒ¡ãƒ¢ãƒªã‚¹ãƒˆãƒªãƒ¼ãƒ 
 class FreeTypeSysFontData
 {
 private:

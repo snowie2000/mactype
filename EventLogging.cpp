@@ -1,4 +1,4 @@
-// EventLogging.cpp: implementation of the EventLogging class.
+﻿// EventLogging.cpp: implementation of the EventLogging class.
 //
 //////////////////////////////////////////////////////////////////////
 

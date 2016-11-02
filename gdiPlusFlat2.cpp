@@ -1,4 +1,4 @@
-#include "gdiPlusFlat2.h"
+﻿#include "gdiPlusFlat2.h"
 #include <tchar.h>
 
 

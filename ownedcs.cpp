@@ -1,4 +1,4 @@
-#include "ownedcs.h"
+ï»¿#include "ownedcs.h"
 #include "windows.h"
 
 #define InterlockedIncrementInt(x) InterlockedIncrement((volatile LONG *)&(x))
@@ -31,15 +31,15 @@ void WINAPI EnterOwnedCritialSection(POWNED_CRITIAL_SECTION cs, WORD Owner)
 	}
 	else
 	{
-		if (InterlockedIncrementInt(cs->nRequests)>0)  //µÈ´ý»ñÈ¡ËùÓÐÈ¨
+		if (InterlockedIncrementInt(cs->nRequests)>0)  //ç­‰å¾…èŽ·å–æ‰€æœ‰æƒ
 		{
 			LeaveCriticalSection(&cs->threadLock);
 			WaitForSingleObject(cs->hEvent, INFINITE);
 		}
 		else
 			LeaveCriticalSection(&cs->threadLock);
-		InterlockedExchangeInt(cs->nOwner, Owner);//¸ü¸ÄËùÓÐÕß
-		InterlockedExchangeInt(cs->nRecursiveCount, 1);//Ôö¼ÓÕ¼ÓÃ¼ÆÊý
+		InterlockedExchangeInt(cs->nOwner, Owner);//æ›´æ”¹æ‰€æœ‰è€…
+		InterlockedExchangeInt(cs->nRecursiveCount, 1);//å¢žåŠ å ç”¨è®¡æ•°
 	}
 }
 
@@ -50,7 +50,7 @@ void WINAPI LeaveOwnedCritialSection(POWNED_CRITIAL_SECTION cs, WORD Owner)
 	{
 		if (InterlockedDecrementInt(cs->nRecursiveCount)<=0)
 		{
-			InterlockedExchangeInt(cs->nOwner, -1);//¹é»¹ËùÓÐÈ¨
+			InterlockedExchangeInt(cs->nOwner, -1);//å½’è¿˜æ‰€æœ‰æƒ
 			if (InterlockedDecrementInt(cs->nRequests)>=0)
 				SetEvent(cs->hEvent);
 		}

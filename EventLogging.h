@@ -1,4 +1,4 @@
-// EventLogging.h: interface for the EventLogging class.
+﻿// EventLogging.h: interface for the EventLogging class.
 //
 //////////////////////////////////////////////////////////////////////
 #include "common.h"
