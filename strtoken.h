@@ -1,6 +1,6 @@
-#pragma once
+ï»¿#pragma once
 
-//—á
+//ä¾‹
 // 'a,b,c,d'		{ "a", "b", "c", "d" }
 // 'a,,b,c,'		{ "a", "", "b", "c", "" }
 // '"a,b",c'		{ ""a,b"", "c" }

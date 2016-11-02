@@ -1,4 +1,4 @@
-#include <windows.h>
+﻿#include <windows.h>
 
 typedef   BOOL (__stdcall *ProcDllMain)(HINSTANCE, DWORD,  LPVOID );
 

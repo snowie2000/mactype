@@ -1,4 +1,4 @@
-#include <freetype/ftglyph.h>
+﻿#include <freetype/ftglyph.h>
 #include <Windows.h>
 
 #ifdef __cplusplus

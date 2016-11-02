@@ -1,4 +1,4 @@
-#include "dynCodeHelper.h"
+﻿#include "dynCodeHelper.h"
 
 /*
 * class AutoEnableDynamicCodeGen

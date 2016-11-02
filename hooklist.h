@@ -1,5 +1,5 @@
-// ‚±‚±‚ÉƒtƒbƒN‚·‚éAPI‚ğ—ñ‹“‚µ‚Ä‚¢‚­B
-// ORIG_foo ‚ğg‚¢‚Â‚ÂAIMPL_foo ‚ğÀ‘•‚·‚é‚±‚ÆB
+ï»¿// ã“ã“ã«ãƒ•ãƒƒã‚¯ã™ã‚‹APIã‚’åˆ—æŒ™ã—ã¦ã„ãã€‚
+// ORIG_foo ã‚’ä½¿ã„ã¤ã¤ã€IMPL_foo ã‚’å®Ÿè£…ã™ã‚‹ã“ã¨ã€‚
 
 /*
 HOOK_DEFINE(DWORD, GetTabbedTextExtentA, (HDC hdc, LPCSTR lpString, int nCount, int nTabPositions, CONST LPINT lpnTabStopPositions))
@@ -66,8 +66,8 @@ HOOK_DEFINE(DWORD, GetGlyphOutlineA, (__in HDC hdc, \
 // TabbedTextOutA,W
 // TextOutA,W
 // ExtTextOutA
-// ‚Í“à•”‚Å ExtTextOutW‚ğŒÄ‚ñ‚Å‚é‚©‚ç ExtTextOutW ‚¾‚¯À‘•‚·‚ê‚ÎOKB©XP‚Ìê‡
-// Windows 2000 ‚Å‚à“®‚­‚æ‚¤‚É‚»‚Ì‘¼‚ÌAPI‚àƒtƒbƒN‚ğŠ|‚¯‚Ä‚¨‚­B
+// ã¯å†…éƒ¨ã§ ExtTextOutWã‚’å‘¼ã‚“ã§ã‚‹ã‹ã‚‰ ExtTextOutW ã ã‘å®Ÿè£…ã™ã‚Œã°OKã€‚â†XPã®å ´åˆ
+// Windows 2000 ã§ã‚‚å‹•ãã‚ˆã†ã«ãã®ä»–ã®APIã‚‚ãƒ•ãƒƒã‚¯ã‚’æ›ã‘ã¦ãŠãã€‚
 /*
 HOOK_DEFINE(HFONT, CreateFontA, (int nHeight, int nWidth, int nEscapement, int nOrientation, int fnWeight, DWORD fdwItalic, DWORD fdwUnderline, DWORD fdwStrikeOut, DWORD fdwCharSet, DWORD fdwOutputPrecision, DWORD fdwClipPrecision, DWORD fdwQuality, DWORD fdwPitchAndFamily, LPCSTR  lpszFace))
 HOOK_DEFINE(HFONT, CreateFontW, (int nHeight, int nWidth, int nEscapement, int nOrientation, int fnWeight, DWORD fdwItalic, DWORD fdwUnderline, DWORD fdwStrikeOut, DWORD fdwCharSet, DWORD fdwOutputPrecision, DWORD fdwClipPrecision, DWORD fdwQuality, DWORD fdwPitchAndFamily, LPCWSTR lpszFace))

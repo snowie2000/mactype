@@ -1,4 +1,4 @@
-#include "common.h"
+﻿#include "common.h"
 #include <VersionHelpers.h>
 #include "easyhook.h"
 

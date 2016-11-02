@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 typedef struct _UNICODE_STRING2 {
 	USHORT Length;

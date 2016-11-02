@@ -1,4 +1,4 @@
-OTFT_DEF_BEGIN(0) /* E0100 */
+﻿OTFT_DEF_BEGIN(0) /* E0100 */
 	OTFT_DEF(0x5026, 2) /* jp90 */
 	OTFT_DEF(0x50C5, 2) /* jp90 */
 	OTFT_DEF(0x5132, 2) /* jp90 */

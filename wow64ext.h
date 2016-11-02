@@ -1,4 +1,4 @@
-/**
+﻿/**
  *
  * WOW64Ext Library
  *

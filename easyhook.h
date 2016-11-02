@@ -1,4 +1,4 @@
-/*
+﻿/*
     EasyHook - The reinvention of Windows API hooking
  
     Copyright (C) 2009 Christoph Husse

@@ -1,4 +1,4 @@
-#ifndef FT_H
+ï»¿#ifndef FT_H
 #define FT_H
 
 #define FTO_MONO		0x0001
@@ -24,7 +24,7 @@ void FontLFree(void);
 
 COLORREF GetPaletteColor(HDC hdc, UINT paletteindex);
 
-#define ROUND(x) ((x)>0? int(x+0.5):int(x-0.5))	//windowsÊ¹ÓÃÌØÊâµÄËÄÉáÎåÈë²ßÂÔ
+#define ROUND(x) ((x)>0? int(x+0.5):int(x-0.5))	//windowsä½¿ç”¨ç‰¹æ®Šçš„å››èˆäº”å…¥ç­–ç•¥
 class CDCTransformer {
 private:
 	float fXZoomFactor, fYZoomFactor;
@@ -56,7 +56,7 @@ public:
 	{
 		float temp = float(X)*m_xfm.eM11+m_xfm.eDx;
 		m_xfm.eDx = temp-(int)temp;
-		if (ROUND(m_xfm.eDx)<0)	//¸ºÊıÔòÆ«ÒÆµ½ÕıÊıÉÏÀ´
+		if (ROUND(m_xfm.eDx)<0)	//è´Ÿæ•°åˆ™åç§»åˆ°æ­£æ•°ä¸Šæ¥
 			m_xfm.eDx+=1;
 		temp = float(Y)*m_xfm.eM22+m_xfm.eDy;
 		m_xfm.eDy = temp-(int)temp;
@@ -126,10 +126,10 @@ public:
 		double fDPLastPos = 0, fDPCurPos = 0;
 		for (;szDx>0;--szDx)
 		{
-			LPCurPos += *lpDx++;						//Õâ¸ö×ÖÓ¦¸ÃËù´¦µÄÂß¼­Î»ÖÃ
-			fDPCurPos = LPCurPos*fXZoomFactor;			//Õâ¸ö×Ö¶ÔÓ¦µÄÕıÈ·Éè±¸Î»ÖÃ
-			*outlpDx = ROUND(fDPCurPos-fDPLastPos);		//Ó¦¸ÃÕ¼¾İµÄÉè±¸×ø±êÖµ
-			fDPLastPos += *outlpDx++;					//Õâ¸ö×ÖÔÚÏÔÊ¾Íê³ÉºóµÄ½áÊø×ø±ê£¬ÒÔ¼ÆËãÏÂÒ»¸ö×ÖµÄ×ø±ê
+			LPCurPos += *lpDx++;						//è¿™ä¸ªå­—åº”è¯¥æ‰€å¤„çš„é€»è¾‘ä½ç½®
+			fDPCurPos = LPCurPos*fXZoomFactor;			//è¿™ä¸ªå­—å¯¹åº”çš„æ­£ç¡®è®¾å¤‡ä½ç½®
+			*outlpDx = ROUND(fDPCurPos-fDPLastPos);		//åº”è¯¥å æ®çš„è®¾å¤‡åæ ‡å€¼
+			fDPLastPos += *outlpDx++;					//è¿™ä¸ªå­—åœ¨æ˜¾ç¤ºå®Œæˆåçš„ç»“æŸåæ ‡ï¼Œä»¥è®¡ç®—ä¸‹ä¸€ä¸ªå­—çš„åæ ‡
 		}
 	}
 	bool TransformMode() { return bZoomMode; }
@@ -146,12 +146,12 @@ public:
 	ControlIder()
 	{
 		unicode = new char[0xffff];
-		memset(unicode, 0, sizeof(char)*0xffff);	//Ä¬ÈÏÎª·Ç¿ØÖÆ×Ö
+		memset(unicode, 0, sizeof(char)*0xffff);	//é»˜è®¤ä¸ºéæ§åˆ¶å­—
 		//memset(unicode, 2, sizeof(char)*32);
 		for (int i=0;i<0x3000;i++)
 			unicode[i]=!!iswcntrl(i);
 		for (int i=0xa000;i<0xffff;i++)
-			unicode[i]=!!iswcntrl(i);			//ÖĞ¼ä²¿·ÖÎªÖĞÎÄ£¬²»ĞèÒª¼ÆËã
+			unicode[i]=!!iswcntrl(i);			//ä¸­é—´éƒ¨åˆ†ä¸ºä¸­æ–‡ï¼Œä¸éœ€è¦è®¡ç®—
 		memset(&unicode[0xd800],CNTRL_UNICODE_PLANE,sizeof(char)*(0xdfff-0xd800+1));		//unicode plane
 		memset(&unicode[0x0590],CNTRL_COMPLEX_TEXT,sizeof(char)*(0x05FF-0x0590+1));		//hebrew
 		memset(&unicode[0x0600],CNTRL_COMPLEX_TEXT,sizeof(char)*(0x06FF-0x0600+1));		//arabic
@@ -161,7 +161,7 @@ public:
 //		unicode[0xa] = 0;
 // 		unicode[0xd] = 0;
 // 		unicode[0x9] = 0;
-		//ÉèÖÃ²¿·ÖÌØÊâ´¦ÀíµÄ¿ØÖÆ×Ö£¬ÕâĞ©¿ØÖÆ×ÖÃ»ÓĞ¿í¶È£¬µ«ÊÇGetCharABCWidth¶ÔËûÃÇÎŞ·¨ÕıÈ·¼ÆËã
+		//è®¾ç½®éƒ¨åˆ†ç‰¹æ®Šå¤„ç†çš„æ§åˆ¶å­—ï¼Œè¿™äº›æ§åˆ¶å­—æ²¡æœ‰å®½åº¦ï¼Œä½†æ˜¯GetCharABCWidthå¯¹ä»–ä»¬æ— æ³•æ­£ç¡®è®¡ç®—
 	}
 	~ControlIder()
 	{
@@ -203,7 +203,7 @@ struct FREETYPE_PARAMS
 		ZeroMemory(this, sizeof(*this));
 	}
 
-	//FreeTypeGetTextExtentPoint—p (ƒTƒCƒYŒvZ)
+	//FreeTypeGetTextExtentPointç”¨ (ã‚µã‚¤ã‚ºè¨ˆç®—)
 /*
 	FREETYPE_PARAMS(UINT eto, HDC hdc, OUTLINETEXTMETRIC* lpotm = NULL)
 		: etoOptions(eto)
@@ -217,7 +217,7 @@ struct FREETYPE_PARAMS
 	}*/
 
 
-	//FreeTypeTextOut—p (ƒTƒCƒYŒvZ{•¶š•`‰æ)
+	//FreeTypeTextOutç”¨ (ã‚µã‚¤ã‚ºè¨ˆç®—ï¼‹æ–‡å­—æç”»)
 	FREETYPE_PARAMS(UINT eto, HDC hdc, LOGFONTW* p, OUTLINETEXTMETRIC* lpotm = NULL, wstring* fname = NULL)
 		: etoOptions(eto)
 		, ftOptions(0)
@@ -284,8 +284,8 @@ public:
 };
 
 
-//fteng.cpp±äÁ¿
-//Snowie!!Ìáµ½Ç°Ãæ£¬ÎªÁË¸øÏÂÃæµÄ½á¹¹²éÕÒfaceÓÃ
+//fteng.cppå˜é‡
+//Snowie!!æåˆ°å‰é¢ï¼Œä¸ºäº†ç»™ä¸‹é¢çš„ç»“æ„æŸ¥æ‰¾faceç”¨
 extern FT_Library     freetype_library;
 extern FTC_Manager    cache_man;
 extern FTC_CMapCache  cmap_cache;
@@ -295,7 +295,7 @@ struct FreeTypeDrawInfo
 {
 	FT_FaceRec_ dummy_freetype_face;
 
-	//FreeTypePrepare‚ªİ’è‚·‚é
+	//FreeTypePrepareãŒè¨­å®šã™ã‚‹
 	int sx,sy;
 	FT_Face freetype_face;
 	FT_Int cmap_index;
@@ -307,23 +307,23 @@ struct FreeTypeDrawInfo
 	const CFontSettings* pfs;
 	FreeTypeFontCache* pftCache;
 	FTC_FaceID* face_id_list;
-	HFONT* ggo_font_list;	//Snowie!!ÓÃÓÚ¿ìËÙ×ÖÌåÁ´½Ó
+	HFONT* ggo_font_list;	//Snowie!!ç”¨äºå¿«é€Ÿå­—ä½“é“¾æ¥
 	FTC_FaceID face_id_simsun;
-	FT_Face freetype_face_list[CFontLinkInfo::FONTMAX * 2 + 1];	//Snowie!!ÓÃÓÚ½â¾öĞ±ÌåÎÊÌâ
+	FT_Face freetype_face_list[CFontLinkInfo::FONTMAX * 2 + 1];	//Snowie!!ç”¨äºè§£å†³æ–œä½“é—®é¢˜
 	int face_id_list_num;
 	int* Dx;
 	int* Dy;
 
-	//ŒÄ‚Ño‚µ‘O‚É©•ª‚Åİ’è‚·‚é
+	//å‘¼ã³å‡ºã—å‰ã«è‡ªåˆ†ã§è¨­å®šã™ã‚‹
 	HDC hdc;
 	int xBase;
-	int y;//×ø±ê¸ß¶È£¬¸ù¾İETO_PDY¼ÆËã£¬ÈçÃ»ÓĞÔòÎª0
-	int x;//×ø±ê¿í¶È£¬¸ù¾İwin32¿í¶È¼ÆËã
-	int px;	//x of paint,ÕæÊµÎÄ×Ö¿í¶È
+	int y;//åæ ‡é«˜åº¦ï¼Œæ ¹æ®ETO_PDYè®¡ç®—ï¼Œå¦‚æ²¡æœ‰åˆ™ä¸º0
+	int x;//åæ ‡å®½åº¦ï¼Œæ ¹æ®win32å®½åº¦è®¡ç®—
+	int px;	//x of paint,çœŸå®æ–‡å­—å®½åº¦
 	int yBase;
 	int yTop;
 	//Snowie!!
-	int height; //Ô­Ê¼¸ß¶È
+	int height; //åŸå§‹é«˜åº¦
 	int width;
 	//!!Snowie
 	const int* lpDx;
@@ -341,7 +341,7 @@ struct FreeTypeDrawInfo
 		ZeroMemory(&scaler, sizeof(scaler));
 		ZeroMemory(&font_type, sizeof(font_type));
 		ZeroMemory(&face_id_list, sizeof face_id_list);
-		//³õÊ¼»¯×ÖÌå±í
+		//åˆå§‹åŒ–å­—ä½“è¡¨
 		ZeroMemory(&freetype_face_list, sizeof freetype_face_list);
 		lpDx   = dx;
 		pCache = ca;
@@ -371,7 +371,7 @@ struct FreeTypeDrawInfo
 	bool IsSizeOnly() const { return !!(params->ftOptions & FTO_SIZE_ONLY); }
 	CGGOKerning ggokerning;
 
-	FT_Face GetFace(int index)	//»ñµÃ×ÖÌå±íÏî
+	FT_Face GetFace(int index)	//è·å¾—å­—ä½“è¡¨é¡¹
 	{
 		if (!freetype_face_list[index])
 		{
@@ -434,7 +434,7 @@ void FreeTypeSubstGlyph(
 	);*/
 
 
-BOOL FreeTypeGetGlyph(	//»ñµÃËùÓĞÍ¼ĞÎºÍĞèÒªµÄ¿í¶È
+BOOL FreeTypeGetGlyph(	//è·å¾—æ‰€æœ‰å›¾å½¢å’Œéœ€è¦çš„å®½åº¦
 					  FreeTypeDrawInfo& FTInfo,
 					  LPCWSTR lpString,  
 					  int cbString,     

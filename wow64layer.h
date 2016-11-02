@@ -1,4 +1,4 @@
-/*
+﻿/*
 #ifndef CONTEXT_i386
 #define CONTEXT_i386    0x00010000    // this assumes that i386 and
 #define CONTEXT_i486    0x00010000    // i486 have identical context records

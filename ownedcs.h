@@ -1,4 +1,4 @@
-#include <windows.h>
+ï»¿#include <windows.h>
 
 typedef struct _OWNED_CRITIAL_SECTION 
 {
@@ -6,7 +6,7 @@ typedef struct _OWNED_CRITIAL_SECTION
 	HANDLE hEvent;
 	CRITICAL_SECTION threadLock;
 }OWNED_CRITIAL_SECTION, *POWNED_CRITIAL_SECTION;
-	//ÓÃÓÚ×Ô¶¨ÒåÁÙ½çÇø
+	//ç”¨äºŽè‡ªå®šä¹‰ä¸´ç•ŒåŒº
 
 void WINAPI InitializeOwnedCritialSection(POWNED_CRITIAL_SECTION cs);
 void WINAPI DeleteOwnedCritialSection(POWNED_CRITIAL_SECTION cs);
