@@ -28,6 +28,13 @@ Here I will show you the steps I do to make the compilation.
 		Compile freetype as Freetype.lib for x86 and freetype64.lib for x64
 	
 		Static library is preferred, you are free to build freetype as independent dlls with better interchangeability but you will lose some compatibility in return, for some programs are delivered with their own copies of freetype which will conflict with your file.
+	- iniParser
+	
+		Build as iniparser.lib and iniparser64.lib
+	
+	- wow64ext
+		
+		Build as wow64ext.lib. x64 library is not required. Dll library is also accepted (if you like).
 	
 	- EasyHook
 		
