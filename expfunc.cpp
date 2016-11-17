@@ -239,6 +239,11 @@ FARPROC K32GetProcAddress(LPCSTR lpProcName)
 #endif
 }
 
+typedef struct _UNICODE_STRING64 {
+	USHORT Length;
+	USHORT MaximumLength;
+	DWORD64  Buffer;
+} UNICODE_STRING64, *PUNICODE_STRING64;
 
 #include <pshpack1.h>
 class opcode_data {
@@ -247,6 +252,8 @@ private:
 
 	//íç: dllpathÇWORDã´äEÇ…ÇµÇ»Ç¢Ç∆èÍçáÇ…ÇÊÇ¡ÇƒÇÕê≥èÌÇ…ìÆçÏÇµÇ»Ç¢
 	WCHAR	dllpath[MAX_PATH];
+	UNICODE_STRING64 uniDllPath;
+	DWORD64 hDumyDllHandle;
 
 public:
 	opcode_data()
@@ -421,6 +428,14 @@ emit_dw(0xD0FF);	//call eax
 	{
 		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
 
+		bool bDll = !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		if (bDll && wcsstr(dllpath, L".dll"))
+			wcscpy(wcsstr(dllpath, L".dll"), L"64.dll");
+		if (!bDll)
+			return false;
+		uniDllPath.Length = wcslen(dllpath)*sizeof(WCHAR);
+		uniDllPath.MaximumLength = uniDllPath.Length+2;
+		uniDllPath.Buffer = remoteaddr + (DWORD64)offsetof(opcode_data, dllpath);	//prepare PUNICODE_STRING for remote process
 		register BYTE* p = code;
 
 #define emit_(t,x)	*(t* UNALIGNED)p = (t)(x); p += sizeof(t)
@@ -429,16 +444,19 @@ emit_dw(0xD0FF);	//call eax
 #define emit_dd(d)	emit_(DWORD, d)
 #define emit_ddp(dp) emit_(DWORD64, dp)
 
-//get kernelbase.dll imagebase
+//get ntdll.dll imagebase
 //credit to http://www.52pojie.cn/thread-162625-1-1.html
 /*asm:
 	mov rsi, [gs:60h]   ;     peb from teb
 	mov rsi, [rsi+18h]    ;_peb_ldr_data from peb
-	mov rsi, [rsi+30h]   ;InInitializationOrderModuleList.Flink,
-	mov rsi, [rsi]  ;kernelbase.dll
+	mov rsi, [rsi+30h]   ;InInitializationOrderModuleList.Flink, ntdll.dll
+	;mov rsi, [rsi]  ;kernelbase.dll
 	;mov rsi, [rsi]      ;kernel32.dll (not used for win7+)
 	mov rsi, [rsi+10h]
 */
+
+// emit_db(0xEB);
+// emit_db(0xFE);	// make a dead loop
 		emit_db(0x65);
 		emit_db(0x48);
 		emit_db(0x8B);
@@ -456,33 +474,37 @@ emit_dw(0xD0FF);	//call eax
 		emit_db(0x8B);
 		emit_db(0x76);
 		emit_db(0x30);
-		emit_db(0x48);
-		emit_db(0x8B);
-		emit_db(0x36);
+// 		emit_db(0x48);
+// 		emit_db(0x8B);
+// 		emit_db(0x36);
 		emit_db(0x48);
 		emit_db(0x8B);
 		emit_db(0x76);
 		emit_db(0x10);
-//rsi = kernelbase.dll baseaddress
+//rsi = ntdll.dll baseaddress
 
 		emit_db(0x50);		//push rax
 		emit_db(0x51);		//push rcx
 		emit_db(0x52);		//push rdx
 		emit_db(0x53);		//push rbx
 		emit_dd(0x28ec8348);	//sub rsp,28h
-		emit_db(0x48);		//mov rcx, dllpath
+		emit_db(0x48);
+		emit_db(0x31);
+		emit_db(0xc9);	//xor rcx, rcx
+		emit_db(0x48);
+		emit_db(0x31);
+		emit_db(0xd2);	//xor rdx, rdx
+		emit_db(0x49);		
+		emit_db(0xB8);
+		emit_ddp((DWORD64)remoteaddr + offsetof(opcode_data, uniDllPath));//mov r8, uniDllPath
+		emit_db(0x49);
 		emit_db(0xB9);
-		emit_ddp((DWORD64)remoteaddr + offsetof(opcode_data, dllpath));
-		emit_db(0x45);
-		emit_db(0x31);
-		emit_db(0xC0);
-		emit_db(0x31);
-		emit_db(0xD2);	//xor r8d, r8d; xor edx,edx
-		//emit_db(0x48);		//mov rsi, LoadLibraryExW
+		emit_ddp((DWORD64)remoteaddr + offsetof(opcode_data, hDumyDllHandle));//mov r9, hDumyDllHandle
+		//emit_db(0x48);		//mov rsi, LdrLoadDll
 		//emit_db(0xBE);
 		emit_db(0x48);
 		emit_db(0x81);
-		emit_db(0xC6);	//add rsi, offset LoadLibraryExW
+		emit_db(0xC6);	//add rsi, offset LdrLoadDll
 		emit_dd(dwLoaderOffset);
 		//emit_db(0x48);
 		emit_db(0xFF);	//call rsi
@@ -502,9 +524,6 @@ emit_dw(0xD0FF);	//call eax
 
 		// gdi++.dllÇÃÉpÉX
 
-		bool bDll = !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
-		if (bDll && wcsstr(dllpath, L".dll"))
-			wcscpy(wcsstr(dllpath, L".dll"), L"64.dll");
 		return bDll;
 	}
 
@@ -651,17 +670,12 @@ EXTERN_C BOOL WINAPI GdippInjectDLL(const PROCESS_INFORMATION* ppi)
 			bTryLoadDll64 = true;
 			GetEnvironmentVariable(L"MACTYPE_X64ADDR", NULL, 0);
 			if (GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
-				// kernel32.dll not loaded
-				DWORD64 hKernel32Dll = 0;
-				if (IsWindows7OrGreater())
-					hKernel32Dll = LoadLibraryW64(L"kernelbase.dll");
-				else
-					hKernel32Dll = LoadLibraryW64(L"kernel32.dll");
-
-				if (hKernel32Dll) {
-					DWORD64 pfnLdrAddr = GetProcAddress64(hKernel32Dll, "LoadLibraryExW");
+				DWORD64 hNtdll = 0;
+				hNtdll = GetModuleHandle64(L"ntdll.dll");
+				if (hNtdll) {
+					DWORD64 pfnLdrAddr = GetProcAddress64(hNtdll, "LdrLoadDll");
 					if (pfnLdrAddr) {
-						dwLoaderOffset = (DWORD)(pfnLdrAddr - hKernel32Dll);
+						dwLoaderOffset = (DWORD)(pfnLdrAddr - hNtdll);
 					}
 				}
 			}
