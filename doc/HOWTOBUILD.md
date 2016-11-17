@@ -14,6 +14,8 @@ Here I will show you the steps I do to make the compilation.
 	 - Freetype ([link](https://www.freetype.org/download.html))
 	 - EasyHook ([link](http://easyhook.github.io/))
 	 - or Detours(obsolete, better not use)
+	 - iniParser (Get from my repo, orginal build is not fully functional)
+	 - wow64ext (Get from my repo, or from official repo, but you need to modify it yourself)
 	 - Windows sdk 10.0.14393.0 or later([link](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk))
 
 3. **Building dependencies**
