@@ -8,9 +8,17 @@
 #include <IniParser/ParseIni.h>
 
 #ifdef _WIN64
-	#pragma comment (lib, "iniparser64.lib")
+#ifdef DEBUG
+#pragma comment (lib, "iniparser64_dbg.lib")
 #else
-	#pragma comment (lib, "iniparser.lib")
+#pragma comment (lib, "iniparser64.lib")
+#endif
+#else
+#ifdef DEBUG
+#pragma comment (lib, "iniparser_dbg.lib")
+#else
+#pragma comment (lib, "iniparser.lib")
+#endif
 #endif
 
 #define MACTYPE_VERSION		20160830

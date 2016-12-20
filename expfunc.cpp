@@ -164,6 +164,16 @@ EXTERN_C void SafeUnload()
 	FreeLibraryAndExitThread(g_dllInstance, 0);
 }
 
+void ChangeFileName(LPWSTR lpSrc, int nSize, LPCWSTR lpNewFileName) {
+	for (int i = nSize; i > 0; --i){
+		if (lpSrc[i] == L'\\') {
+			lpSrc[i + 1] = L'\0';
+			break;
+		}
+	}
+	wcscat(lpSrc, lpNewFileName);
+}
+
 #ifndef Assert
 #include <crtdbg.h>
 #define Assert	_ASSERTE
@@ -319,10 +329,11 @@ public:
 		emit_dd(orgEIP - (LONG)remoteaddr - (p - code) - sizeof(LONG));
 
 		// gdi++.dllのパス
-		bool bDll = !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
-		if (bDll && wcsstr(dllpath, L"64"))
-			wcscpy(wcsstr(dllpath, L"64"), wcsstr(dllpath, L"64")+2);
-		return bDll;
+		int nSize = GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		if (nSize) {
+			ChangeFileName(dllpath, nSize, L"MTBootStrap.dll");
+		}
+		return !!nSize;
 	}
 	bool init32(LPDWORD remoteaddr, LONG orgEIP)	//32ﾎｻｳﾌﾐｼｻｯ
 	{
@@ -366,7 +377,11 @@ emit_dw(0xD0FF);	//call eax
 		emit_dd(orgEIP - (LONG)remoteaddr - (p - code) - sizeof(LONG));
 
 		// gdi++.dllのパス
-		return !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		int nSize = GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		if (nSize) {
+			ChangeFileName(dllpath, nSize, L"MTBootStrap.dll");
+		}
+		return !!nSize;
 	}
 	bool init64From32(DWORD64 remoteaddr, DWORD64 orgEIP)
 	{
@@ -418,20 +433,22 @@ emit_dw(0xD0FF);	//call eax
 
 		// gdi++.dllのパス
 
-		bool bDll = !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
-		if (bDll && wcsstr(dllpath, L".dll"))
-			wcscpy(wcsstr(dllpath, L".dll"), L"64.dll");
-		return bDll;
+		int nSize = GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		if (nSize) {
+			ChangeFileName(dllpath, nSize, L"MTBootStrap64.dll");
+		}
+		return !!nSize;
 	}
 
 	bool init64From32(DWORD64 remoteaddr, DWORD64 orgEIP, DWORD dwLoaderOffset)
 	{
 		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
 
-		bool bDll = !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
-		if (bDll && wcsstr(dllpath, L".dll"))
-			wcscpy(wcsstr(dllpath, L".dll"), L"64.dll");
-		if (!bDll)
+		int nSize = GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		if (nSize) {
+			ChangeFileName(dllpath, nSize, L"MTBootStrap64.dll");
+		}
+		if (!nSize)
 			return false;
 		uniDllPath.Length = wcslen(dllpath)*sizeof(WCHAR);
 		uniDllPath.MaximumLength = uniDllPath.Length+2;
@@ -524,7 +541,7 @@ emit_dw(0xD0FF);	//call eax
 
 		// gdi++.dllのパス
 
-		return bDll;
+		return !!nSize;
 	}
 
 	bool init(DWORD_PTR* remoteaddr, DWORD_PTR orgEIP)
@@ -553,7 +570,7 @@ emit_dw(0xD0FF);	//call eax
 		emit_db(0x51);		//push rcx
 		emit_db(0x52);		//push rdx
 		emit_db(0x53);		//push rbx
-		
+		/*
 #ifdef DEBUG
 		emit_dd(0x28ec8348);
 		emit_db(0x48);
@@ -578,7 +595,7 @@ emit_dw(0xD0FF);	//call eax
 		emit_db(0xFF);
 		emit_db(0xD6);
 		emit_dd(0x28c48348);
-#endif
+#endif*/
 /*	
 //Debug function2, Sleep for 10sec.
 		emit_dd(0x28ec8348);
@@ -614,8 +631,11 @@ emit_dw(0xD0FF);	//call eax
 		emit_db(0xE6);
 
 		// gdi++.dllのパス
-
-		return !!GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		int nSize = GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
+		if (nSize) {
+			ChangeFileName(dllpath, nSize, L"MTBootStrap64.dll");
+		}
+		return !!nSize;
 	}
 
 };
