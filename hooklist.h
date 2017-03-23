@@ -17,7 +17,7 @@ HOOK_DEFINE(BOOL, GetTextExtentPointI, (HDC hdc, LPWORD pgiIn, int cgi, LPSIZE l
 // HOOK_DEFINE(BOOL, CreateProcessAsUserA, (HANDLE hToken, LPCSTR lpApp, LPSTR lpCmd, LPSECURITY_ATTRIBUTES pa, LPSECURITY_ATTRIBUTES ta, BOOL bInherit, DWORD dwFlags, LPVOID lpEnv, LPCSTR lpDir, LPSTARTUPINFOA psi, LPPROCESS_INFORMATION ppi))
 // HOOK_DEFINE(BOOL, CreateProcessAsUserW, (HANDLE hToken, LPCWSTR lpApp, LPWSTR lpCmd, LPSECURITY_ATTRIBUTES pa, LPSECURITY_ATTRIBUTES ta, BOOL bInherit, DWORD dwFlags, LPVOID lpEnv, LPCWSTR lpDir, LPSTARTUPINFOW psi, LPPROCESS_INFORMATION ppi))
 
-HOOK_DEFINE(BOOL, CreateProcessInternalW, (\
+/*HOOK_DEFINE(BOOL, CreateProcessInternalW, (\
 			HANDLE hToken, \
 			LPCTSTR lpApplicationName,  \
 			LPTSTR lpCommandLine, \
@@ -30,7 +30,7 @@ HOOK_DEFINE(BOOL, CreateProcessInternalW, (\
 			LPSTARTUPINFO lpStartupInfo, \
 			LPPROCESS_INFORMATION lpProcessInformation , \
 			PHANDLE hNewToken \
-			))
+			))*/
 //HOOK_DEFINE(BOOL, DrawStateA, (HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPARAM lData, WPARAM wData, int x, int y, int cx, int cy, UINT uFlags))
 //HOOK_DEFINE(BOOL, DrawStateW, (HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPARAM lData, WPARAM wData, int x, int y, int cx, int cy, UINT uFlags))
 

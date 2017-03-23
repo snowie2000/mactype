@@ -242,7 +242,10 @@ struct FREETYPE_PARAMS
 			else
 			{
 				strFamilyName = (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName);
-				strFullName = wstring((LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFullName))+wstring((LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpStyleName));
+				strFullName = wstring((LPWSTR)((DWORD_PTR)otm + (DWORD_PTR)otm->otmpFullName));
+				if (strFullName.length() == 0)
+					strFullName = strFamilyName;
+				strFullName += wstring((LPWSTR)((DWORD_PTR)otm + (DWORD_PTR)otm->otmpStyleName));
 				if (strFamilyName.size()>0 && strFamilyName.c_str()[0]==L'@')
 					strFullName = L'@'+strFullName;
 			}

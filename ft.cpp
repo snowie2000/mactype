@@ -1168,6 +1168,8 @@ BOOL FreeTypePrepare(FreeTypeDrawInfo& FTInfo)
 		pfi->GetGGOLink(&FTInfo.ggo_font_list);
 		FTInfo.face_id_simsun = pfi->GetSimSunID();
 	}
+	else
+		return FALSE;
 	if (!(freetype_face = FTInfo.GetFace(0)))
 	{
 		pSettings->AddFontExclude(lf.lfFaceName);

@@ -402,8 +402,12 @@ public:
 				memset(otm, 0, nSize);
 				otm->otmSize = nSize;
 				GetOutlineTextMetrics(hdc, nSize, otm);
-				m_fullname = (wstring)(LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFullName)+(wstring)(LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpStyleName);
+				m_fullname = (wstring)(LPWSTR)((DWORD_PTR)otm + (DWORD_PTR)otm->otmpFullName);
 				TCHAR * localname = (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName);
+				if (m_fullname.length() == 0) {
+					m_fullname = localname;
+				}
+				m_fullname += (wstring)(LPWSTR)((DWORD_PTR)otm + (DWORD_PTR)otm->otmpStyleName);
 				TCHAR buff[LF_FACESIZE+1];				
 				GetFontLocalName(localname, buff);
 				m_nFontFamily = otm->otmTextMetrics.tmPitchAndFamily & 0xF0;	//获取字体家族，家族对应使用什么默认链接字体

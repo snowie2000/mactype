@@ -155,17 +155,12 @@ bool CGdippSettings::LoadSettings()
 bool CGdippSettings::LoadSettings(HINSTANCE hModule)
 {
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
-	if (!::GetModuleFileName(hModule, m_szFileName, MAX_PATH - sizeof(".ini") + 1)) {
+	int nSize = ::GetModuleFileName(hModule, m_szFileName, MAX_PATH - sizeof(".ini") + 1); 
+	if (!nSize) {
 		return false;
 	}
-
-	*PathFindExtension(m_szFileName) = L'\0';
-#ifdef _WIN64
-	if (wcsstr(m_szFileName, L"64"))
-		wcscpy(wcsstr(m_szFileName, L"64"), wcsstr(m_szFileName, L"64")+2);	//删掉其中的64，统一使用mactype.ini配置文件
-#endif
-	wcsncat(m_szFileName, _T(".ini"), MAX_PATH-1);
-	//StringCchCat(m_szFileName, MAX_PATH, _T(".ini"));
+	ChangeFileName(m_szFileName, nSize, L"MacType.ini");
+	
 	return LoadAppSettings(m_szFileName);
 }
 
