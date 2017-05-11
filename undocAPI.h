@@ -94,5 +94,3 @@ static PFNCreateProcessInternalW CreateProcessInternalW_KernelBase = (PFNCreateP
 static PFNCreateProcessInternalW CreateProcessInternalW = CreateProcessInternalW_KernelBase ? CreateProcessInternalW_KernelBase:(PFNCreateProcessInternalW)GetProcAddress(GetModuleHandle(_T("kernel32.dll")),"CreateProcessInternalW");
 //static PFNIsWow64Process IsWow64Process=(PFNIsWow64Process)GetProcAddress(LoadLibrary(L"Kernel32.dll"), "IsWow64Process");
 static PFNGetFontResourceInfo GetFontResourceInfo=(PFNGetFontResourceInfo)GetProcAddress(LoadLibrary(L"gdi32.dll"), "GetFontResourceInfoW");
-static PFNLdrLoadDll LdrLoadDll=(PFNLdrLoadDll)GetProcAddress(LoadLibrary(L"ntdll.dll"), "LdrLoadDll");
-static PFNSetProcessMitigationPolicy MySetProcessMitigationPolicy = (PFNSetProcessMitigationPolicy)GetProcAddress(LoadLibrary(L"kernel32.dll"), "SetProcessMitigationPolicy");

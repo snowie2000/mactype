@@ -66,10 +66,10 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
 	//
 	g_D2DParams.Gamma = pSettings->GammaValueForDW();	//user defined value preferred.
-	if (g_D2DParams.Gamma == 0)
-		g_D2DParams.Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
-	g_D2DParams.EnhancedContrast = 0.5f;
-	g_D2DParams.ClearTypeLevel = 1.0f;
+	//if (g_D2DParams.Gamma == 0)
+	//	g_D2DParams.Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
+	g_D2DParams.EnhancedContrast = pSettings->ContrastForDW();
+	g_D2DParams.ClearTypeLevel = pSettings->ClearTypeLevelForDW();
 	switch (pSettings->GetFontSettings().GetAntiAliasMode())
 	{
 	case 2:
@@ -85,15 +85,15 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 	}
 
 	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
-	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)DWRITE_RENDERING_MODE_CLEARTYPE_NATURAL_SYMMETRIC;
-	g_D2DParams.GrayscaleEnhancedContrast = 0.5f;
+	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)pSettings->RenderingModeForDW();
+	g_D2DParams.GrayscaleEnhancedContrast = pSettings->ContrastForDW();
 	g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
-	g_D2DParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
-
+	g_D2DParams.RenderingMode1 = (DWRITE_RENDERING_MODE1)pSettings->RenderingModeForDW();
+	/*
 	if (IsWindows8OrGreater()) {	//optimized for win8/win10
 		g_D2DParams.GrayscaleEnhancedContrast = 1.0f;
 		g_D2DParams.EnhancedContrast = 1.0f;
-	}
+	}*/
 
 
 	IDWriteFactory3* dw3 = NULL;
@@ -211,6 +211,13 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 			HOOK(ptr, CreateDevice5, 30);
 		}
 	}
+	{//factory6
+		CComPtr<ID2D1Factory6> ptr;
+		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+		if (SUCCEEDED(hr)){
+			HOOK(ptr, CreateDevice6, 31);
+		}
+	}
 }
 
 void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
@@ -256,6 +263,11 @@ void HookDevice(ID2D1Device* d2dDevice){
 	hr = (d2dDevice)->QueryInterface(&ptr5);
 	if SUCCEEDED(hr) {
 		HOOK(ptr5, CreateDeviceContext5, 16);
+	}
+	CComPtr<ID2D1Device5> ptr6;
+	hr = (d2dDevice)->QueryInterface(&ptr6);
+	if SUCCEEDED(hr) {
+		HOOK(ptr6, CreateDeviceContext6, 17);
 	}
 }
 
@@ -786,6 +798,22 @@ HRESULT WINAPI IMPL_CreateDeviceContext5(
 	return hr;
 }
 
+HRESULT WINAPI IMPL_CreateDeviceContext6(
+	ID2D1Device5* This,
+	D2D1_DEVICE_CONTEXT_OPTIONS options,
+	ID2D1DeviceContext5** deviceContext
+	) {
+	HRESULT hr = ORIG_CreateDeviceContext6(
+		This,
+		options,
+		deviceContext
+		);
+	if (SUCCEEDED(hr)) {
+		HookRenderTarget(*deviceContext);
+	}
+	return hr;
+}
+
 HRESULT WINAPI IMPL_CreateDevice1(
 	ID2D1Factory1* This,
 	IDXGIDevice* dxgiDevice,
@@ -881,6 +909,26 @@ HRESULT WINAPI IMPL_CreateDevice5(
 		if (!loaded) {
 			loaded = true;
 			HookDevice(*d2dDevice4);
+		}
+	}
+	return hr;
+}
+
+HRESULT WINAPI IMPL_CreateDevice6(
+	ID2D1Factory6* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device5** d2dDevice5
+	){
+	HRESULT hr = ORIG_CreateDevice6(
+		This,
+		dxgiDevice,
+		d2dDevice5
+		);
+	if (SUCCEEDED(hr)) {
+		static bool loaded = false;
+		if (!loaded) {
+			loaded = true;
+			HookDevice(*d2dDevice5);
 		}
 	}
 	return hr;
