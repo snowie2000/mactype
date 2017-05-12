@@ -31,6 +31,7 @@ void MyDebug(const TCHAR * sz, ...)
 struct Params {
 	D2D1_TEXT_ANTIALIAS_MODE AntialiasMode;
 	IDWriteRenderingParams *RenderingParams;
+	IDWriteRenderingParams *DWRenderingParams;	//RenderingMode=6 is invalid for DWrite interface
 
 	FLOAT Gamma;
 	FLOAT EnhancedContrast;
@@ -46,6 +47,78 @@ Params g_D2DParams, g_D2DParamsLarge;
 LONG bDWLoaded = false, bD2D1Loaded = false, bParamInited = false;
 IDWriteFactory* g_pDWriteFactory = NULL;
 IDWriteGdiInterop* g_pGdiInterop = NULL;
+
+IDWriteRenderingParams* CreateParam(Params& d2dParams,  IDWriteFactory *dw_factory)
+{
+	IDWriteFactory3* dw3 = NULL;
+	IDWriteFactory2* dw2 = NULL;
+	IDWriteFactory1* dw1 = NULL;
+	IDWriteRenderingParams3* r3 = NULL;
+	IDWriteRenderingParams2* r2 = NULL;
+	IDWriteRenderingParams1* r1 = NULL;
+	IDWriteRenderingParams* r0 = NULL;
+
+	HRESULT hr = dw_factory->QueryInterface(&dw3);
+	if SUCCEEDED(hr) {
+		hr = dw3->CreateCustomRenderingParams(
+			d2dParams.Gamma,
+			d2dParams.EnhancedContrast,
+			d2dParams.GrayscaleEnhancedContrast,
+			d2dParams.ClearTypeLevel,
+			d2dParams.PixelGeometry,
+			d2dParams.RenderingMode1,
+			d2dParams.GridFitMode,
+			&r3);
+		dw3->Release();
+		if SUCCEEDED(hr) {
+			return r3;
+		}
+	}
+
+	hr = dw_factory->QueryInterface(&dw2);
+	if SUCCEEDED(hr) {
+		hr = dw2->CreateCustomRenderingParams(
+			d2dParams.Gamma,
+			d2dParams.EnhancedContrast,
+			d2dParams.GrayscaleEnhancedContrast,
+			d2dParams.ClearTypeLevel,
+			d2dParams.PixelGeometry,
+			d2dParams.RenderingMode,
+			d2dParams.GridFitMode,
+			&r2);
+		dw2->Release();
+		if SUCCEEDED(hr) {
+			return r2;
+		}
+	}
+
+	hr = dw_factory->QueryInterface(&dw1);
+	if SUCCEEDED(hr) {
+		hr = dw1->CreateCustomRenderingParams(
+			d2dParams.Gamma,
+			d2dParams.EnhancedContrast,
+			d2dParams.GrayscaleEnhancedContrast,
+			d2dParams.ClearTypeLevel,
+			d2dParams.PixelGeometry,
+			d2dParams.RenderingMode,
+			&r1);
+		dw1->Release();
+		if SUCCEEDED(hr) {
+			return r1;
+		}
+	}
+
+	if (SUCCEEDED(dw_factory->CreateCustomRenderingParams(
+		d2dParams.Gamma,
+		d2dParams.EnhancedContrast,
+		d2dParams.ClearTypeLevel,
+		d2dParams.PixelGeometry,
+		d2dParams.RenderingMode,
+		&r0)))
+		return r0;
+
+	return NULL;
+}
 
 bool MakeD2DParams(IDWriteFactory* dw_factory)
 {
@@ -95,75 +168,15 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 		g_D2DParams.EnhancedContrast = 1.0f;
 	}*/
 
-
-	IDWriteFactory3* dw3 = NULL;
-	IDWriteFactory2* dw2 = NULL;
-	IDWriteFactory1* dw1 = NULL;
-	IDWriteRenderingParams3* r3 = NULL;
-	IDWriteRenderingParams2* r2 = NULL;
-	IDWriteRenderingParams1* r1 = NULL;
-
-	HRESULT hr = dw_factory->QueryInterface(&dw3);
-	if SUCCEEDED(hr) {
-		hr = dw3->CreateCustomRenderingParams(
-			g_D2DParams.Gamma,
-			g_D2DParams.EnhancedContrast,
-			g_D2DParams.GrayscaleEnhancedContrast,
-			g_D2DParams.ClearTypeLevel,
-			g_D2DParams.PixelGeometry,
-			g_D2DParams.RenderingMode1,
-			g_D2DParams.GridFitMode,
-			&r3);
-		dw3->Release();
-		if SUCCEEDED(hr) {
-			g_D2DParams.RenderingParams = r3;
-			return true;
-		}
+	g_D2DParams.RenderingParams = CreateParam(g_D2DParams, dw_factory);
+	if (pSettings->RenderingModeForDW() == 6) {	//DW rendering in mode6 is horrible
+		g_D2DParams.RenderingMode = DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC;
+		g_D2DParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
+		g_D2DParams.DWRenderingParams = CreateParam(g_D2DParams, dw_factory);
 	}
-
-	hr = dw_factory->QueryInterface(&dw2);
-	if SUCCEEDED(hr) {
-		hr = dw2->CreateCustomRenderingParams(
-			g_D2DParams.Gamma,
-			g_D2DParams.EnhancedContrast,
-			g_D2DParams.GrayscaleEnhancedContrast,
-			g_D2DParams.ClearTypeLevel,
-			g_D2DParams.PixelGeometry,
-			g_D2DParams.RenderingMode,
-			g_D2DParams.GridFitMode,
-			&r2);
-		dw2->Release();
-		if SUCCEEDED(hr) {
-			g_D2DParams.RenderingParams = r2;
-			return true;
-		}
+	else{
+		g_D2DParams.DWRenderingParams = g_D2DParams.RenderingParams;	// otherwise, we just make them equal.
 	}
-
-	hr = dw_factory->QueryInterface(&dw1);
-	if SUCCEEDED(hr) {
-		hr = dw1->CreateCustomRenderingParams(
-			g_D2DParams.Gamma,
-			g_D2DParams.EnhancedContrast,
-			g_D2DParams.GrayscaleEnhancedContrast,
-			g_D2DParams.ClearTypeLevel,
-			g_D2DParams.PixelGeometry,
-			g_D2DParams.RenderingMode,
-			&r1);
-		dw1->Release();
-		if SUCCEEDED(hr) {
-			g_D2DParams.RenderingParams = r1;
-			return true;
-		}
-	}
-
-	if (FAILED(dw_factory->CreateCustomRenderingParams(
-		g_D2DParams.Gamma,
-		g_D2DParams.EnhancedContrast,
-		g_D2DParams.ClearTypeLevel,
-		g_D2DParams.PixelGeometry,
-		g_D2DParams.RenderingMode,
-		&g_D2DParams.RenderingParams)))
-		return false;
 	return true;
 }
 
@@ -1248,7 +1261,7 @@ HRESULT WINAPI IMPL_DrawGlyphRun(
 			baselineOriginY,
 			measuringMode,
 			glyphRun,
-			g_D2DParams.RenderingParams,
+			g_D2DParams.DWRenderingParams,
 			textColor,
 			blackBoxRect
 			);
