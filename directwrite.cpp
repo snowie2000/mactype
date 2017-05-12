@@ -177,11 +177,11 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 	else{
 		g_D2DParams.DWRenderingParams = g_D2DParams.RenderingParams;	// otherwise, we just make them equal.
 	}
-	return true;
+	return g_D2DParams.DWRenderingParams != NULL && g_D2DParams.RenderingParams!=NULL;
 }
 
 void HookFactory(ID2D1Factory* pD2D1Factory) {
-	MakeD2DParams(NULL);
+	if (!MakeD2DParams(NULL)) return;
 	{//factory
 		CComQIPtr<ID2D1Factory> ptr = pD2D1Factory;
 		HOOK(ptr, CreateWicBitmapRenderTarget, 13);
@@ -1016,7 +1016,7 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 	HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
 	HOOK(pDWriteFactory, GetGdiInterop, 17);
 	hookFontCreation(pDWriteFactory);
-	MakeD2DParams(pDWriteFactory);
+	if (!MakeD2DParams(pDWriteFactory)) FAILEXIT;
 
 	MyDebug(L"DW1 hooked");
 	//dwrite2
