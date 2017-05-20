@@ -558,7 +558,10 @@ private:
 		ATTR_FontLoader,
 		ATTR_FontSubstitute,
 		ATTR_LcdFilterWeight,
-		ATTR_ShadowBuffer
+		ATTR_ShadowBuffer,
+		ATTR_MaxBitmap, 
+		ATTR_DirectWrite, 
+		ATTR_HintSmallFont
 	};
 	typedef CArray<CFontIndividual>		IndividualArray;
 public:
@@ -661,6 +664,12 @@ public:
 			}
 			UpdateLcdFilter();	//刷新过滤器
 			break;
+		case ATTR_HintSmallFont:
+			pSettings->m_bHintSmallFont = !!nValue;
+			break;
+		case ATTR_MaxBitmap:
+			pSettings->m_nBitmapHeight = nValue;
+			break;
 		case ATTR_ShadowBuffer:
 			if (nValue && !IsBadReadPtr((void*)nValue, sizeof(pSettings->m_nShadow)))	//指针有效
 			{
@@ -741,6 +750,10 @@ public:
 			return pSettings->m_FontSettings.GetKerning();
 		case ATTR_GammaMode:
 			return pSettings->m_nGammaMode;
+		case ATTR_HintSmallFont:
+			return pSettings->m_bHintSmallFont;
+		case ATTR_MaxBitmap:
+			return pSettings->m_nBitmapHeight;
 		case ATTR_LcdFilter:
 			return pSettings->m_nLcdFilter;
 		case ATTR_BolderMode:
