@@ -81,7 +81,7 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
-    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype\include;C:\Program Files (x86)\Windows Kits\10\Include\10.0.14393.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.14393.0\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype\include;C:\Program Files (x86)\Windows Kits\10\Include\10.0.15063.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.15063.0\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)64.Core</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

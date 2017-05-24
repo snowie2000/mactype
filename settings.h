@@ -470,7 +470,6 @@ public:
 	const int* GetTuneTableG() const { return m_nTuneTableG; }
 	const int* GetTuneTableB() const { return m_nTuneTableB; }
 
-	bool LoadSettings();
 	bool LoadSettings(HINSTANCE hModule);
 
 	bool IsFontExcluded(LPCSTR lpFaceName) const;

@@ -35,6 +35,13 @@ CGdippSettings* CGdippSettings::CreateInstance()
 	CGdippSettings* pSettings = new CGdippSettings;
 	CGdippSettings* pOldSettings = reinterpret_cast<CGdippSettings*>(InterlockedExchangePointer(reinterpret_cast<void**>(&s_pInstance), pSettings));
 	_ASSERTE(pOldSettings == NULL);
+	int nSize = GetModuleFileName(NULL, pSettings->m_szexeName, MAX_PATH);
+	for (int i = nSize; i > 0; --i) {
+		if (pSettings->m_szexeName[i] == _T('\\')) {
+			StringCchCopy(pSettings->m_szexeName, nSize - i, pSettings->m_szexeName + i + 1);
+			break;
+		}
+	}
 	return pSettings;
 }
 
@@ -144,13 +151,6 @@ void CGdippSettings::DelayedInit()
 		if (GetModuleHandle(_T("d2d1.dll")))	//directwrite support
 			HookD2D1();
 	}*/
-}
-
-bool CGdippSettings::LoadSettings()
-{
-	CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
-	Assert(m_szFileName[0]);
-	return LoadAppSettings(m_szFileName);
 }
 
 bool CGdippSettings::LoadSettings(HINSTANCE hModule)
