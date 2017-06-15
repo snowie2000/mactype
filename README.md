@@ -1,6 +1,11 @@
 MacType
 ========================
 
+Latest release verison 
+------------------
+
+1.2017.614.0
+
 Binary Installer
 ------------------
 
