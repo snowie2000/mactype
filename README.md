@@ -8,6 +8,14 @@ Visit MacType official site to download:
 
 http://www.mactype.net
 
+What's new?
+------------------
+
+- Win10 compatible
+- FreeType 2.8.0 included.
+- Two-stage mactype loader introduced.
+- Separate DirectWrite parameter adjustment.
+
 How to build
 -------------
 
