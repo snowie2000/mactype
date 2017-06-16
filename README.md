@@ -31,4 +31,6 @@ Known issue
 
 - Please backup your profile beforce upgrading!
 
+- Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file.
+
 - If you want to use MacType-patch together with MacType official release, Do remember to add DirectWrite=0 to your profile or you will have mysterious problems.
