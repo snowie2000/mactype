@@ -20,6 +20,7 @@ What's new?
 - FreeType 2.8.0 included.
 - Two-stage mactype loader introduced.
 - Separate DirectWrite parameter adjustment.
+- ClipboxFix is reverted to 0 by default to avoid some incompatibility issues.
 
 How to build
 -------------
