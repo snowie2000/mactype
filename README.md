@@ -21,6 +21,7 @@ What's new?
 - Two-stage mactype loader introduced.
 - Separate DirectWrite parameter adjustment.
 - ClipboxFix is reverted to 0 by default to avoid some incompatibility issues.
+- Added Korea localization, thanks to 조현희
 
 How to build
 -------------
