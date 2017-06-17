@@ -30,7 +30,7 @@ MacType now accepts donations.
 
 Please visit http://www.mactype.net and keep an eye on the bottom right cornor :heart:
 
-Thank you for your support! Your donations will keep the server running and make me updating, and buy more coffees :kissing:
+Thank you for your support! Your donations will keep the server running and make me updating, and buy more coffees :coffee:
 
 How to build
 -------------
