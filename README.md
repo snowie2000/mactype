@@ -23,6 +23,13 @@ What's new?
 - ClipboxFix is reverted to 0 by default to avoid some incompatibility issues.
 - Added Korea localization, thanks to 조현희
 
+Donation
+------------------
+
+MacType now accept donations. Please visit http://www.mactype.net and take a look at the bottom right :P
+
+Thank you for your support!
+
 How to build
 -------------
 
