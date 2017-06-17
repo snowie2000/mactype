@@ -26,11 +26,11 @@ What's new?
 Donation
 ------------------
 
-MacType now accept donations. 
+MacType now accepts donations. 
 
 Please visit http://www.mactype.net and keep an eye on the bottom right cornor :heart:
 
-Thank you for your support!
+Thank you for your support! Your donations will keep the server running and make me updating, and buy more coffees :kissing:
 
 How to build
 -------------
