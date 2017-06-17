@@ -26,7 +26,8 @@ What's new?
 Donation
 ------------------
 
-MacType now accept donations. Please visit http://www.mactype.net and take a look at the bottom right :P
+MacType now accept donations. 
+Please visit http://www.mactype.net and keep an eye on the bottom right cornor :P
 
 Thank you for your support!
 
