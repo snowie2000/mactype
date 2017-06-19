@@ -21,7 +21,7 @@
 #endif
 #endif
 
-#define MACTYPE_VERSION		20160830
+#define MACTYPE_VERSION		20170614
 #define MAX_FONT_SETTINGS	16
 #define DEFINE_FS_MEMBER(name, param) \
 	int  Get##name() const { return GetParam(param); } \

@@ -126,7 +126,7 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 
 	//if (FAILED(dw_factory->CreateRenderingParams(&dwrpm)))
 	//	return false;
-	if (InterlockedExchange((LONG*)&bParamInited, true)) return false;
+	if (InterlockedExchange((LONG*)&bParamInited, true)) return true;
 
 	CComPtr<IDWriteFactory> pDWriteFactory;
 	if (NULL == dw_factory) {
@@ -160,7 +160,16 @@ bool MakeD2DParams(IDWriteFactory* dw_factory)
 	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
 	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)pSettings->RenderingModeForDW();
 	g_D2DParams.GrayscaleEnhancedContrast = pSettings->ContrastForDW();
-	g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
+	switch (pSettings->GetFontSettings().GetHintingMode())
+	{
+	case 0: g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DEFAULT;
+		break;
+	case 1: g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
+		break;
+	default:
+		g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_ENABLED;
+		break;
+	} 	
 	g_D2DParams.RenderingMode1 = (DWRITE_RENDERING_MODE1)pSettings->RenderingModeForDW();
 	/*
 	if (IsWindows8OrGreater()) {	//optimized for win8/win10
