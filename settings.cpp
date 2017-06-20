@@ -17,7 +17,7 @@ static const TCHAR c_szDirectWrite[] = _T("DirectWrite");
 #define AAMODE_MIN			-1
 #define AAMODE_MAX			5
 #define GAMMAVALUE_MIN		0.0625f
-#define GAMMAVALUE_MAX		10.0f
+#define GAMMAVALUE_MAX		20.0f
 #define CONTRAST_MIN		0.0625f
 #define CONTRAST_MAX		10.0f
 #define RENDERWEIGHT_MIN	0.0625f

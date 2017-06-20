@@ -115,6 +115,7 @@ public:
 		CS_FONTMAP,
 		CS_OWNEDCS,
 		CS_VIRTMEM,
+		CS_DWRITE,
 	};
 	CCriticalSectionLock(int index=CS_LIBRARY):
 	  m_index(index)
