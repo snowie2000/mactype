@@ -37,11 +37,6 @@ Please visit http://www.mactype.net and keep an eye on the bottom right cornor :
 
 Thank you for your support! Your donations will keep the server running, keep me updating, and buy more coffees :coffee:
 
-How to build
--------------
-
-Check how to build [document](https://github.com/snowie2000/mactype/blob/master/doc/HOWTOBUILD.md)
-
 Known issue
 ---------------
 
@@ -50,3 +45,11 @@ Known issue
 - Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file.
 
 - If you want to use MacType-patch together with MacType official release, Do remember to add DirectWrite=0 to your profile or you will have mysterious problems.
+
+- This version is known to be not compatible with Chrome and firefox (in 32bit system, it crashes chrome, in 64bit system, no font rendering is took place on both Chrome and firefox. Please **DO NOT** report this issue repeatedly as I'm already working on it. I'll release a new version ASAP. Many thanks!
+
+How to build
+-------------
+
+Check how to build [document](https://github.com/snowie2000/mactype/blob/master/doc/HOWTOBUILD.md)
+
