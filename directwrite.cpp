@@ -40,6 +40,7 @@ struct Params {
 	FLOAT GrayscaleEnhancedContrast;
 	DWRITE_GRID_FIT_MODE GridFitMode;
 	DWRITE_RENDERING_MODE1 RenderingMode1;
+	IDWriteRenderingParams* GetRenderingParams(IDWriteRenderingParams* default);
 };
 
 Params g_D2DParams, g_DWParams; //g_D2DParamsLarge;
@@ -47,7 +48,17 @@ LONG bDWLoaded = false, bD2D1Loaded = false, bParamInited = false, bParamCreated
 IDWriteFactory* g_pDWriteFactory = NULL;
 IDWriteGdiInterop* g_pGdiInterop = NULL;
 
-IDWriteRenderingParams* CreateParam(Params& d2dParams,  IDWriteFactory *dw_factory)
+template<typename Intf>
+inline HRESULT IfSupport(IUnknown* pUnknown, void(*lpFunc)(Intf*)) {
+	CComPtr<Intf> comObject;
+	HRESULT hr = pUnknown->QueryInterface(&comObject);
+	if (SUCCEEDED(hr)) {
+		lpFunc(comObject);
+	}
+	return hr;
+}
+
+IDWriteRenderingParams* CreateParam(Params* d2dParams,  IDWriteFactory *dw_factory)
 {
 	IDWriteFactory3* dw3 = NULL;
 	IDWriteFactory2* dw2 = NULL;
@@ -57,16 +68,24 @@ IDWriteRenderingParams* CreateParam(Params& d2dParams,  IDWriteFactory *dw_facto
 	IDWriteRenderingParams1* r1 = NULL;
 	IDWriteRenderingParams* r0 = NULL;
 
+	CComPtr<IDWriteFactory> pDWriteFactory;
+	if (NULL == dw_factory) {
+		ORIG_DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
+			__uuidof(IDWriteFactory),
+			reinterpret_cast<IUnknown**>(&pDWriteFactory));
+		dw_factory = pDWriteFactory;
+	}
+
 	HRESULT hr = dw_factory->QueryInterface(&dw3);
 	if SUCCEEDED(hr) {
 		hr = dw3->CreateCustomRenderingParams(
-			d2dParams.Gamma,
-			d2dParams.EnhancedContrast,
-			d2dParams.GrayscaleEnhancedContrast,
-			d2dParams.ClearTypeLevel,
-			d2dParams.PixelGeometry,
-			d2dParams.RenderingMode1,
-			d2dParams.GridFitMode,
+			d2dParams->Gamma,
+			d2dParams->EnhancedContrast,
+			d2dParams->GrayscaleEnhancedContrast,
+			d2dParams->ClearTypeLevel,
+			d2dParams->PixelGeometry,
+			d2dParams->RenderingMode1,
+			d2dParams->GridFitMode,
 			&r3);
 		dw3->Release();
 		if SUCCEEDED(hr) {
@@ -77,13 +96,13 @@ IDWriteRenderingParams* CreateParam(Params& d2dParams,  IDWriteFactory *dw_facto
 	hr = dw_factory->QueryInterface(&dw2);
 	if SUCCEEDED(hr) {
 		hr = dw2->CreateCustomRenderingParams(
-			d2dParams.Gamma,
-			d2dParams.EnhancedContrast,
-			d2dParams.GrayscaleEnhancedContrast,
-			d2dParams.ClearTypeLevel,
-			d2dParams.PixelGeometry,
-			d2dParams.RenderingMode,
-			d2dParams.GridFitMode,
+			d2dParams->Gamma,
+			d2dParams->EnhancedContrast,
+			d2dParams->GrayscaleEnhancedContrast,
+			d2dParams->ClearTypeLevel,
+			d2dParams->PixelGeometry,
+			d2dParams->RenderingMode,
+			d2dParams->GridFitMode,
 			&r2);
 		dw2->Release();
 		if SUCCEEDED(hr) {
@@ -94,12 +113,12 @@ IDWriteRenderingParams* CreateParam(Params& d2dParams,  IDWriteFactory *dw_facto
 	hr = dw_factory->QueryInterface(&dw1);
 	if SUCCEEDED(hr) {
 		hr = dw1->CreateCustomRenderingParams(
-			d2dParams.Gamma,
-			d2dParams.EnhancedContrast,
-			d2dParams.GrayscaleEnhancedContrast,
-			d2dParams.ClearTypeLevel,
-			d2dParams.PixelGeometry,
-			d2dParams.RenderingMode,
+			d2dParams->Gamma,
+			d2dParams->EnhancedContrast,
+			d2dParams->GrayscaleEnhancedContrast,
+			d2dParams->ClearTypeLevel,
+			d2dParams->PixelGeometry,
+			d2dParams->RenderingMode,
 			&r1);
 		dw1->Release();
 		if SUCCEEDED(hr) {
@@ -108,15 +127,26 @@ IDWriteRenderingParams* CreateParam(Params& d2dParams,  IDWriteFactory *dw_facto
 	}
 
 	if (SUCCEEDED(dw_factory->CreateCustomRenderingParams(
-		d2dParams.Gamma,
-		d2dParams.EnhancedContrast,
-		d2dParams.ClearTypeLevel,
-		d2dParams.PixelGeometry,
-		d2dParams.RenderingMode,
+		d2dParams->Gamma,
+		d2dParams->EnhancedContrast,
+		d2dParams->ClearTypeLevel,
+		d2dParams->PixelGeometry,
+		d2dParams->RenderingMode,
 		&r0)))
 		return r0;
 
 	return NULL;
+}
+
+IDWriteRenderingParams* Params::GetRenderingParams(IDWriteRenderingParams* default) {
+	if (this->RenderingParams)
+		return this->RenderingParams;
+	CCriticalSectionLock __lock(CCriticalSectionLock::CS_DWRITE);
+	this->RenderingParams = CreateParam(this, NULL);
+	if (this->RenderingParams)
+		return this->RenderingParams;
+	else 
+		return default;
 }
 
 bool MakeD2DParams()
@@ -168,29 +198,9 @@ bool MakeD2DParams()
 		g_DWParams.RenderingMode = DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC;
 		g_DWParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
 	}
-	g_DWParams.Gamma = powf(g_D2DParams.Gamma, 1.0 / 3.0);
+	//g_DWParams.Gamma = powf(g_D2DParams.Gamma, 1.0 / 3.0);
 	bParamInited = true;
 	return true;
-}
-
-bool CreateD2DParams(IDWriteFactory* dw_factory)
-{
-	//MessageBoxW(0, 0, 0, 0);
-	if (bParamCreated) return true;
-	CCriticalSectionLock __lock(CCriticalSectionLock::CS_DWRITE);
-	if (bParamCreated) return true;
-
-	CComPtr<IDWriteFactory> pDWriteFactory;
-	if (NULL == dw_factory) {
-		ORIG_DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
-			__uuidof(IDWriteFactory),
-			reinterpret_cast<IUnknown**>(&pDWriteFactory));
-		dw_factory = pDWriteFactory;
-	}
-	g_D2DParams.RenderingParams = CreateParam(g_D2DParams, dw_factory);
-	g_DWParams.RenderingParams = CreateParam(g_DWParams, dw_factory);
-	bParamCreated = g_D2DParams.RenderingParams != NULL && g_DWParams.RenderingParams != NULL;
-	return !!bParamCreated;
 }
 
 void HookFactory(ID2D1Factory* pD2D1Factory) {
@@ -246,6 +256,15 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 	}
 }
 
+void hookDeviceContext(ID2D1DeviceContext* pD2D1DeviceContext) {
+	static bool loaded = false;
+	if (!loaded) {
+		loaded = true;
+		CComQIPtr<ID2D1DeviceContext> ptr = pD2D1DeviceContext;
+		HOOK(ptr, D2D1DeviceContext_DrawGlyphRun, 82);
+	}
+}
+
 void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
 	static bool loaded = false;
 	if (!loaded) {
@@ -253,7 +272,9 @@ void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
 		CComQIPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
 
 		HOOK(ptr, CreateCompatibleRenderTarget, 12);
-		//HOOK(ptr, DrawGlyphRun2, 29);
+		HOOK(ptr, D2D1RenderTarget_DrawText, 27);
+		HOOK(ptr, D2D1RenderTarget_DrawTextLayout, 28);
+		HOOK(ptr, D2D1RenderTarget_DrawGlyphRun, 29);
 		HOOK(ptr, SetTextAntialiasMode, 34);
 		HOOK(ptr, SetTextRenderingParams, 36);
 
@@ -262,11 +283,14 @@ void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
 		if (pD2D1Factory)
 			HookFactory(pD2D1Factory);
 	}
-	if (CreateD2DParams(NULL)) {
-		pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
-		pD2D1RenderTarget->SetTextRenderingParams(g_D2DParams.RenderingParams);
+	IfSupport(pD2D1RenderTarget, hookDeviceContext);
+
+	pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
+	if (g_D2DParams.GetRenderingParams(NULL)) {
+		pD2D1RenderTarget->SetTextRenderingParams(g_D2DParams.GetRenderingParams(NULL));
 	}
 }
+
 
 void HookDevice(ID2D1Device* d2dDevice){
 	CComQIPtr<ID2D1Device> ptr = d2dDevice;
@@ -436,7 +460,7 @@ HRESULT WINAPI IMPL_CreateBitmapRenderTarget(
 		if (!loaded) {
 			loaded = true;
 			CComQIPtr<IDWriteBitmapRenderTarget> ptr = *renderTarget;
-			HOOK(ptr, DrawGlyphRun, 3);
+			HOOK(ptr, BitmapRenderTarget_DrawGlyphRun, 3);
 		}
 	}
 	MyDebug(L"CreateBitmapRenderTarget hooked");
@@ -452,10 +476,10 @@ HRESULT WINAPI IMPL_GetAlphaBlendParams(
 	)
 {
 	HRESULT hr = E_FAIL;
-	if (FAILED(hr) && CreateD2DParams(NULL)) {
+	if (FAILED(hr)) {
 		hr = ORIG_GetAlphaBlendParams(
 			This,
-			g_DWParams.RenderingParams,
+			g_DWParams.GetRenderingParams(renderingParams),
 			blendGamma,
 			blendEnhancedContrast,
 			blendClearTypeLevel
@@ -507,6 +531,20 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis2(
 		}
 	}
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE_ALIASED) {
+		hr = ORIG_CreateGlyphRunAnalysis2(
+			This,
+			glyphRun,
+			transform,
+			g_DWParams.RenderingMode,
+			measuringMode,
+			g_DWParams.GridFitMode,
+			antialiasMode,
+			baselineOriginX,
+			baselineOriginY,
+			glyphRunAnalysis
+			);
+	}
+	if (FAILED(hr)) {
 		DWRITE_MATRIX m = {};
 		DWRITE_MATRIX const* pm = transform;
 		if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
@@ -524,9 +562,9 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis2(
 			This,
 			glyphRun,
 			pm,
-			g_DWParams.RenderingMode,
+			renderingMode,
 			measuringMode,
-			g_DWParams.GridFitMode,
+			gridFitMode,
 			antialiasMode,
 			baselineOriginX,
 			baselineOriginY,
@@ -575,6 +613,21 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 	MyDebug(L"CreateGlyphRunAnalysis3 hooked");
 	HRESULT hr = E_FAIL;
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE1_ALIASED) {
+		hr = ORIG_CreateGlyphRunAnalysis3(
+			This,
+			glyphRun,
+			transform,
+			g_DWParams.RenderingMode1,
+			measuringMode,
+			g_DWParams.GridFitMode,
+			antialiasMode,
+			baselineOriginX,
+			baselineOriginY,
+			glyphRunAnalysis
+			);
+	}
+	if (FAILED(hr)) {
+		MyDebug(L"try again with only transformation");
 		DWRITE_MATRIX m = {};
 		DWRITE_MATRIX const* pm = transform;
 		if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
@@ -592,9 +645,9 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 			This,
 			glyphRun,
 			pm,
-			g_DWParams.RenderingMode1,
+			renderingMode,
 			measuringMode,
-			g_DWParams.GridFitMode,
+			gridFitMode,
 			antialiasMode,
 			baselineOriginX,
 			baselineOriginY,
@@ -602,7 +655,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 			);
 	}
 	if (FAILED(hr)) {
-		MyDebug(L"CreateGlyphRunAnalysis3 failed");
+		MyDebug(L"fallback to original params");
 		hr = ORIG_CreateGlyphRunAnalysis3(
 			This,
 			glyphRun,
@@ -788,12 +841,7 @@ void WINAPI IMPL_SetTextRenderingParams(
 	_In_opt_ IDWriteRenderingParams* textRenderingParams
 	) {
 	MyDebug(L"IMPL_SetTextRenderingParams hooked");
-	if (CreateD2DParams(NULL)) {
-		ORIG_SetTextRenderingParams(This, g_D2DParams.RenderingParams);
-	}
-	else{
-		ORIG_SetTextRenderingParams(This, textRenderingParams);
-	}
+	ORIG_SetTextRenderingParams(This, g_D2DParams.GetRenderingParams(textRenderingParams));
 }
 
 HRESULT WINAPI IMPL_CreateDeviceContext(
@@ -1097,43 +1145,6 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 	HOOK(pDWriteFactory3, CreateGlyphRunAnalysis3, 31);
 	MyDebug(L"DW3 hooked");
 	return true;
-
-	/*
-	if (FAILED(g_pDWriteFactory->GetGdiInterop(&g_pGdiInterop))) FAILEXIT;	//判断不正确
-
-	if (!MakeD2DParams(g_pDWriteFactory)) FAILEXIT;	//准备创建渲染用的参数
-
-	const D2D1_PIXEL_FORMAT format =D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM,	D2D1_ALPHA_MODE_PREMULTIPLIED);
-	const D2D1_RENDER_TARGET_PROPERTIES properties =
-	D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT, format,	0.0f,0.0f,D2D1_RENDER_TARGET_USAGE_NONE);
-	CComPtr<ID2D1DCRenderTarget>target;
-	if (FAILED(d2d_factory->CreateDCRenderTarget(&properties, &target))) FAILEXIT;
-	void* pDraw = (*reinterpret_cast<void***>(target.p))[29];
-	//void* pRenderParam = (*reinterpret_cast<void***>(target.p))[36];
-	//void* pAAParam = (*reinterpret_cast<void***>(target.p))[34];
-	*(DWORD_PTR*)&ORIG_DrawGlyphRun= *(DWORD_PTR*)&pDraw;	//强制赋值，无视类型转换
-	//*(DWORD_PTR*)&ORIG_SetTextRenderingParams= *(DWORD_PTR*)&pRenderParam;
-	//*(DWORD_PTR*)&ORIG_SetTextAntialiasMode= *(DWORD_PTR*)&pAAParam;
-	hook_demand_DrawGlyphRun();	//加载D2D hook
-	//hook_demand_SetTextAntialiasMode();
-	//hook_demand_SetTextRenderingParams();
-	void* pTextFormat = (*reinterpret_cast<void***>(g_pDWriteFactory))[15];
-	IDWriteFont * dfont = NULL;
-	IDWriteFontCollection * fontcollection = NULL;
-	IDWriteFontFamily* ffamily = NULL;
-	if (FAILED(g_pDWriteFactory->GetSystemFontCollection(&fontcollection, false))) FAILEXIT;
-	if (FAILED(fontcollection->GetFontFamily(0, &ffamily))) FAILEXIT;
-	if (FAILED(ffamily->GetFont(0, &dfont))) FAILEXIT;
-	ffamily->Release();
-	fontcollection->Release();
-	void* pCreateFontFace = (*reinterpret_cast<void***>(dfont))[13];
-	*(DWORD_PTR*)&ORIG_CreateTextFormat= *(DWORD_PTR*)&pTextFormat;	//强制赋值，无视类型转换
-	*(DWORD_PTR*)&ORIG_CreateFontFace= *(DWORD_PTR*)&pCreateFontFace;
-	hook_demand_CreateTextFormat();
-	hook_demand_CreateFontFace();
-	dfont->Release();
-
-	return true;*/
 }
 
 #undef FAILEXIT
@@ -1162,7 +1173,7 @@ void HookD2DDll()
 		);
 	//Sleep(30 * 1000);
 #ifdef DEBUG
-	//MessageBox(0, L"HookD2DDll", NULL, MB_OK);
+	MessageBox(0, L"HookD2DDll", NULL, MB_OK);
 #endif
 	HMODULE d2d1 = LoadLibrary(_T("d2d1.dll"));
 	HMODULE dw = LoadLibrary(_T("dwrite.dll"));
@@ -1186,20 +1197,6 @@ void HookD2DDll()
 	if (D2D1Context) {
 		hook_demand_D2D1CreateDeviceContext();
 	}
-	/*if (dw) {
-		MyDebug(L"DW hooked for PID %d", GetCurrentProcessId());
-		CComPtr<IDWriteFactory> pDWriteFactory;
-		(PFN_DWriteCreateFactory(DWFactory))(DWRITE_FACTORY_TYPE_ISOLATED,
-			__uuidof(IDWriteFactory),
-			reinterpret_cast<IUnknown**>(&pDWriteFactory));
-		MakeD2DParams(pDWriteFactory);
-	}*/
-	/*if (d2d1) {
-		CComQIPtr<ID2D1Factory> pD2dfactory;
-		D2D1_FACTORY_OPTIONS d2d1Option = { D2D1_DEBUG_LEVEL_NONE };
-		(PFN_D2D1CreateFactory(D2D1Factory))(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), &d2d1Option, reinterpret_cast<void**>(&pD2dfactory));
-		TriggerHook(pD2dfactory);
-	}*/
 }
 
 /*
@@ -1308,7 +1305,79 @@ HRESULT  WINAPI IMPL_CreateTextFormat(IDWriteFactory* self,
 		return ORIG_CreateTextFormat(self, fontFamilyName, fontCollection, fontWeight, fontStyle, fontStretch, fontSize, localeName, textFormat);
 }
 
-HRESULT WINAPI IMPL_DrawGlyphRun(
+void WINAPI IMPL_D2D1DeviceContext_DrawGlyphRun(
+	ID2D1DeviceContext *This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	CONST DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	) {
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		D2D1_MATRIX_3X2_F prev;
+		This->GetTransform(&prev);
+		D2D1_MATRIX_3X2_F rotate = prev;
+		rotate.m12 += 1.0f / 0xFFFF;
+		rotate.m21 += 1.0f / 0xFFFF;
+		This->SetTransform(&rotate);
+		ORIG_D2D1DeviceContext_DrawGlyphRun(
+			This,
+			baselineOrigin,
+			glyphRun,
+			glyphRunDescription,
+			foregroundBrush,
+			measuringMode
+			);
+		This->SetTransform(&prev);
+	}
+	else {
+		ORIG_D2D1DeviceContext_DrawGlyphRun(
+			This,
+			baselineOrigin,
+			glyphRun,
+			glyphRunDescription,
+			foregroundBrush,
+			measuringMode
+			);
+	}
+}
+
+void WINAPI IMPL_D2D1RenderTarget_DrawGlyphRun(
+	ID2D1RenderTarget* This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	) {
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		D2D1_MATRIX_3X2_F prev;
+		This->GetTransform(&prev);
+		D2D1_MATRIX_3X2_F rotate = prev;
+		rotate.m12 += 1.0f / 0xFFFF;
+		rotate.m21 += 1.0f / 0xFFFF;
+		This->SetTransform(&rotate);
+		ORIG_D2D1RenderTarget_DrawGlyphRun(
+			This,
+			baselineOrigin,
+			glyphRun,
+			foregroundBrush,
+			measuringMode
+			);
+		This->SetTransform(&prev);
+	}
+	else {
+		ORIG_D2D1RenderTarget_DrawGlyphRun(
+			This,
+			baselineOrigin,
+			glyphRun,
+			foregroundBrush,
+			measuringMode
+			);
+	}
+}
+
+
+HRESULT WINAPI IMPL_BitmapRenderTarget_DrawGlyphRun(
 	IDWriteBitmapRenderTarget* This,
 	FLOAT baselineOriginX,
 	FLOAT baselineOriginY,
@@ -1319,14 +1388,37 @@ HRESULT WINAPI IMPL_DrawGlyphRun(
 	RECT* blackBoxRect)
 {
 	HRESULT hr = E_FAIL;
-	if (FAILED(hr) && CreateD2DParams(NULL)) {
-		hr = ORIG_DrawGlyphRun(
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		DWRITE_MATRIX prev;
+		hr = This->GetCurrentTransform(&prev);
+		if (SUCCEEDED(hr)) {
+			DWRITE_MATRIX rotate = prev;
+			rotate.m12 += 1.0f / 0xFFFF;
+			rotate.m21 += 1.0f / 0xFFFF;
+			hr = This->SetCurrentTransform(&rotate);
+			if (SUCCEEDED(hr)) {
+				hr = ORIG_BitmapRenderTarget_DrawGlyphRun(
+					This,
+					baselineOriginX,
+					baselineOriginY,
+					measuringMode,
+					glyphRun,
+					g_DWParams.GetRenderingParams(renderingParams),
+					textColor,
+					blackBoxRect
+					);
+				This->SetCurrentTransform(&prev);
+			}
+		}
+	}
+	if (FAILED(hr)) {
+		hr = ORIG_BitmapRenderTarget_DrawGlyphRun(
 			This,
 			baselineOriginX,
 			baselineOriginY,
 			measuringMode,
 			glyphRun,
-			g_DWParams.RenderingParams,
+			g_DWParams.GetRenderingParams(renderingParams),
 			textColor,
 			blackBoxRect
 			);
@@ -1335,7 +1427,7 @@ HRESULT WINAPI IMPL_DrawGlyphRun(
 		}
 	}
 	if (FAILED(hr)) {
-		hr = ORIG_DrawGlyphRun(
+		hr = ORIG_BitmapRenderTarget_DrawGlyphRun(
 			This,
 			baselineOriginX,
 			baselineOriginY,
@@ -1353,12 +1445,80 @@ HRESULT WINAPI IMPL_DrawGlyphRun(
 	return hr;
 }
 
-/*
-void WINAPI IMPL_DrawGlyphRun2(
-	D2D1_POINT_2F baselineOrigin,
-	_In_ CONST DWRITE_GLYPH_RUN *glyphRun,
-	_In_ ID2D1Brush *foregroundBrush,
-	DWRITE_MEASURING_MODE measuringMode = DWRITE_MEASURING_MODE_NATURAL) 
-{
-	return ORIG_DrawGlyphRun2(baselineOrigin, glyphRun, foregroundBrush, measuringMode);
-}*/
+
+void WINAPI IMPL_D2D1RenderTarget_DrawText(
+	ID2D1RenderTarget* This,
+	CONST WCHAR *string,
+	UINT32 stringLength,
+	IDWriteTextFormat *textFormat,
+	CONST D2D1_RECT_F *layoutRect,
+	ID2D1Brush *defaultForegroundBrush,
+	D2D1_DRAW_TEXT_OPTIONS options,
+	DWRITE_MEASURING_MODE measuringMode
+	) {
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		D2D1_MATRIX_3X2_F prev;
+		This->GetTransform(&prev);
+		D2D1_MATRIX_3X2_F rotate = prev;
+		rotate.m12 += 1.0f / 0xFFFF;
+		rotate.m21 += 1.0f / 0xFFFF;
+		This->SetTransform(&rotate);
+		ORIG_D2D1RenderTarget_DrawText(
+			This,
+			string,
+			stringLength,
+			textFormat,
+			layoutRect,
+			defaultForegroundBrush,
+			options,
+			measuringMode
+			);
+		This->SetTransform(&prev);
+	}
+	else {
+		ORIG_D2D1RenderTarget_DrawText(
+			This,
+			string,
+			stringLength,
+			textFormat,
+			layoutRect,
+			defaultForegroundBrush,
+			options,
+			measuringMode
+			);
+	}
+}
+
+void WINAPI IMPL_D2D1RenderTarget_DrawTextLayout(
+	ID2D1RenderTarget* This,
+	D2D1_POINT_2F origin,
+	IDWriteTextLayout *textLayout,
+	ID2D1Brush *defaultForegroundBrush,
+	D2D1_DRAW_TEXT_OPTIONS options
+	) {
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		D2D1_MATRIX_3X2_F prev;
+		This->GetTransform(&prev);
+		D2D1_MATRIX_3X2_F rotate = prev;
+		rotate.m12 += 1.0f / 0xFFFF;
+		rotate.m21 += 1.0f / 0xFFFF;
+		This->SetTransform(&rotate);
+		ORIG_D2D1RenderTarget_DrawTextLayout(
+			This,
+			origin,
+			textLayout,
+			defaultForegroundBrush,
+			options
+			);
+		This->SetTransform(&prev);
+	}
+	else {
+		ORIG_D2D1RenderTarget_DrawTextLayout(
+			This,
+			origin,
+			textLayout,
+			defaultForegroundBrush,
+			options
+			);
+	}
+}

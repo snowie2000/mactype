@@ -1,43 +1,3 @@
-// ここにフックするAPIを列挙していく。
-// ORIG_foo を使いつつ、IMPL_foo を実装すること。
-
-/*
-HOOK_DEFINE(DWORD, GetTabbedTextExtentA, (HDC hdc, LPCSTR lpString, int nCount, int nTabPositions, CONST LPINT lpnTabStopPositions))
-HOOK_DEFINE(DWORD, GetTabbedTextExtentW, (HDC hdc, LPCWSTR lpString, int nCount, int nTabPositions, CONST LPINT lpnTabStopPositions))
-
-HOOK_DEFINE(BOOL, GetTextExtentExPointA, (HDC hdc, LPCSTR lpszStr, int cchString, int nMaxExtent, LPINT lpnFit, LPINT lpDx, LPSIZE lpSize))
-HOOK_DEFINE(BOOL, GetTextExtentExPointW, (HDC hdc, LPCWSTR lpszStr, int cchString, int nMaxExtent, LPINT lpnFit, LPINT lpDx, LPSIZE lpSize))
-HOOK_DEFINE(BOOL, GetTextExtentExPointI, (HDC hdc, LPWORD pgiIn, int cgi, int nMaxExtent, LPINT lpnFit, LPINT lpDx, LPSIZE lpSize))
-
-HOOK_DEFINE(BOOL, GetTextExtentPointI, (HDC hdc, LPWORD pgiIn, int cgi, LPSIZE lpSize))
-*/
-
-// HOOK_DEFINE(BOOL, nCreateProcessA, (LPCSTR lpApp, LPSTR lpCmd, LPSECURITY_ATTRIBUTES pa, LPSECURITY_ATTRIBUTES ta, BOOL bInherit, DWORD dwFlags, LPVOID lpEnv, LPCSTR lpDir, LPSTARTUPINFOA psi, LPPROCESS_INFORMATION ppi))
-// HOOK_DEFINE(BOOL, nCreateProcessW, (LPCWSTR lpApp, LPWSTR lpCmd, LPSECURITY_ATTRIBUTES pa, LPSECURITY_ATTRIBUTES ta, BOOL bInherit, DWORD dwFlags, LPVOID lpEnv, LPCWSTR lpDir, LPSTARTUPINFOW psi, LPPROCESS_INFORMATION ppi))
-// HOOK_DEFINE(BOOL, CreateProcessAsUserA, (HANDLE hToken, LPCSTR lpApp, LPSTR lpCmd, LPSECURITY_ATTRIBUTES pa, LPSECURITY_ATTRIBUTES ta, BOOL bInherit, DWORD dwFlags, LPVOID lpEnv, LPCSTR lpDir, LPSTARTUPINFOA psi, LPPROCESS_INFORMATION ppi))
-// HOOK_DEFINE(BOOL, CreateProcessAsUserW, (HANDLE hToken, LPCWSTR lpApp, LPWSTR lpCmd, LPSECURITY_ATTRIBUTES pa, LPSECURITY_ATTRIBUTES ta, BOOL bInherit, DWORD dwFlags, LPVOID lpEnv, LPCWSTR lpDir, LPSTARTUPINFOW psi, LPPROCESS_INFORMATION ppi))
-
-/*HOOK_DEFINE(BOOL, CreateProcessInternalW, (\
-			HANDLE hToken, \
-			LPCTSTR lpApplicationName,  \
-			LPTSTR lpCommandLine, \
-			LPSECURITY_ATTRIBUTES lpProcessAttributes, \
-			LPSECURITY_ATTRIBUTES lpThreadAttributes, \
-			BOOL bInheritHandles, \
-			DWORD dwCreationFlags, \
-			LPVOID lpEnvironment, \
-			LPCTSTR lpCurrentDirectory, \
-			LPSTARTUPINFO lpStartupInfo, \
-			LPPROCESS_INFORMATION lpProcessInformation , \
-			PHANDLE hNewToken \
-			))*/
-//HOOK_DEFINE(BOOL, DrawStateA, (HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPARAM lData, WPARAM wData, int x, int y, int cx, int cy, UINT uFlags))
-//HOOK_DEFINE(BOOL, DrawStateW, (HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPARAM lData, WPARAM wData, int x, int y, int cx, int cy, UINT uFlags))
-
-// HOOK_DEFINE(BOOL, GetTextExtentPointA, (HDC hdc, LPCSTR lpString, int cbString, LPSIZE lpSize))
-// HOOK_DEFINE(BOOL, GetTextExtentPointW, (HDC hdc, LPCWSTR lpString, int cbString, LPSIZE lpSize))
-// HOOK_DEFINE(BOOL, GetTextExtentPoint32A, (HDC hdc, LPCSTR lpString, int cbString, LPSIZE lpSize))
-// HOOK_DEFINE(BOOL, GetTextExtentPoint32W, (HDC hdc, LPCWSTR lpString, int cbString, LPSIZE lpSize))
 HOOK_DEFINE(int, GetObjectW,  (__in HANDLE h, __in int c, __out_bcount_opt(c) LPVOID pv))
 HOOK_DEFINE(int, GetObjectA,  (__in HANDLE h, __in int c, __out_bcount_opt(c) LPVOID pv))
 HOOK_DEFINE(int, GetTextFaceAliasW, (HDC hdc, int nLen, LPWSTR lpAliasW))
@@ -100,7 +60,7 @@ HOOK_MANUALLY(LONG, LdrLoadDll, (IN PWCHAR               PathToFile OPTIONAL,
 			   OUT HANDLE*             ModuleHandle ))
 */
 
-HOOK_MANUALLY(HRESULT, DrawGlyphRun, (
+HOOK_MANUALLY(HRESULT, BitmapRenderTarget_DrawGlyphRun, (
 	IDWriteBitmapRenderTarget* This,
 	FLOAT baselineOriginX,
 	FLOAT baselineOriginY,
@@ -343,12 +303,39 @@ HOOK_MANUALLY(BOOL, MySetProcessMitigationPolicy, (
 	_In_ SIZE_T                    dwLength
 	));
 
-/*
-HOOK_MANUALLY(void, DrawGlyphRun2, (
+HOOK_MANUALLY(void, D2D1DeviceContext_DrawGlyphRun, (
+	ID2D1DeviceContext *This,
 	D2D1_POINT_2F baselineOrigin,
-	_In_ CONST DWRITE_GLYPH_RUN *glyphRun,
-	_In_ ID2D1Brush *foregroundBrush,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	CONST DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode));
+
+HOOK_MANUALLY(void, D2D1RenderTarget_DrawGlyphRun, (
+	ID2D1RenderTarget* This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	ID2D1Brush *foregroundBrush,
 	DWRITE_MEASURING_MODE measuringMode
-	));*/
+	));
+
+HOOK_MANUALLY(void, D2D1RenderTarget_DrawText, (
+	ID2D1RenderTarget* This,
+	CONST WCHAR *string,
+	UINT32 stringLength,
+	IDWriteTextFormat *textFormat,
+	CONST D2D1_RECT_F *layoutRect,
+	ID2D1Brush *defaultForegroundBrush,
+	D2D1_DRAW_TEXT_OPTIONS options,
+	DWRITE_MEASURING_MODE measuringMode));
+
+HOOK_MANUALLY(void, D2D1RenderTarget_DrawTextLayout, (
+	ID2D1RenderTarget* This,
+	D2D1_POINT_2F origin,
+	IDWriteTextLayout *textLayout,
+	ID2D1Brush *defaultForegroundBrush,
+	D2D1_DRAW_TEXT_OPTIONS options
+	));
+
 
 //EOF
