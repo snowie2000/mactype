@@ -22,7 +22,7 @@ What's new?
 ------------------
 
 - Win10 compatible
-- Tranditional Chinese localization has been greatly improved thanks to GT Wang.
+- Traditional Chinese localization has been greatly improved thanks to GT Wang.
 - MultiLang system improved.
 - Better DirectWrite support thanks to しらいと[http://silight.hatenablog.jp].
 - FreeType 2.8.0 included.
