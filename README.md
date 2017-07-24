@@ -43,7 +43,7 @@ Thank you for your support! Your donations will keep the server running, keep me
 Known issue
 ---------------
 
-- Please backup your profile beforce upgrading!
+- Please backup your profile before upgrading!
 
 - Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file.
 
