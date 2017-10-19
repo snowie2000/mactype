@@ -6,7 +6,7 @@ Important notice!
 
 - Since there are some unknown problems with the new installer and it is a big update, it is very much recommended to **stop old MacType,  uninstall and reboot, and then do a clean install.** This will keep you away from many unexpected problems.
 
-Latest release verison 
+Latest release version
 ------------------
 
 1.2017.628.0
