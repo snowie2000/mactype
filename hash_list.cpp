@@ -208,13 +208,13 @@ UINT32 CHashedStringList::SuperFastHash (const TCHAR * data, int len)
 CHashedStringList::CHashedStringList():m_Size(100), m_bCaseSense(false), m_Count(0)
 {
 	m_hashitem = (CMHashItem*)malloc(m_Size * sizeof(CMHashItem));	//创建一个HashItem组
-	memset(m_hashitem, 0, m_Size * sizeof(CMHashItem));
+	if (m_hashitem) memset(m_hashitem, 0, m_Size * sizeof(CMHashItem));
 }
 
 CHashedStringList::CHashedStringList(int nSize, BOOL bCaseSensative):m_Size(nSize), m_bCaseSense(bCaseSensative), m_Count(0)
 {
 	m_hashitem = (CMHashItem*)malloc(nSize * sizeof(CMHashItem));	//创建一个HashItem组
-	memset(m_hashitem, 0, nSize * sizeof(CMHashItem));
+	if (m_hashitem) memset(m_hashitem, 0, nSize * sizeof(CMHashItem));
 }
 
 CHashedStringList::~CHashedStringList()
