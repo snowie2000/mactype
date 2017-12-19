@@ -4,6 +4,7 @@ MacType
 Important notice!
 ------------------
 
+- Until next update, **DO NOT** use registry mode in Windows 10 latest version as it will very likely to crash and lock you out in the logon screen.
 - Since there are some unknown problems with the new installer and it is a big update, it is very much recommended to **stop old MacType,  uninstall and reboot, and then do a clean install.** This will keep you away from many unexpected problems.
 
 Latest release version
