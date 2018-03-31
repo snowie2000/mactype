@@ -21,7 +21,7 @@
 #endif
 #endif
 
-#define MACTYPE_VERSION		20170614
+#define MACTYPE_VERSION		20170628
 #define MAX_FONT_SETTINGS	16
 #define DEFINE_FS_MEMBER(name, param) \
 	int  Get##name() const { return GetParam(param); } \
@@ -294,6 +294,7 @@ private:
 	float m_fContrastForDW;
 	float m_fClearTypeLevelForDW;
 	int	m_nRenderingModeForDW;
+    CFontSubstitutesInfo m_FontSubstitutesInfoForDW;
 
 	//FTC_Manager_Newに渡すパラメータ
 	int  m_nCacheMaxFaces;
@@ -426,6 +427,8 @@ public:
 	float ContrastForDW() const { return m_fContrastForDW;  }
 	float ClearTypeLevelForDW() const { return m_fClearTypeLevelForDW;  }
 	int RenderingModeForDW() const { return m_nRenderingModeForDW; }
+	const CFontSubstitutesInfo& GetFontSubstitutesInfoForDW() const
+		{ _ASSERTE(m_bDelayedInit); return m_FontSubstitutesInfoForDW; }
 
 	float RenderWeight() const { return m_fRenderWeight; }
 	float Contrast() const { return m_fContrast; }
@@ -458,6 +461,7 @@ public:
 	}
 
 	bool CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const;
+    bool CopyForceFontForDW(LOGFONT& lf, const LOGFONT& lfOrg) const;
 
 	//それ以外
 	bool IsWinXPorLater() const { return m_bIsWinXPorLater; }
@@ -874,6 +878,7 @@ public:
 	{
 		CGdippSettings* pSettings = CGdippSettings::GetInstance();
 		ClearIndividual();
+		pSettings->m_FontSubstitutesInfoForDW.RemoveAll();
 		pSettings->m_FontSubstitutesInfo.RemoveAll();
 		pSettings->m_fontlinkinfo.clear();
 		pSettings->LoadAppSettings(lpFileName);
@@ -890,6 +895,7 @@ public:
 		CGdippSettings* pSettings = CGdippSettings::GetInstance();
 		extern HINSTANCE g_dllInstance;
 		pSettings->m_arrIndividual.RemoveAll();
+		pSettings->m_FontSubstitutesInfoForDW.RemoveAll();
 		pSettings->m_FontSubstitutesInfo.RemoveAll();
 		pSettings->m_fontlinkinfo.clear();
 		pSettings->LoadSettings(g_dllInstance);

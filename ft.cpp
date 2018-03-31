@@ -3096,14 +3096,6 @@ FT_Error Vert_FT_Outline_Embolden( FT_Outline*  outline, FT_Pos strength )
 	return FT_Err_Ok;
 }
 
-//É_É~Å[
-FT_EXPORT( FT_Error )
-FT_Library_SetLcdFilter_Dummy( FT_Library    /*library*/,
-                               FT_LcdFilter  /*filter*/ )
-{
-	return 0;
-}
-
 BOOL FontLInit(void){
 	CCriticalSectionLock __lock;
 

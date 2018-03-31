@@ -1,0 +1,7 @@
+Debug/
+deps/
+x64/
+.vs/
+Release/
+.vscode/
+*.vcxproj.user
