@@ -454,9 +454,26 @@ DWORD WINAPI IMPL_GetGlyphOutlineW(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 			//lpgm->gmptGlyphOrigin.y += 1;
 			//lpgm->gmBlackBoxX += 3;
 			//lpgm->gmBlackBoxY += 2;
-			static int n = (int)ceil(2.0*pSettings->ScreenDpi() / 96);
-			lpgm->gmptGlyphOrigin.y += n;
-			lpgm->gmBlackBoxY += n*2;
+
+			static int n = (int)floor(1.5*pSettings->ScreenDpi() / 96);
+			int nDeltaY = n, nDeltaBlackY = n;
+			TEXTMETRIC tm = { 0 };
+			GetTextMetrics(hdc, &tm);
+			if (lpgm->gmptGlyphOrigin.y < tm.tmAscent) {	// origin out of the top of the box
+				if (lpgm->gmptGlyphOrigin.y + nDeltaY>tm.tmAscent) {
+					nDeltaY = tm.tmAscent - lpgm->gmptGlyphOrigin.y;	// limit the top position of the origin
+				}
+			}
+			lpgm->gmptGlyphOrigin.y += nDeltaY;
+
+			lpgm->gmBlackBoxY += nDeltaY;
+			if (tm.tmAscent - lpgm->gmptGlyphOrigin.y + lpgm->gmBlackBoxY - 1 < tm.tmHeight)	// still has some room to scale up
+			{
+				if (tm.tmAscent - lpgm->gmptGlyphOrigin.y + lpgm->gmBlackBoxY + 1 + nDeltaBlackY > tm.tmHeight)
+					lpgm->gmBlackBoxY = tm.tmHeight - tm.tmAscent + lpgm->gmptGlyphOrigin.y + 1;
+				else
+					lpgm->gmBlackBoxY += nDeltaBlackY;
+			}
 		}
 	}
 // 	TEXTMETRIC tm;
@@ -477,13 +494,25 @@ DWORD WINAPI IMPL_GetGlyphOutlineA(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 // 	}
 	if (pSettings->EnableClipBoxFix() && (!cjBuffer || !pvBuffer)) {
 		if (!(fuFormat & (GGO_BITMAP | GGO_GRAY2_BITMAP | GGO_GRAY4_BITMAP | GGO_GRAY8_BITMAP | GGO_NATIVE))) {
-			//lpgm->gmptGlyphOrigin.x -= 1;
-			//lpgm->gmptGlyphOrigin.y += 1;
-			//lpgm->gmBlackBoxX += 3;
-			//lpgm->gmBlackBoxY += 2;
-			static int n = (int)ceil(2.0*pSettings->ScreenDpi() / 96);
-			lpgm->gmptGlyphOrigin.y += n;
-			lpgm->gmBlackBoxY += n;
+			static int n = (int)floor(1.5*pSettings->ScreenDpi() / 96);
+			int nDeltaY = n, nDeltaBlackY = n;
+			TEXTMETRIC tm = { 0 };
+			GetTextMetrics(hdc, &tm);
+			if (lpgm->gmptGlyphOrigin.y < tm.tmAscent) {	// origin out of the top of the box
+				if (lpgm->gmptGlyphOrigin.y + nDeltaY>tm.tmAscent) {
+					nDeltaY = tm.tmAscent - lpgm->gmptGlyphOrigin.y;	// limit the top position of the origin
+				}
+			}
+			lpgm->gmptGlyphOrigin.y += nDeltaY;	
+
+			lpgm->gmBlackBoxY += nDeltaY;
+			if (tm.tmAscent - lpgm->gmptGlyphOrigin.y + lpgm->gmBlackBoxY - 1 < tm.tmHeight)
+			{
+				if (tm.tmAscent - lpgm->gmptGlyphOrigin.y + lpgm->gmBlackBoxY + 1 + nDeltaBlackY > tm.tmHeight)
+					lpgm->gmBlackBoxY = tm.tmHeight - tm.tmAscent + lpgm->gmptGlyphOrigin.y + 1;
+				else
+					lpgm->gmBlackBoxY += nDeltaBlackY;
+			}
 		}
 	}
 	return ret;

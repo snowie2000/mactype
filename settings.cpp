@@ -459,7 +459,7 @@ SKIP:
 	m_nCacheMaxBytes = _GetFreeTypeProfileInt(_T("CacheMaxBytes"), 10485760, lpszFile);
 
 	//experimental settings:
-	m_bEnableClipBoxFix = !!_GetFreeTypeProfileIntFromSection(_T("Experimental"), _T("ClipBoxFix"), 0, lpszFile);
+	m_bEnableClipBoxFix = !!_GetFreeTypeProfileIntFromSection(_T("Experimental"), _T("ClipBoxFix"), 1, lpszFile);
 
 	if (m_nFontLoader == SETTING_FONTLOADER_WIN32) {
 		// API‚ªˆ—‚µ‚Ä‚­‚ê‚é‚Í‚¸‚È‚Ì‚Å©‘Oˆ—‚Í–³Œø‰»
