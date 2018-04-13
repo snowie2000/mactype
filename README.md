@@ -4,14 +4,13 @@ MacType
 Important notice!
 ------------------
 
+- Until next update, **DO NOT** use registry mode in Windows 10 latest version as it will very likely to crash and lock you out in the logon screen.
 - Since there are some unknown problems with the new installer and it is a big update, it is very much recommended to **stop old MacType,  uninstall and reboot, and then do a clean install.** This will keep you away from many unexpected problems.
 
-- This version is known to be not compatible with Chrome and firefox (in 32bit system, it crashes chrome, in 64bit system, no font rendering is took place on both Chrome and firefox. Please **DO NOT** report this issue repeatedly as I'm already working on it. I'll release a new version ASAP. Many thanks!
-
-Latest release verison 
+Latest release version
 ------------------
 
-1.2017.614.0
+1.2017.628.0
 
 Binary Installer
 ------------------
@@ -24,6 +23,9 @@ What's new?
 ------------------
 
 - Win10 compatible
+- Traditional Chinese localization has been greatly improved thanks to GT Wang.
+- MultiLang system improved.
+- Better DirectWrite support thanks to しらいと[http://silight.hatenablog.jp].
 - FreeType 2.8.0 included.
 - Two-stage mactype loader introduced.
 - Separate DirectWrite parameter adjustment.
@@ -42,7 +44,7 @@ Thank you for your support! Your donations will keep the server running, keep me
 Known issue
 ---------------
 
-- Please backup your profile beforce upgrading!
+- Please backup your profile before upgrading!
 
 - Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file.
 
