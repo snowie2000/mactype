@@ -6,6 +6,7 @@
 #include "fteng.h"
 #include "supinfo.h"
 #include "undocAPI.h"
+//#include "lrucache.hpp"
 
 #include <malloc.h>		// _alloca
 #include <mbctype.h>	// _getmbcp
@@ -444,6 +445,26 @@ int WINAPI IMPL_GetTextFaceAliasW(HDC hdc, int nLen, LPWSTR lpAliasW)
 	return bResult;
 }
 
+// Won't get any better for clipbox, obsolete.
+/*
+cache::lru_cache<HFONT, int> FontHeightCache(200);	// cache 200 most frequently used fonts' height
+const WCHAR TEST_ALPHABET_SEQUENCE[] = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+int GetFontMaxAlphabetHeight(HDC dc, MAT2 *lpmt2) {
+	HFONT ft = GetCurrentFont(dc);
+	if (FontHeightCache.exists(ft))
+		return FontHeightCache.get(ft);
+	GLYPHMETRICS lppm = { 0 };
+	int nHeight = 0;
+	for (int i = 0; i < 26; ++i) {
+		ORIG_GetGlyphOutlineW(dc, TEST_ALPHABET_SEQUENCE[i], GGO_METRICS, &lppm, 0, 0, lpmt2);
+		if (lppm.gmptGlyphOrigin.y>nHeight)
+			nHeight = lppm.gmptGlyphOrigin.y;
+	}
+	FontHeightCache.put(ft, nHeight);
+	return nHeight;
+}*/
+
 DWORD WINAPI IMPL_GetGlyphOutlineW(__in HDC hdc, __in UINT uChar, __in UINT fuFormat, __out LPGLYPHMETRICS lpgm, __in DWORD cjBuffer, __out_bcount_opt(cjBuffer) LPVOID pvBuffer, __in CONST MAT2 *lpmat2)
 {
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
@@ -464,6 +485,7 @@ DWORD WINAPI IMPL_GetGlyphOutlineW(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 					nDeltaY = tm.tmAscent - lpgm->gmptGlyphOrigin.y;	// limit the top position of the origin
 				}
 			}
+			else nDeltaY = 0;
 			lpgm->gmptGlyphOrigin.y += nDeltaY;
 
 			lpgm->gmBlackBoxY += nDeltaY;
@@ -503,6 +525,7 @@ DWORD WINAPI IMPL_GetGlyphOutlineA(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 					nDeltaY = tm.tmAscent - lpgm->gmptGlyphOrigin.y;	// limit the top position of the origin
 				}
 			}
+			else nDeltaY = 0;
 			lpgm->gmptGlyphOrigin.y += nDeltaY;	
 
 			lpgm->gmBlackBoxY += nDeltaY;
