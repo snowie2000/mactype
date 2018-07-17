@@ -1567,18 +1567,18 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			
 			chData = bGlyphIndex
 				? pftCache->FindGlyphIndex(wch)
-				: pftCache->FindChar(wch);
+				: pftCache->FindChar(wch);	//looking for wch in char cache and glyph cache
 
-			if (chData/* && FTInfo.width==chData->GetWidth()*/) {
+			if (chData/* && FTInfo.width==chData->GetWidth()*/) {	// found cache
 
 				gdi32x = chData->GetGDIWidth();
 				*AAList = chData->GetAAMode();
 				CCriticalSectionLock __lock(CCriticalSectionLock::CS_LIBRARY);
-				FT_Glyph_Ref_Copy((FT_Referenced_Glyph)chData->GetGlyph(render_mode), glyph_bitmap);
+				FT_Glyph_Ref_Copy((FT_Referenced_Glyph)chData->GetGlyph(render_mode), glyph_bitmap);	// cached img-> glyph_bitmap
 				//TRACE(_T("Cache Hit: %wc, size:%d, 0x%8.8X\n"), wch, chData->GetWidth(), glyph_bitmap);
 			}
 		}
-		if (!*glyph_bitmap) {
+		if (!*glyph_bitmap) {	// case: no cache found
 			FT_Referenced_Glyph glyph = NULL;
 			bool f_glyph = false;
 			//GLYPHMETRICS gm;
@@ -1587,7 +1587,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			CTempMem<PVOID> ggobuf;
 			DWORD outlinesize = 0;
 
-			if (bGlyphIndex) {
+			if (bGlyphIndex) {	// glyph index doesn't require any font linking
 				f_glyph = !!wch;
 				glyph_index = wch;
 				*AAList = AAMode;
@@ -1598,9 +1598,9 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					*drState=FT_DRAW_EMBEDDED_BITMAP;	//设置为点阵绘图方式
 				}
 			} else
-			if (wch && !CID.myiswcntrl(lpString[0])) {
-				
+			if (wch && !CID.myiswcntrl(lpString[0])) {	// need to draw a non-control character				
 				for (int j = 0; j < FTInfo.face_id_list_num; ++j) {
+					freetype_face = NULL;	// reinitialize it in case no fontlinking is available.
 					if (bWindowsLink)	//使用Windows函数进行fontlink
 					{
 						if (!lpfontlink[j][i])	//还没初始化该字体的fontlink
@@ -1701,7 +1701,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 
 			
 
-			if (!f_glyph) {	//glyphindex的文字上面已经计算过了
+			if (!f_glyph || !freetype_face) {	//can't find suitable fontface, glyphindex case is already calculated.
 #ifdef _DEBUG
 				GdiSetBatchLimit(0);
 #endif
@@ -1896,7 +1896,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					}
 				}
 			}
-		}
+		}	// end of "case: no cache found"
 
 		int cx = (bVertical && IsVerticalChar(wch)) ?
 				FT_FixedToInt(FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->root.advance.y) :
