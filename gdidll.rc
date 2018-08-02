@@ -24,8 +24,8 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2017,1017,0
- PRODUCTVERSION 1,2017,1017,0
+ FILEVERSION 1,2018,719,0
+ PRODUCTVERSION 1,2018,719,0
  FILEFLAGSMASK 0x8L
 #ifdef _DEBUG
  FILEFLAGS 0xbL
@@ -43,13 +43,13 @@ BEGIN
             VALUE "Comments", "Portions of this software are copyright (c) 2005-2017 The FreeType Project (www.freetype.org). All rights reserved."
             VALUE "CompanyName", "2ch & THEMEX"
             VALUE "FileDescription", "The Ultimate Font Rasterizer with Infinality patch"
-            VALUE "FileVersion", "1.2017.1017.0"
+            VALUE "FileVersion", "1.2018.719.0"
             VALUE "InternalName", "MacType"
             VALUE "LegalCopyright", "(C) 460, 168, Higambana, 555 and sy567. All rights reserved. FlyingSnow republished"
             VALUE "OriginalFilename", "MacType.dll"
             VALUE "PrivateBuild", "True"
             VALUE "ProductName", "The Ultimate Font Rasterizer"
-            VALUE "ProductVersion", "1.2017.1017.0"
+            VALUE "ProductVersion", "1.2018.719.0"
             VALUE "URL", "http://mactype.themex.net http://drwatson.nobody.jp/gdi++/"
         END
     END

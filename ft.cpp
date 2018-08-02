@@ -3110,6 +3110,15 @@ BOOL FontLInit(void){
 	if(FT_Init_FreeType(&freetype_library)){
 		return FALSE;
 	}
+
+#ifdef INFINALITY
+#define TT_INTERPRETER_VERSION_35  35
+#define TT_INTERPRETER_VERSION_38  38
+#define TT_INTERPRETER_VERSION_40  40
+	FT_UInt     interpreter_version = TT_INTERPRETER_VERSION_38;
+	FT_Property_Set(freetype_library, "truetype", "interpreter-version", &interpreter_version);
+#endif
+
 	//enable stem darkening feature introduced in 2.6.2
 	FT_Bool     no_stem_darkening = FALSE;
 	FT_Property_Set(freetype_library, "cff", "no-stem-darkening", &no_stem_darkening);

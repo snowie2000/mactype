@@ -20,7 +20,7 @@
 //#include "xdvi-config.h"
 //#include "xdvi.h"
 //#ifdef        USE_ZEIT
-#include <windows.h>
+//#include <windows.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_OPENTYPE_VALIDATE_H
@@ -114,12 +114,12 @@ struct RangeRecord_st {
 int isInIndex(FT_Bytes s, int index) {
     int i, count;
 
-    if (s == NULL) return FALSE;
+    if (s == NULL) return 0;
     count = BYTE2(s);
     for (i = 0; i < count; i++) {
-        if (index == BYTE2(s)) return TRUE;
+        if (index == BYTE2(s)) return 1;
     }
-    return FALSE;
+    return 0;
 }
 
 

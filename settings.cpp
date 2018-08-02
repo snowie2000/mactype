@@ -4,6 +4,9 @@
 #include "supinfo.h"
 #include "fteng.h"
 #include <stdlib.h>
+#ifdef INFINALITY
+#include <freetype/ftenv.h>
+#endif
 
 CGdippSettings* CGdippSettings::s_pInstance;
 CParseIni CGdippSettings::m_Config;
@@ -173,6 +176,30 @@ int CGdippSettings::_GetFreeTypeProfileIntFromSection(LPCTSTR lpszSection, LPCTS
 	else
 	if (m_Config[lpszSection].IsValueExists(lpszKey))
 		return m_Config[lpszSection][lpszKey].ToInt();
+	else
+		return nDefault;
+}
+
+bool CGdippSettings::_GetFreeTypeProfileBoolFromSection(LPCTSTR lpszSection, LPCTSTR lpszKey, bool nDefault, LPCTSTR lpszFile)
+{
+	wstring names = wstring((LPTSTR)lpszSection) + _T("@") + wstring((LPTSTR)m_szexeName);
+	if (m_Config.IsPartExists(names.c_str()) && m_Config[names.c_str()].IsValueExists(lpszKey))
+		return m_Config[names.c_str()][lpszKey].ToBool();
+	else
+	if (m_Config[lpszSection].IsValueExists(lpszKey))
+		return m_Config[lpszSection][lpszKey].ToBool();
+	else
+		return nDefault;
+}
+
+wstring CGdippSettings::_GetFreeTypeProfileStrFromSection(LPCTSTR lpszSection, LPCTSTR lpszKey, const TCHAR* nDefault, LPCTSTR lpszFile)
+{
+	wstring names = wstring((LPTSTR)lpszSection) + _T("@") + wstring((LPTSTR)m_szexeName);
+	if (m_Config.IsPartExists(names.c_str()) && m_Config[names.c_str()].IsValueExists(lpszKey))
+		return m_Config[names.c_str()][lpszKey].ToString();
+	else
+	if (m_Config[lpszSection].IsValueExists(lpszKey))
+		return m_Config[lpszSection][lpszKey].ToString();
 	else
 		return nDefault;
 }
@@ -460,6 +487,52 @@ SKIP:
 
 	//experimental settings:
 	m_bEnableClipBoxFix = !!_GetFreeTypeProfileIntFromSection(_T("Experimental"), _T("ClipBoxFix"), 1, lpszFile);
+
+#ifdef INFINALITY
+	// define some macros
+#define INF_INT_ENV(y, def) \
+	nTemp = _GetFreeTypeProfileIntFromSection(_T("Infinality"), _T(y), def, lpszFile); \
+	FT_PutEnv(y, _ltoa(nTemp, buff, 10));
+#define INF_BOOL_ENV(y, def) \
+	bTemp = _GetFreeTypeProfileBoolFromSection(_T("Infinality"), _T(y), def, lpszFile); \
+	FT_PutEnv(y, bTemp?"true":"false");
+#define INF_STR_ENV(y, def) \
+	sTemp = _GetFreeTypeProfileStrFromSection(_T("Infinality"), _T(y), def, lpszFile); \
+	FT_PutEnv(y, WstringToString(sTemp).c_str());
+
+	char* buff = (char*)malloc(256);
+	int nTemp; bool bTemp; wstring sTemp;
+
+	// INFINALITY settings:
+	INF_INT_ENV( "INFINALITY_FT_CHROMEOS_STYLE_SHARPENING_STRENGTH", 0);
+	INF_INT_ENV( "INFINALITY_FT_CONTRAST", 0);
+	INF_INT_ENV( "INFINALITY_FT_STEM_FITTING_STRENGTH", 25);
+	INF_INT_ENV( "INFINALITY_FT_AUTOHINT_SNAP_STEM_HEIGHT", 100);
+	INF_INT_ENV( "INFINALITY_FT_GRAYSCALE_FILTER_STRENGTH", 0);
+	INF_INT_ENV( "INFINALITY_FT_WINDOWS_STYLE_SHARPENING_STRENGTH", 20);
+	INF_INT_ENV( "INFINALITY_FT_BRIGHTNESS", 0);
+	INF_INT_ENV( "INFINALITY_FT_AUTOHINT_HORIZONTAL_STEM_DARKEN_STRENGTH", 10);
+	INF_INT_ENV( "INFINALITY_FT_STEM_ALIGNMENT_STRENGTH", 25);
+	INF_INT_ENV( "INFINALITY_FT_AUTOHINT_VERTICAL_STEM_DARKEN_STRENGTH", 25);
+	INF_INT_ENV( "INFINALITY_FT_FRINGE_FILTER_STRENGTH", 0);
+	INF_INT_ENV("INFINALITY_FT_GLOBAL_EMBOLDEN_X_VALUE", 0);
+	INF_INT_ENV("INFINALITY_FT_GLOBAL_EMBOLDEN_Y_VALUE", 0);
+	INF_INT_ENV("INFINALITY_FT_BOLD_EMBOLDEN_X_VALUE", 0);
+	INF_INT_ENV("INFINALITY_FT_BOLD_EMBOLDEN_Y_VALUE", 0);
+	INF_INT_ENV("INFINALITY_FT_STEM_SNAPPING_SLIDING_SCALE", 0);
+
+	INF_BOOL_ENV("INFINALITY_FT_USE_KNOWN_SETTINGS_ON_SELECTED_FONTS", true);
+	INF_BOOL_ENV( "INFINALITY_FT_AUTOFIT_ADJUST_HEIGHTS", true);
+	INF_BOOL_ENV( "INFINALITY_FT_USE_VARIOUS_TWEAKS", true);
+	INF_BOOL_ENV( "INFINALITY_FT_AUTOHINT_INCREASE_GLYPH_HEIGHTS", true);
+	INF_BOOL_ENV( "INFINALITY_FT_STEM_DARKENING_CFF", true);
+	INF_BOOL_ENV( "INFINALITY_FT_STEM_DARKENING_AUTOFIT", true);
+
+	INF_STR_ENV( "INFINALITY_FT_GAMMA_CORRECTION", _T("0 100"));
+	INF_STR_ENV( "INFINALITY_FT_FILTER_PARAMS", _T("11 22 38 22 11"));
+
+	free(buff);
+#endif
 
 	if (m_nFontLoader == SETTING_FONTLOADER_WIN32) {
 		// APIÇ™èàóùÇµÇƒÇ≠ÇÍÇÈÇÕÇ∏Ç»ÇÃÇ≈é©ëOèàóùÇÕñ≥å¯âª
