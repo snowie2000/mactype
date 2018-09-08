@@ -487,11 +487,11 @@ DWORD WINAPI IMPL_GetGlyphOutlineW(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 			}
 			else nDeltaY = 0;
 			lpgm->gmptGlyphOrigin.y += nDeltaY;
-			if (lpgm->gmptGlyphOrigin.x > 0)
+			/*if (lpgm->gmptGlyphOrigin.x > 0)
 				lpgm->gmBlackBoxX += n; // increase blackbox width if it's not a ligature
 			if (lpgm->gmBlackBoxX > tm.tmMaxCharWidth) {
 				lpgm->gmBlackBoxX = tm.tmMaxCharWidth;
-			}
+			}*/
 			lpgm->gmBlackBoxY += nDeltaY;
 			if (tm.tmAscent - lpgm->gmptGlyphOrigin.y + lpgm->gmBlackBoxY - 1 < tm.tmHeight)	// still has some room to scale up
 			{
@@ -530,11 +530,11 @@ DWORD WINAPI IMPL_GetGlyphOutlineA(__in HDC hdc, __in UINT uChar, __in UINT fuFo
 				}
 			}
 			else nDeltaY = 0;
-			if (lpgm->gmptGlyphOrigin.x > 0)
+			/*if (lpgm->gmptGlyphOrigin.x > 0)
 				lpgm->gmBlackBoxX += n; // increase blackbox width if it's not a ligature
 			if (lpgm->gmBlackBoxX > tm.tmMaxCharWidth) {
 				lpgm->gmBlackBoxX = tm.tmMaxCharWidth;
-			}
+			}*/
 			lpgm->gmptGlyphOrigin.y += nDeltaY;	
 
 			lpgm->gmBlackBoxY += nDeltaY;
@@ -1092,7 +1092,6 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 	if (!(fuOptions & ETO_GLYPH_INDEX) && !(fuOptions & ETO_IGNORELANGUAGE) && !lpDx && CID.myiscomplexscript(lpString,cbString))		//complex script
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
-
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance(); //获得一个配置文件实例
 
 /*

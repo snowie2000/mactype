@@ -188,7 +188,7 @@ void scan_Coverage(struct ft2vert_st *ret, const FT_Bytes top, const int l) {
         fprintf(stderr, "scan_Coverage: unknown CoverageFormat (%d).",
                 t->CoverageFormat);
 #endif
-        exit(1);
+		return;
     }
     ret->Lookup[l].SubTableCount++;
 }
@@ -215,12 +215,13 @@ void scan_SubTable(struct ft2vert_st *ret, const FT_Bytes top, const int l) {
             t->Substitute[i] = BYTE2(s);
         }
         break;
-    default:
-#ifdef _DEBUG
+#ifdef _DEBUG    
+	default:
+
         fprintf(stderr, "scan_SubTable: unknown SubstFormat (%d).",
                 t->SubstFormat);
 #endif
-        exit(1);
+		
     }
 }
 
@@ -469,8 +470,7 @@ static FT_UInt get_vert_nth_gid(struct SubTable_st *t, FT_UInt gid, int n) {
 #ifdef _DEBUG
     fprintf(stderr, "get_vert_nth_gid: internal error");
 #endif
-    exit(1);
-    //return 0;
+    return 0;
 }
 
 
@@ -497,11 +497,11 @@ FT_UInt ft2gsub_get_gid(const struct ft2vert_st *ft2vert, const FT_UInt gid, con
                 j += r->End - r->Start + 1;
             }
             break;
-        default:
-#ifdef _DEBUG
+#ifdef _DEBUG        
+		default:
+
             fprintf(stderr, "ft2vert_get_gid: internal error");
 #endif
-            exit(1);
         }
     }
     return 0;

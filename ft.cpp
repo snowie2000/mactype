@@ -1617,6 +1617,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					{
 						CCriticalSectionLock __lock(CCriticalSectionLock::CS_MANAGER);
 						glyph_index = FTC_CMapCache_Lookup(cmap_cache,FTInfo.face_id_list[j],-1,wch);
+						//glyph_index = FT_Get_Char_Index(FTInfo.GetFace(j), wch);
 					}
 					if (glyph_index) {
 						GetCharWidth32W(FTInfo.hdc, wch, wch, &gdi32x);	//有效文字，计算宽度
@@ -2816,7 +2817,7 @@ FT_Error face_requester(
 		FT_Pointer /*request_data*/,
 		FT_Face* aface)
 {
-	FT_Error ret;
+	FT_Error ret = FT_Err_Ok;
 	FT_Face face;
 
 	FreeTypeFontInfo* pfi = g_pFTEngine->FindFont((int)face_id);
@@ -2833,7 +2834,9 @@ FT_Error face_requester(
 	}
 
 	face = pData->GetFace();
-	Assert(face != NULL);
+	if (!face)
+		return 0x6;	//something wrong with the freetype that we aren't clear yet.
+	//Assert(face != NULL);
 
 	// Charmap傪愝掕偟偰偍偔
 	ret = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
@@ -2853,7 +2856,7 @@ FT_Error face_requester(
 	if(ret != FT_Err_Ok)
 		ret = FT_Select_Charmap(face, FT_ENCODING_ADOBE_STANDARD);
 	if(ret != FT_Err_Ok)
-		ret = FT_Select_Charmap(face, FT_ENCODING_ADOBE_EXPERT);
+		ret = FT_Select_Charmap(face, FT_ENCODING _ADOBE_EXPERT);
 	if(ret != FT_Err_Ok)
 		ret = FT_Select_Charmap(face, FT_ENCODING_ADOBE_CUSTOM);
 	if(ret != FT_Err_Ok)
