@@ -44,7 +44,7 @@ Donation
 
 MacType now accepts donations. 
 
-Please visit http://www.mactype.net and keep an eye on the bottom right cornor :heart:
+Please visit http://www.mactype.net and keep an eye on the bottom right corner :heart:
 
 Thank you for your support! Your donations will keep the server running, keep me updating, and buy more coffees :coffee:
 
