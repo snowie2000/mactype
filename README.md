@@ -9,7 +9,7 @@ The following will prevent several unexpected problems:
 - For Windows 10 latest version:
   - Until next update **DO NOT** use Registry Mode as it will very likely to crash and lock you out in the logon screen
   - Instead use Service Mode, go to Services -> Mactype Service and change the Startup Type **Automatic (Delayed Start)**
-  - Or ue Tray mode
+  - Or use Tray mode
 - There are some known problems with the new installer as it is a big update, it is very much recommended to:
   - **Stop old MacType, uninstall and reboot**
   - Do a clean install, make sure you chose **Typical install** (not Custom)
