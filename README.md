@@ -14,8 +14,8 @@ The following will prevent several unexpected problems:
   - **Stop old MacType, uninstall and reboot**
   - Do a clean install, make sure you chose **Typical install** (not Custom)
 - Secure Boot
-  - Use Service Mode if you prefer to keep Secure Boot enabled (recommended)
-  - For Registry Mode to work, Secure Boot must be disabled
+  - Use **Service Mode** if you prefer to keep Secure Boot enabled (recommended)
+  - For **Registry Mode** to work, Secure Boot must be disabled
   - Service Mode and Registry Mode give the same results in most cases so most people will want to chose Service Mode
 
 Latest release version
