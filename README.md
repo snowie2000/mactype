@@ -23,6 +23,10 @@ Latest release version
 
 1.2017.628.0
 
+Latest beta
+-------------------
+[1.2018.917.0-beta2](https://github.com/snowie2000/mactype/releases/tag/1.2018.917.0-beta2)
+
 Binary Installer
 ------------------
 
