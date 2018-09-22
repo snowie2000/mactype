@@ -16,7 +16,7 @@ The following will prevent several unexpected problems:
 - Secure Boot
   - Use **Service Mode** if you prefer to keep Secure Boot enabled (recommended)
   - For **Registry Mode** to work, Secure Boot must be disabled
-  - Service Mode and Registry Mode give the same results in most cases so most people will want to chose Service Mode
+  - Service Mode and Registry Mode give the same results in most cases so most people will want to select Service Mode
 
 Latest release version
 ------------------
