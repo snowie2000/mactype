@@ -13,6 +13,10 @@ The following will prevent several unexpected problems:
 - There are some known problems with the new installer as it is a big update, it is very much recommended to:
   - **Stop old MacType, uninstall and reboot**
   - Do a clean install, make sure you chose **Typical install** (not Custom)
+- Secure Boot
+  - Use Service Mode if you prefer to keep Secure Boot enabled (recommended)
+  - For Registry Mode to work, Secure Boot must be disabled
+  - Service Mode and Registry Mode give the same results in most cases so most people will want to chose Service Mode
 
 Latest release version
 ------------------
