@@ -59,12 +59,13 @@ Thank you for your support! Your donations will keep the server running, keep me
 Known issues
 ---------------
 
-- Please backup your profile before upgrading!
+- Please backup your profiles before upgrading!
 
-- Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file.
+- Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file
 
-- If you want to use MacType-patch together with MacType official release, Do remember to add DirectWrite=0 to your profile or you will have mysterious problems.
+- If you want to use MacType-patch together with MacType official release, remember to add DirectWrite=0 to your profile or you will have mysterious problems
 
+- If you're running 64 bit Windows, antimalware/antivirus software may conflict with MacType, because it sees MacType trying to modify running software. One possible workaround is to try running in Service Mode (recommended), or add HookChildProcesses=0 to your profile. See https://github.com/snowie2000/mactype/wiki/HookChildProcesses for an explanation.
 
 How to build
 -------------
