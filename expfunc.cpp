@@ -8,6 +8,7 @@
 #include <dwrite_1.h>
 #include <dwrite_2.h>
 #include <dwrite_3.h>
+#include <locale>
 #include "wow64ext.h"
 #include <VersionHelpers.h>
 
@@ -172,6 +173,17 @@ void ChangeFileName(LPWSTR lpSrc, int nSize, LPCWSTR lpNewFileName) {
 		}
 	}
 	wcscat(lpSrc, lpNewFileName);
+}
+
+std::string WstringToString(const std::wstring str)
+{// wstringתstring
+	unsigned len = str.size() * 4;
+	setlocale(LC_CTYPE, "");
+	char *p = new char[len];
+	wcstombs(p, str.c_str(), len);
+	std::string str1(p);
+	delete[] p;
+	return str1;
 }
 
 #ifndef Assert

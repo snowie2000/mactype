@@ -289,6 +289,7 @@ private:
 	//settings for experimental
 	bool m_bEnableClipBoxFix;
 
+
 	//settings for directwrite
 	float m_fGammaValueForDW;
 	float m_fContrastForDW;
@@ -336,6 +337,8 @@ private:
 	static LPTSTR _GetPrivateProfileSection    (LPCTSTR lpszSection, LPCTSTR lpszFile);
 	static int    _GetFreeTypeProfileInt       (LPCTSTR lpszKey, int nDefault, LPCTSTR lpszFile);
 	static int	  _GetFreeTypeProfileIntFromSection(LPCTSTR lpszSection, LPCTSTR lpszKey, int nDefault, LPCTSTR lpszFile);
+	static bool   _GetFreeTypeProfileBoolFromSection(LPCTSTR lpszSection, LPCTSTR lpszKey, bool nDefault, LPCTSTR lpszFile);
+	static wstring _GetFreeTypeProfileStrFromSection(LPCTSTR lpszSection, LPCTSTR lpszKey, const TCHAR* nDefault, LPCTSTR lpszFile);
 	static int    _GetFreeTypeProfileBoundInt  (LPCTSTR lpszKey, int nDefault, int nMin, int nMax, LPCTSTR lpszFile);
 	static float  _GetFreeTypeProfileFloat     (LPCTSTR lpszKey, float fDefault, LPCTSTR lpszFile);
 	static float  _GetFreeTypeProfileBoundFloat(LPCTSTR lpszKey, float fDefault, float fMin, float fMax, LPCTSTR lpszFile);

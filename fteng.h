@@ -302,6 +302,7 @@ private:
 	bool m_italic;
 	char m_hashinting;
 	int  m_ftWeight;
+	int  m_os2Weight;
 	int  m_nMaxSizes;
 	int	 m_nFontFamily;
 	HFONT m_ggoFont;
@@ -371,7 +372,7 @@ public:
 	UINT getCacheHash(int px, int weight, bool italic, int width) {return ((px<<20)|(width<<8)|(weight<<1)|(int)italic); };	//计算一个hash值来定位cache
 	FreeTypeFontInfo(int n, LPCTSTR name, int weight, bool italic, int mru, wstring fullname, wstring familyname)
 		: m_id(n), m_weight(weight), m_italic(italic), m_OS2Table(NULL), IsPixel(false)
-		, FreeTypeMruCounter(mru), m_isSimSun(false), m_ggoFont(NULL), m_linkinited(false), m_linknum(0)
+		, FreeTypeMruCounter(mru), m_isSimSun(false), m_ggoFont(NULL), m_linkinited(false), m_linknum(0), m_os2Weight(0)
 		, m_SimSunID(0), count(1), m_fullname(fullname), m_familyname(familyname), m_hashinting(3), m_nFontFamily(0)
 	{
 		//m_set = set;

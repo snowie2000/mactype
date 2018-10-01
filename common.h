@@ -627,3 +627,4 @@ void HookD2DDll();
 bool HookD2D1();
 void HookGdiplus();
 void ChangeFileName(LPWSTR lpSrc, int nSize, LPCWSTR lpNewFileName);
+std::string WstringToString(const std::wstring str);

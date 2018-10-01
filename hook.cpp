@@ -24,6 +24,9 @@
 #ifndef _WIN64
 #include "wow64ext.h"
 #endif
+#ifdef INFINALITY
+#include <freetype/ftenv.h>
+#endif
 #pragma comment(lib, "delayimp")
 
 HINSTANCE g_dllInstance;
@@ -470,6 +473,10 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 
 		//4
 		{
+#ifdef INFINALITY 
+			// enable infinality exclusive features
+			FT_initEnv();
+#endif
 			CGdippSettings* pSettings = CGdippSettings::CreateInstance();
 			if (!pSettings || !pSettings->LoadSettings(instance)) {
 				CGdippSettings::DestroyInstance();
@@ -563,6 +570,11 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 		if (g_pFTEngine) {
 			delete g_pFTEngine;
 		}
+
+#ifdef INFINALITY 
+		// enable infinality exclusive features
+		FT_freeEnv();
+#endif
 		//if (g_alterGUIFont)
 		//	DeleteObject(g_alterGUIFont);
 		FontLFree();

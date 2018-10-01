@@ -1567,18 +1567,18 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			
 			chData = bGlyphIndex
 				? pftCache->FindGlyphIndex(wch)
-				: pftCache->FindChar(wch);
+				: pftCache->FindChar(wch);	//looking for wch in char cache and glyph cache
 
-			if (chData/* && FTInfo.width==chData->GetWidth()*/) {
+			if (chData/* && FTInfo.width==chData->GetWidth()*/) {	// found cache
 
 				gdi32x = chData->GetGDIWidth();
 				*AAList = chData->GetAAMode();
 				CCriticalSectionLock __lock(CCriticalSectionLock::CS_LIBRARY);
-				FT_Glyph_Ref_Copy((FT_Referenced_Glyph)chData->GetGlyph(render_mode), glyph_bitmap);
+				FT_Glyph_Ref_Copy((FT_Referenced_Glyph)chData->GetGlyph(render_mode), glyph_bitmap);	// cached img-> glyph_bitmap
 				//TRACE(_T("Cache Hit: %wc, size:%d, 0x%8.8X\n"), wch, chData->GetWidth(), glyph_bitmap);
 			}
 		}
-		if (!*glyph_bitmap) {
+		if (!*glyph_bitmap) {	// case: no cache found
 			FT_Referenced_Glyph glyph = NULL;
 			bool f_glyph = false;
 			//GLYPHMETRICS gm;
@@ -1587,7 +1587,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			CTempMem<PVOID> ggobuf;
 			DWORD outlinesize = 0;
 
-			if (bGlyphIndex) {
+			if (bGlyphIndex) {	// glyph index doesn't require any font linking
 				f_glyph = !!wch;
 				glyph_index = wch;
 				*AAList = AAMode;
@@ -1598,9 +1598,9 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					*drState=FT_DRAW_EMBEDDED_BITMAP;	//设置为点阵绘图方式
 				}
 			} else
-			if (wch && !CID.myiswcntrl(lpString[0])) {
-				
+			if (wch && !CID.myiswcntrl(lpString[0])) {	// need to draw a non-control character				
 				for (int j = 0; j < FTInfo.face_id_list_num; ++j) {
+					freetype_face = NULL;	// reinitialize it in case no fontlinking is available.
 					if (bWindowsLink)	//使用Windows函数进行fontlink
 					{
 						if (!lpfontlink[j][i])	//还没初始化该字体的fontlink
@@ -1617,6 +1617,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					{
 						CCriticalSectionLock __lock(CCriticalSectionLock::CS_MANAGER);
 						glyph_index = FTC_CMapCache_Lookup(cmap_cache,FTInfo.face_id_list[j],-1,wch);
+						//glyph_index = FT_Get_Char_Index(FTInfo.GetFace(j), wch);
 					}
 					if (glyph_index) {
 						GetCharWidth32W(FTInfo.hdc, wch, wch, &gdi32x);	//有效文字，计算宽度
@@ -1701,7 +1702,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 
 			
 
-			if (!f_glyph) {	//glyphindex的文字上面已经计算过了
+			if (!f_glyph || !freetype_face) {	//can't find suitable fontface, glyphindex case is already calculated.
 #ifdef _DEBUG
 				GdiSetBatchLimit(0);
 #endif
@@ -1896,7 +1897,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					}
 				}
 			}
-		}
+		}	// end of "case: no cache found"
 
 		int cx = (bVertical && IsVerticalChar(wch)) ?
 				FT_FixedToInt(FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->root.advance.y) :
@@ -2816,7 +2817,7 @@ FT_Error face_requester(
 		FT_Pointer /*request_data*/,
 		FT_Face* aface)
 {
-	FT_Error ret;
+	FT_Error ret = FT_Err_Ok;
 	FT_Face face;
 
 	FreeTypeFontInfo* pfi = g_pFTEngine->FindFont((int)face_id);
@@ -2833,7 +2834,9 @@ FT_Error face_requester(
 	}
 
 	face = pData->GetFace();
-	Assert(face != NULL);
+	if (!face)
+		return 0x6;	//something wrong with the freetype that we aren't clear yet.
+	//Assert(face != NULL);
 
 	// Charmap傪愝掕偟偰偍偔
 	ret = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
@@ -2853,7 +2856,7 @@ FT_Error face_requester(
 	if(ret != FT_Err_Ok)
 		ret = FT_Select_Charmap(face, FT_ENCODING_ADOBE_STANDARD);
 	if(ret != FT_Err_Ok)
-		ret = FT_Select_Charmap(face, FT_ENCODING_ADOBE_EXPERT);
+		ret = FT_Select_Charmap(face, FT_ENCODING _ADOBE_EXPERT);
 	if(ret != FT_Err_Ok)
 		ret = FT_Select_Charmap(face, FT_ENCODING_ADOBE_CUSTOM);
 	if(ret != FT_Err_Ok)
@@ -3102,6 +3105,15 @@ BOOL FontLInit(void){
 	if(FT_Init_FreeType(&freetype_library)){
 		return FALSE;
 	}
+
+#ifdef INFINALITY
+#define TT_INTERPRETER_VERSION_35  35
+#define TT_INTERPRETER_VERSION_38  38
+#define TT_INTERPRETER_VERSION_40  40
+	FT_UInt     interpreter_version = TT_INTERPRETER_VERSION_38;
+	FT_Property_Set(freetype_library, "truetype", "interpreter-version", &interpreter_version);
+#endif
+
 	//enable stem darkening feature introduced in 2.6.2
 	FT_Bool     no_stem_darkening = FALSE;
 	FT_Property_Set(freetype_library, "cff", "no-stem-darkening", &no_stem_darkening);
