@@ -187,6 +187,12 @@ HOOK_MANUALLY(HRESULT, CreateDeviceContext6, (
 			  ID2D1DeviceContext5** deviceContext
 			  ))
 
+HOOK_MANUALLY(HRESULT, CreateDeviceContext7, (
+			  ID2D1Device6* This,
+			  D2D1_DEVICE_CONTEXT_OPTIONS options,
+			  ID2D1DeviceContext6** deviceContext
+			  ))
+
 HOOK_MANUALLY(HRESULT, CreateTextFormat, (
 			   IDWriteFactory* self,
 			   __in_z WCHAR const* fontFamilyName,
@@ -295,6 +301,12 @@ HOOK_MANUALLY(HRESULT, CreateDevice6, (
 	ID2D1Factory6* This,
 	IDXGIDevice* dxgiDevice,
 	ID2D1Device5** d2dDevice5
+	));
+
+HOOK_MANUALLY(HRESULT, CreateDevice7, (
+	ID2D1Factory7* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device6** d2dDevice6
 	));
 
 HOOK_MANUALLY(BOOL, MySetProcessMitigationPolicy, (

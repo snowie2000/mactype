@@ -211,12 +211,14 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 		HOOK(ptr, CreateHwndRenderTarget, 14);
 		HOOK(ptr, CreateDxgiSurfaceRenderTarget, 15);
 		HOOK(ptr, CreateDCRenderTarget, 16);
+		MyDebug(L"ID2D1Factory hooked");
 	}
 	{//factory1
 	CComPtr<ID2D1Factory1> ptr;
 	HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
 	if (SUCCEEDED(hr)){
 		HOOK(ptr, CreateDevice1, 17);
+		MyDebug(L"ID2D1Factory1 hooked");
 	}
 }
 	{//factory2
@@ -224,6 +226,7 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
 		if (SUCCEEDED(hr)){
 			HOOK(ptr, CreateDevice2, 27);
+			MyDebug(L"ID2D1Factory2 hooked");
 		}
 	}
 	{//factory3
@@ -231,6 +234,7 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
 		if (SUCCEEDED(hr)){
 			HOOK(ptr, CreateDevice3, 28);
+			MyDebug(L"ID2D1Factory3 hooked");
 		}
 	}
 	{//factory4
@@ -238,6 +242,7 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
 		if (SUCCEEDED(hr)){
 			HOOK(ptr, CreateDevice4, 29);
+			MyDebug(L"ID2D1Factory4 hooked");
 		}
 	}
 	{//factory5
@@ -245,6 +250,7 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
 		if (SUCCEEDED(hr)){
 			HOOK(ptr, CreateDevice5, 30);
+			MyDebug(L"ID2D1Factory5 hooked");
 		}
 	}
 	{//factory6
@@ -252,6 +258,15 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
 		if (SUCCEEDED(hr)){
 			HOOK(ptr, CreateDevice6, 31);
+			MyDebug(L"ID2D1Factory6 hooked");
+		}
+	}
+	{//factory7
+		CComPtr<ID2D1Factory7> ptr;
+		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+		if (SUCCEEDED(hr)){
+			HOOK(ptr, CreateDevice7, 32);
+			MyDebug(L"ID2D1Factory7 hooked");
 		}
 	}
 }
@@ -293,31 +308,43 @@ void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
 void HookDevice(ID2D1Device* d2dDevice){
 	CComPtr<ID2D1Device> ptr = d2dDevice;
 	HOOK(ptr, CreateDeviceContext, 4);
+	MyDebug(L"ID2D1Device hooked");
 
 	CComPtr<ID2D1Device1> ptr2;
 	HRESULT hr = (d2dDevice)->QueryInterface(&ptr2);
 	if SUCCEEDED(hr) {
 		HOOK(ptr2, CreateDeviceContext2, 11);
+		MyDebug(L"ID2D1Device1 hooked");
 	}
 	CComPtr<ID2D1Device2> ptr3;
 	hr = (d2dDevice)->QueryInterface(&ptr3);
 	if SUCCEEDED(hr) {
 		HOOK(ptr3, CreateDeviceContext3, 12);
+		MyDebug(L"ID2D1Device2 hooked");
 	}
 	CComPtr<ID2D1Device3> ptr4;
 	hr = (d2dDevice)->QueryInterface(&ptr4);
 	if SUCCEEDED(hr) {
 		HOOK(ptr4, CreateDeviceContext4, 15);
+		MyDebug(L"ID2D1Device3 hooked");
 	}
 	CComPtr<ID2D1Device4> ptr5;
 	hr = (d2dDevice)->QueryInterface(&ptr5);
 	if SUCCEEDED(hr) {
 		HOOK(ptr5, CreateDeviceContext5, 16);
+		MyDebug(L"ID2D1Device4 hooked");
 	}
 	CComPtr<ID2D1Device5> ptr6;
 	hr = (d2dDevice)->QueryInterface(&ptr6);
 	if SUCCEEDED(hr) {
 		HOOK(ptr6, CreateDeviceContext6, 17);
+		MyDebug(L"ID2D1Device5 hooked");
+	}
+	CComPtr<ID2D1Device6> ptr7;
+	hr = (d2dDevice)->QueryInterface(&ptr7);
+	if SUCCEEDED(hr) {
+		HOOK(ptr7, CreateDeviceContext7, 18);
+		MyDebug(L"ID2D1Device6 hooked");
 	}
 }
 
@@ -690,6 +717,7 @@ HRESULT WINAPI IMPL_D2D1CreateDevice(
 			return true;
 		}();
 	}
+	MyDebug(L"IMPL_D2D1CreateDevice hooked");
 	return hr;
 }
 
@@ -705,6 +733,7 @@ HRESULT WINAPI IMPL_D2D1CreateDeviceContext(
 	if SUCCEEDED(hr) {
 		HookRenderTarget(*d2dDeviceContext);
 	}
+	MyDebug(L"IMPL_D2D1CreateDeviceContext hooked");
 	return hr;
 }
 
@@ -760,6 +789,7 @@ HRESULT WINAPI IMPL_CreateHwndRenderTarget(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*hwndRenderTarget);
 	}
+	MyDebug(L"IMPL_CreateHwndRenderTarget hooked");
 	return hr;
 }
 
@@ -778,6 +808,7 @@ HRESULT WINAPI IMPL_CreateDxgiSurfaceRenderTarget(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*renderTarget);
 	}
+	MyDebug(L"IMPL_CreateDxgiSurfaceRenderTarget hooked");
 	return hr;
 }
 
@@ -794,6 +825,7 @@ HRESULT WINAPI IMPL_CreateDCRenderTarget(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*dcRenderTarget);
 	}
+	MyDebug(L"IMPL_CreateDCRenderTarget hooked");
 	return hr;
 }
 
@@ -816,6 +848,7 @@ HRESULT WINAPI IMPL_CreateCompatibleRenderTarget(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*bitmapRenderTarget);
 	}
+	MyDebug(L"IMPL_CreateCompatibleRenderTarget hooked");
 	return hr;
 }
 
@@ -848,6 +881,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*deviceContext);
 	}
+	MyDebug(L"IMPL_CreateDeviceContext hooked");
 	return hr;
 }
 
@@ -864,6 +898,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext2(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*deviceContext1);
 	}
+	MyDebug(L"IMPL_CreateDeviceContext2 hooked");
 	return hr;
 }
 
@@ -880,6 +915,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext3(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*deviceContext2);
 	}
+	MyDebug(L"IMPL_CreateDeviceContext3 hooked");
 	return hr;
 }
 
@@ -896,6 +932,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext4(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*deviceContext2);
 	}
+	MyDebug(L"IMPL_CreateDeviceContext4 hooked");
 	return hr;
 }
 
@@ -912,6 +949,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext5(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*deviceContext);
 	}
+	MyDebug(L"IMPL_CreateDeviceContext5 hooked");
 	return hr;
 }
 
@@ -928,6 +966,24 @@ HRESULT WINAPI IMPL_CreateDeviceContext6(
 	if (SUCCEEDED(hr)) {
 		HookRenderTarget(*deviceContext);
 	}
+	MyDebug(L"IMPL_CreateDeviceContext6 hooked");
+	return hr;
+}
+
+HRESULT WINAPI IMPL_CreateDeviceContext7(
+	ID2D1Device6* This,
+	D2D1_DEVICE_CONTEXT_OPTIONS options,
+	ID2D1DeviceContext6** deviceContext
+	) {
+	HRESULT hr = ORIG_CreateDeviceContext7(
+		This,
+		options,
+		deviceContext
+		);
+	if (SUCCEEDED(hr)) {
+		HookRenderTarget(*deviceContext);
+	}
+	MyDebug(L"IMPL_CreateDeviceContext7 hooked");
 	return hr;
 }
 
@@ -947,6 +1003,7 @@ HRESULT WINAPI IMPL_CreateDevice1(
 			return true;
 		}();
 	}
+	MyDebug(L"IMPL_CreateDevice1 hooked");
 	return hr;
 }
 
@@ -966,6 +1023,7 @@ HRESULT WINAPI IMPL_CreateDevice2(
 			return true;
 		}();
 	}
+	MyDebug(L"IMPL_CreateDevice2 hooked");
 	return hr;
 }
 
@@ -985,6 +1043,7 @@ HRESULT WINAPI IMPL_CreateDevice3(
 			return true;
 		}();
 	}
+	MyDebug(L"IMPL_CreateDevice3 hooked");
 	return hr;
 }
 
@@ -1004,6 +1063,7 @@ HRESULT WINAPI IMPL_CreateDevice4(
 			return true;
 		}();
 	}
+	MyDebug(L"IMPL_CreateDevice4 hooked");
 	return hr;
 }
 
@@ -1023,6 +1083,7 @@ HRESULT WINAPI IMPL_CreateDevice5(
 			return true;
 		}();
 	}
+	MyDebug(L"IMPL_CreateDevice5 hooked");
 	return hr;
 }
 
@@ -1042,6 +1103,27 @@ HRESULT WINAPI IMPL_CreateDevice6(
 			return true;
 		}();
 	}
+	MyDebug(L"IMPL_CreateDevice6 hooked");
+	return hr;
+}
+
+HRESULT WINAPI IMPL_CreateDevice7(
+	ID2D1Factory7* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device6** d2dDevice6
+	){
+	HRESULT hr = ORIG_CreateDevice7(
+		This,
+		dxgiDevice,
+		d2dDevice6
+		);
+	if (SUCCEEDED(hr)) {
+		static bool loaded = [&] {
+			HookDevice(*d2dDevice6);
+			return true;
+		}();
+	}
+	MyDebug(L"IMPL_CreateDevice7 hooked");
 	return hr;
 }
 
