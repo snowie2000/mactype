@@ -257,18 +257,15 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 }
 
 void hookDeviceContext(ID2D1DeviceContext* pD2D1DeviceContext) {
-	static bool loaded = false;
-	if (!loaded) {
-		loaded = true;
+	static bool loaded = [&] {
 		CComPtr<ID2D1DeviceContext> ptr = pD2D1DeviceContext;
 		HOOK(ptr, D2D1DeviceContext_DrawGlyphRun, 82);
-	}
+		return true;
+	}();
 }
 
 void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
-	static bool loaded = false;
-	if (!loaded) {
-		loaded = true;
+	static bool loaded = [&] {
 		CComPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
 
 		HOOK(ptr, CreateCompatibleRenderTarget, 12);
@@ -282,7 +279,8 @@ void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
 		pD2D1RenderTarget->GetFactory(&pD2D1Factory);
 		if (pD2D1Factory)
 			HookFactory(pD2D1Factory);
-	}
+		return true;
+	}();
 	IfSupport(pD2D1RenderTarget, hookDeviceContext);
 
 	pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
@@ -413,12 +411,11 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 	}
 	if (SUCCEEDED(hr)) {
 		MyDebug(L"CreateGlyphRunAnalysis hooked");
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			CComPtr<IDWriteGlyphRunAnalysis> ptr = *glyphRunAnalysis;
 			HOOK(ptr, GetAlphaBlendParams, 5);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
@@ -428,14 +425,12 @@ HRESULT WINAPI IMPL_GetGdiInterop(
 	IDWriteGdiInterop** gdiInterop
 	) 
 {
-	static bool loaded = false;
-
 	HRESULT hr = ORIG_GetGdiInterop(This, gdiInterop);
-	if (!loaded) {
-		loaded = true;
+	static bool loaded = [&] {
 		CComPtr<IDWriteGdiInterop> gdip = *gdiInterop;
 		HOOK(gdip, CreateBitmapRenderTarget, 7);
-	}
+		return true;
+	}();
 	MyDebug(L"IMPL_GetGdiInterop hooked");
 	return hr;
 }
@@ -456,12 +451,11 @@ HRESULT WINAPI IMPL_CreateBitmapRenderTarget(
 		renderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			CComPtr<IDWriteBitmapRenderTarget> ptr = *renderTarget;
 			HOOK(ptr, BitmapRenderTarget_DrawGlyphRun, 3);
-		}
+			return true;
+		}();
 	}
 	MyDebug(L"CreateBitmapRenderTarget hooked");
 	return hr;
@@ -587,12 +581,11 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis2(
 	}
 	if (SUCCEEDED(hr)) {
 		MyDebug(L"CreateGlyphRunAnalysis2 hooked");
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			CComPtr<IDWriteGlyphRunAnalysis> ptr = *glyphRunAnalysis;
 			HOOK(ptr, GetAlphaBlendParams, 5);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
@@ -671,12 +664,11 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 	}
 	if (SUCCEEDED(hr)) {
 		MyDebug(L"CreateGlyphRunAnalysis3 hooked");
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			CComPtr<IDWriteGlyphRunAnalysis> ptr = *glyphRunAnalysis;
 			HOOK(ptr, GetAlphaBlendParams, 5);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
@@ -693,11 +685,10 @@ HRESULT WINAPI IMPL_D2D1CreateDevice(
 		d2dDevice
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			HookDevice(*d2dDevice);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
@@ -951,11 +942,10 @@ HRESULT WINAPI IMPL_CreateDevice1(
 		d2dDevice
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			HookDevice(*d2dDevice);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
@@ -971,11 +961,10 @@ HRESULT WINAPI IMPL_CreateDevice2(
 		d2dDevice1
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			HookDevice(*d2dDevice1);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
@@ -991,11 +980,10 @@ HRESULT WINAPI IMPL_CreateDevice3(
 		d2dDevice2
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			HookDevice(*d2dDevice2);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
@@ -1011,11 +999,10 @@ HRESULT WINAPI IMPL_CreateDevice4(
 		d2dDevice3
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			HookDevice(*d2dDevice3);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
@@ -1031,11 +1018,10 @@ HRESULT WINAPI IMPL_CreateDevice5(
 		d2dDevice4
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			HookDevice(*d2dDevice4);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
@@ -1051,11 +1037,10 @@ HRESULT WINAPI IMPL_CreateDevice6(
 		d2dDevice5
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = false;
-		if (!loaded) {
-			loaded = true;
+		static bool loaded = [&] {
 			HookDevice(*d2dDevice5);
-		}
+			return true;
+		}();
 	}
 	return hr;
 }
