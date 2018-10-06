@@ -206,7 +206,7 @@ bool MakeD2DParams()
 void HookFactory(ID2D1Factory* pD2D1Factory) {
 	if (!MakeD2DParams()) return;
 	{//factory
-		CComQIPtr<ID2D1Factory> ptr = pD2D1Factory;
+		CComPtr<ID2D1Factory> ptr = pD2D1Factory;
 		HOOK(ptr, CreateWicBitmapRenderTarget, 13);
 		HOOK(ptr, CreateHwndRenderTarget, 14);
 		HOOK(ptr, CreateDxgiSurfaceRenderTarget, 15);
@@ -260,7 +260,7 @@ void hookDeviceContext(ID2D1DeviceContext* pD2D1DeviceContext) {
 	static bool loaded = false;
 	if (!loaded) {
 		loaded = true;
-		CComQIPtr<ID2D1DeviceContext> ptr = pD2D1DeviceContext;
+		CComPtr<ID2D1DeviceContext> ptr = pD2D1DeviceContext;
 		HOOK(ptr, D2D1DeviceContext_DrawGlyphRun, 82);
 	}
 }
@@ -269,7 +269,7 @@ void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
 	static bool loaded = false;
 	if (!loaded) {
 		loaded = true;
-		CComQIPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
+		CComPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
 
 		HOOK(ptr, CreateCompatibleRenderTarget, 12);
 		HOOK(ptr, D2D1RenderTarget_DrawText, 27);
@@ -293,7 +293,7 @@ void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
 
 
 void HookDevice(ID2D1Device* d2dDevice){
-	CComQIPtr<ID2D1Device> ptr = d2dDevice;
+	CComPtr<ID2D1Device> ptr = d2dDevice;
 	HOOK(ptr, CreateDeviceContext, 4);
 
 	CComPtr<ID2D1Device1> ptr2;
@@ -416,7 +416,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 		static bool loaded = false;
 		if (!loaded) {
 			loaded = true;
-			CComQIPtr<IDWriteGlyphRunAnalysis> ptr = *glyphRunAnalysis;
+			CComPtr<IDWriteGlyphRunAnalysis> ptr = *glyphRunAnalysis;
 			HOOK(ptr, GetAlphaBlendParams, 5);
 		}
 	}
@@ -433,7 +433,7 @@ HRESULT WINAPI IMPL_GetGdiInterop(
 	HRESULT hr = ORIG_GetGdiInterop(This, gdiInterop);
 	if (!loaded) {
 		loaded = true;
-		CComQIPtr<IDWriteGdiInterop> gdip = *gdiInterop;
+		CComPtr<IDWriteGdiInterop> gdip = *gdiInterop;
 		HOOK(gdip, CreateBitmapRenderTarget, 7);
 	}
 	MyDebug(L"IMPL_GetGdiInterop hooked");
@@ -459,7 +459,7 @@ HRESULT WINAPI IMPL_CreateBitmapRenderTarget(
 		static bool loaded = false;
 		if (!loaded) {
 			loaded = true;
-			CComQIPtr<IDWriteBitmapRenderTarget> ptr = *renderTarget;
+			CComPtr<IDWriteBitmapRenderTarget> ptr = *renderTarget;
 			HOOK(ptr, BitmapRenderTarget_DrawGlyphRun, 3);
 		}
 	}
@@ -590,7 +590,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis2(
 		static bool loaded = false;
 		if (!loaded) {
 			loaded = true;
-			CComQIPtr<IDWriteGlyphRunAnalysis> ptr = *glyphRunAnalysis;
+			CComPtr<IDWriteGlyphRunAnalysis> ptr = *glyphRunAnalysis;
 			HOOK(ptr, GetAlphaBlendParams, 5);
 		}
 	}
@@ -674,7 +674,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 		static bool loaded = false;
 		if (!loaded) {
 			loaded = true;
-			CComQIPtr<IDWriteGlyphRunAnalysis> ptr = *glyphRunAnalysis;
+			CComPtr<IDWriteGlyphRunAnalysis> ptr = *glyphRunAnalysis;
 			HOOK(ptr, GetAlphaBlendParams, 5);
 		}
 	}
