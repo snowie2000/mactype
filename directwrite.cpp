@@ -271,40 +271,6 @@ void HookFactory(ID2D1Factory* pD2D1Factory) {
 	}
 }
 
-void hookDeviceContext(ID2D1DeviceContext* pD2D1DeviceContext) {
-	static bool loaded = [&] {
-		CComPtr<ID2D1DeviceContext> ptr = pD2D1DeviceContext;
-		HOOK(ptr, D2D1DeviceContext_DrawGlyphRun, 82);
-		return true;
-	}();
-}
-
-void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
-	static bool loaded = [&] {
-		CComPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
-
-		HOOK(ptr, CreateCompatibleRenderTarget, 12);
-		HOOK(ptr, D2D1RenderTarget_DrawText, 27);
-		HOOK(ptr, D2D1RenderTarget_DrawTextLayout, 28);
-		HOOK(ptr, D2D1RenderTarget_DrawGlyphRun, 29);
-		HOOK(ptr, SetTextAntialiasMode, 34);
-		HOOK(ptr, SetTextRenderingParams, 36);
-
-		ID2D1Factory* pD2D1Factory;
-		pD2D1RenderTarget->GetFactory(&pD2D1Factory);
-		if (pD2D1Factory)
-			HookFactory(pD2D1Factory);
-		return true;
-	}();
-	IfSupport(pD2D1RenderTarget, hookDeviceContext);
-
-	pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
-	if (g_D2DParams.GetRenderingParams(NULL)) {
-		pD2D1RenderTarget->SetTextRenderingParams(g_D2DParams.GetRenderingParams(NULL));
-	}
-}
-
-
 void HookDevice(ID2D1Device* d2dDevice){
 	CComPtr<ID2D1Device> ptr = d2dDevice;
 	HOOK(ptr, CreateDeviceContext, 4);
@@ -345,6 +311,44 @@ void HookDevice(ID2D1Device* d2dDevice){
 	if SUCCEEDED(hr) {
 		HOOK(ptr7, CreateDeviceContext7, 18);
 		MyDebug(L"ID2D1Device6 hooked");
+	}
+}
+
+void hookDeviceContext(ID2D1DeviceContext* pD2D1DeviceContext) {
+	static bool loaded = [&] {
+		CComPtr<ID2D1DeviceContext> ptr = pD2D1DeviceContext;
+		HOOK(ptr, D2D1DeviceContext_DrawGlyphRun, 82);
+
+		ID2D1Device* pD2D1Device;
+		pD2D1DeviceContext->GetDevice(&pD2D1Device);
+		if (pD2D1Device)
+			HookDevice(pD2D1Device);
+		return true;
+	}();
+}
+
+void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
+	static bool loaded = [&] {
+		CComPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
+
+		HOOK(ptr, CreateCompatibleRenderTarget, 12);
+		HOOK(ptr, D2D1RenderTarget_DrawText, 27);
+		HOOK(ptr, D2D1RenderTarget_DrawTextLayout, 28);
+		HOOK(ptr, D2D1RenderTarget_DrawGlyphRun, 29);
+		HOOK(ptr, SetTextAntialiasMode, 34);
+		HOOK(ptr, SetTextRenderingParams, 36);
+
+		ID2D1Factory* pD2D1Factory;
+		pD2D1RenderTarget->GetFactory(&pD2D1Factory);
+		if (pD2D1Factory)
+			HookFactory(pD2D1Factory);
+		return true;
+	}();
+	IfSupport(pD2D1RenderTarget, hookDeviceContext);
+
+	pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
+	if (g_D2DParams.GetRenderingParams(NULL)) {
+		pD2D1RenderTarget->SetTextRenderingParams(g_D2DParams.GetRenderingParams(NULL));
 	}
 }
 
