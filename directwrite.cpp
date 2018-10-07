@@ -9,7 +9,7 @@ void MyDebug(const TCHAR * sz, ...)
 
 	va_list args;
 	va_start(args, sz);
-	StringCchPrintf(szData, sizeof(szData)-1, sz, args);
+	StringCchVPrintf(szData, sizeof(szData)-1, sz, args);
 	va_end(args);
 
 	OutputDebugString(szData);
