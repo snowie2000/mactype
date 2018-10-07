@@ -26,7 +26,38 @@ void MyDebug(const TCHAR * sz, ...)
 	}  \
 };
 
+struct ComMethodHooker {
+	void*(*lpGetTargetFunc)();
+	void*(*lpGetMethod)(IUnknown* obj);
+	void(*lpHookFunc)(IUnknown* obj);
+};
 
+#define COM_METHOD_HOOKER(type, name, index) ComMethodHooker { \
+	[]() -> void* { \
+		if (!HOOK_##name.Link) \
+			return NULL; \
+		return HOOK_##name.Link->TargetProc; \
+	}, \
+	[](IUnknown* obj) -> void* { \
+		return (*reinterpret_cast<void***>(obj))[index]; \
+	}, \
+	[](IUnknown* obj) -> void { \
+		CComPtr<type> ptr = (type*)obj; \
+		HOOK(ptr, name, index); \
+	} \
+}
+
+#define COM_METHOD_HOOKER_EMPTY() ComMethodHooker { \
+	[]() -> void* { \
+		return NULL; \
+	}, \
+	[](IUnknown* obj) -> void* { \
+		return NULL; \
+	}, \
+	[](IUnknown* obj) -> void { \
+		return; \
+	} \
+}
 
 struct Params {
 	D2D1_TEXT_ANTIALIAS_MODE AntialiasMode;
@@ -47,6 +78,13 @@ Params g_D2DParams, g_DWParams; //g_D2DParamsLarge;
 LONG bDWLoaded = false, bD2D1Loaded = false, bParamInited = false, bParamCreated = false;
 IDWriteFactory* g_pDWriteFactory = NULL;
 IDWriteGdiInterop* g_pGdiInterop = NULL;
+
+enum D2D1RenderTargetCategory {
+	D2D1_RENDER_TARGET_CATEGORY = 1,
+	// ID2D1DCRenderTarget, ID2D1HwndRenderTarget, ID2D1BitmapRenderTarget
+	D2D1_RENDER_TARGET1_CATEGORY,
+	D2D1_DEVICE_CONTEXT_CATEGORY
+};
 
 template<typename Intf>
 inline HRESULT IfSupport(IUnknown* pUnknown, void(*lpFunc)(Intf*)) {
@@ -314,43 +352,140 @@ void HookDevice(ID2D1Device* d2dDevice){
 	}
 }
 
-void hookDeviceContext(ID2D1DeviceContext* pD2D1DeviceContext) {
-	static bool loaded = [&] {
-		CComPtr<ID2D1DeviceContext> ptr = pD2D1DeviceContext;
-		HOOK(ptr, D2D1DeviceContext_DrawGlyphRun, 82);
+void HookRenderTargetMethod(
+	ID2D1RenderTarget* pD2D1RenderTarget,
+	D2D1RenderTargetCategory hookCategory,
+	ComMethodHooker methodHookers[]
+	) {
+	void* method = methodHookers[hookCategory].lpGetMethod(pD2D1RenderTarget);
 
-		ID2D1Device* pD2D1Device;
-		pD2D1DeviceContext->GetDevice(&pD2D1Device);
-		if (pD2D1Device)
-			HookDevice(pD2D1Device);
-		return true;
-	}();
+	if (D2D1_RENDER_TARGET_CATEGORY != hookCategory) {
+		void* target = methodHookers[D2D1_RENDER_TARGET_CATEGORY].lpGetTargetFunc();
+		if (target != NULL && target == method) {
+			return;
+		}
+	}
+	if (D2D1_RENDER_TARGET1_CATEGORY != hookCategory) {
+		void* target = methodHookers[D2D1_RENDER_TARGET1_CATEGORY].lpGetTargetFunc();
+		if (target != NULL && target == method) {
+			return;
+		}
+	}
+	if (D2D1_DEVICE_CONTEXT_CATEGORY != hookCategory) {
+		void* target = methodHookers[D2D1_DEVICE_CONTEXT_CATEGORY].lpGetTargetFunc();
+		if (target != NULL && target == method) {
+			return;
+		}
+	}
+
+	methodHookers[hookCategory].lpHookFunc(pD2D1RenderTarget);
 }
 
-void HookRenderTarget(ID2D1RenderTarget* pD2D1RenderTarget) {
+void HookRenderTarget(
+	ID2D1RenderTarget* pD2D1RenderTarget,
+	D2D1RenderTargetCategory hookCategory
+	){
+	MyDebug(L"HookRenderTarget %d", hookCategory);
 	static bool loaded = [&] {
 		CComPtr<ID2D1RenderTarget> ptr = pD2D1RenderTarget;
-
 		HOOK(ptr, CreateCompatibleRenderTarget, 12);
-		HOOK(ptr, D2D1RenderTarget_DrawText, 27);
 		HOOK(ptr, D2D1RenderTarget_DrawTextLayout, 28);
-		HOOK(ptr, D2D1RenderTarget_DrawGlyphRun, 29);
-		HOOK(ptr, SetTextAntialiasMode, 34);
-		HOOK(ptr, SetTextRenderingParams, 36);
 
 		ID2D1Factory* pD2D1Factory;
 		pD2D1RenderTarget->GetFactory(&pD2D1Factory);
 		if (pD2D1Factory)
 			HookFactory(pD2D1Factory);
+
+		CComPtr<ID2D1DeviceContext> ptr1;
+		HRESULT hr = pD2D1RenderTarget->QueryInterface(&ptr1);
+		if (SUCCEEDED(hr)) {
+			ID2D1Device* pD2D1Device;
+			ptr1->GetDevice(&pD2D1Device);
+			if (pD2D1Device)
+				HookDevice(pD2D1Device);
+		}
 		return true;
 	}();
-	IfSupport(pD2D1RenderTarget, hookDeviceContext);
+
+	static ComMethodHooker hookDrawText[] = {
+		COM_METHOD_HOOKER_EMPTY(),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_DrawText, 27),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_DrawText, 27),
+		COM_METHOD_HOOKER(ID2D1DeviceContext, D2D1DeviceContext_DrawText, 27)
+	};
+	static ComMethodHooker hookDrawGlyphRun[] = {
+		COM_METHOD_HOOKER_EMPTY(),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_DrawGlyphRun, 29),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget1_DrawGlyphRun, 29),
+		COM_METHOD_HOOKER(ID2D1DeviceContext, D2D1DeviceContext_DrawGlyphRun, 29)
+	};
+	static ComMethodHooker hookSetTextAntialiasMode[] = {
+		COM_METHOD_HOOKER_EMPTY(),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_SetTextAntialiasMode, 34),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_SetTextAntialiasMode, 34),
+		COM_METHOD_HOOKER(ID2D1DeviceContext, D2D1DeviceContext_SetTextAntialiasMode, 34)
+	};
+	static ComMethodHooker hookSetTextRenderingParams[] = {
+		COM_METHOD_HOOKER_EMPTY(),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_SetTextRenderingParams, 36),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_SetTextRenderingParams, 36),
+		COM_METHOD_HOOKER(ID2D1DeviceContext, D2D1DeviceContext_SetTextRenderingParams, 36)
+	};
+	static ComMethodHooker hookDrawGlyphRun1[] = {
+		COM_METHOD_HOOKER_EMPTY(),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_DrawGlyphRun1, 82),
+		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget1_DrawGlyphRun1, 82),
+		COM_METHOD_HOOKER(ID2D1DeviceContext, D2D1DeviceContext_DrawGlyphRun1, 82)
+	};
+
+	if (hookCategory == D2D1_RENDER_TARGET_CATEGORY) {
+		static bool loaded1 = [&] {
+			CCriticalSectionLock __lock(CCriticalSectionLock::CS_DWRITE);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookDrawText);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookDrawGlyphRun);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookSetTextAntialiasMode);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookSetTextRenderingParams);
+
+			CComPtr<ID2D1DeviceContext> ptr;
+			HRESULT hr = pD2D1RenderTarget->QueryInterface(&ptr);
+			if (SUCCEEDED(hr)) {
+				HookRenderTargetMethod(ptr, hookCategory, hookDrawGlyphRun1);
+			}
+			return true;
+		}();
+	} else if (hookCategory == D2D1_RENDER_TARGET1_CATEGORY) {
+		static bool loaded2 = [&] {
+			CCriticalSectionLock __lock(CCriticalSectionLock::CS_DWRITE);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookDrawText);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookDrawGlyphRun);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookSetTextAntialiasMode);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookSetTextRenderingParams);
+
+			CComPtr<ID2D1DeviceContext> ptr;
+			HRESULT hr = pD2D1RenderTarget->QueryInterface(&ptr);
+			if (SUCCEEDED(hr)) {
+				HookRenderTargetMethod(ptr, hookCategory, hookDrawGlyphRun1);
+			}
+			return true;
+		}();
+	} else if (hookCategory == D2D1_DEVICE_CONTEXT_CATEGORY) {
+		static bool loaded3 = [&] {
+			CCriticalSectionLock __lock(CCriticalSectionLock::CS_DWRITE);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookDrawText);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookDrawGlyphRun);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookSetTextAntialiasMode);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookSetTextRenderingParams);
+			HookRenderTargetMethod(pD2D1RenderTarget, hookCategory, hookDrawGlyphRun1);
+			return true;
+		}();
+	}
 
 	pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
 	if (g_D2DParams.GetRenderingParams(NULL)) {
 		pD2D1RenderTarget->SetTextRenderingParams(g_D2DParams.GetRenderingParams(NULL));
 	}
 }
+
 
 //DWrite hooks
 HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
@@ -735,7 +870,7 @@ HRESULT WINAPI IMPL_D2D1CreateDeviceContext(
 		d2dDeviceContext
 		);
 	if SUCCEEDED(hr) {
-		HookRenderTarget(*d2dDeviceContext);
+		HookRenderTarget(*d2dDeviceContext, D2D1_DEVICE_CONTEXT_CATEGORY);
 	}
 	MyDebug(L"IMPL_D2D1CreateDeviceContext hooked");
 	return hr;
@@ -772,7 +907,7 @@ HRESULT WINAPI IMPL_CreateWicBitmapRenderTarget(
 		renderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*renderTarget);
+		HookRenderTarget(*renderTarget, D2D1_RENDER_TARGET_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateWicBitmapRenderTarget hooked");
 	return hr;
@@ -791,7 +926,7 @@ HRESULT WINAPI IMPL_CreateHwndRenderTarget(
 		hwndRenderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*hwndRenderTarget);
+		HookRenderTarget(*hwndRenderTarget, D2D1_RENDER_TARGET1_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateHwndRenderTarget hooked");
 	return hr;
@@ -810,7 +945,7 @@ HRESULT WINAPI IMPL_CreateDxgiSurfaceRenderTarget(
 		renderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*renderTarget);
+		HookRenderTarget(*renderTarget, D2D1_RENDER_TARGET_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateDxgiSurfaceRenderTarget hooked");
 	return hr;
@@ -827,7 +962,7 @@ HRESULT WINAPI IMPL_CreateDCRenderTarget(
 		dcRenderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*dcRenderTarget);
+		HookRenderTarget(*dcRenderTarget, D2D1_RENDER_TARGET1_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateDCRenderTarget hooked");
 	return hr;
@@ -850,26 +985,42 @@ HRESULT WINAPI IMPL_CreateCompatibleRenderTarget(
 		bitmapRenderTarget
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*bitmapRenderTarget);
+		HookRenderTarget(*bitmapRenderTarget, D2D1_RENDER_TARGET1_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateCompatibleRenderTarget hooked");
 	return hr;
 }
 
-void WINAPI IMPL_SetTextAntialiasMode(
+void WINAPI IMPL_D2D1RenderTarget_SetTextAntialiasMode(
 	ID2D1RenderTarget* This,
 	D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode
 	) {
-	MyDebug(L"IMPL_SetTextAntialiasMode hooked");
-	ORIG_SetTextAntialiasMode(This, D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
+	MyDebug(L"IMPL_D2D1RenderTarget_SetTextAntialiasMode hooked");
+	ORIG_D2D1RenderTarget_SetTextAntialiasMode(This, D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
 }
 
-void WINAPI IMPL_SetTextRenderingParams(
+void WINAPI IMPL_D2D1DeviceContext_SetTextAntialiasMode(
+	ID2D1DeviceContext* This,
+	D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode
+	) {
+	MyDebug(L"IMPL_D2D1DeviceContext_SetTextAntialiasMode hooked");
+	ORIG_D2D1DeviceContext_SetTextAntialiasMode(This, D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
+}
+
+void WINAPI IMPL_D2D1RenderTarget_SetTextRenderingParams(
 	ID2D1RenderTarget* This,
 	_In_opt_ IDWriteRenderingParams* textRenderingParams
 	) {
-	MyDebug(L"IMPL_SetTextRenderingParams hooked");
-	ORIG_SetTextRenderingParams(This, g_D2DParams.GetRenderingParams(textRenderingParams));
+	MyDebug(L"IMPL_D2D1RenderTarget_SetTextRenderingParams hooked");
+	ORIG_D2D1RenderTarget_SetTextRenderingParams(This, g_D2DParams.GetRenderingParams(textRenderingParams));
+}
+
+void WINAPI IMPL_D2D1DeviceContext_SetTextRenderingParams(
+	ID2D1DeviceContext* This,
+	_In_opt_ IDWriteRenderingParams* textRenderingParams
+	) {
+	MyDebug(L"IMPL_D2D1DeviceContext_SetTextRenderingParams hooked");
+	ORIG_D2D1DeviceContext_SetTextRenderingParams(This, g_D2DParams.GetRenderingParams(textRenderingParams));
 }
 
 HRESULT WINAPI IMPL_CreateDeviceContext(
@@ -883,7 +1034,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext(
 		deviceContext
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*deviceContext);
+		HookRenderTarget(*deviceContext, D2D1_DEVICE_CONTEXT_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateDeviceContext hooked");
 	return hr;
@@ -900,7 +1051,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext2(
 		deviceContext1
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*deviceContext1);
+		HookRenderTarget(*deviceContext1, D2D1_DEVICE_CONTEXT_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateDeviceContext2 hooked");
 	return hr;
@@ -917,7 +1068,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext3(
 		deviceContext2
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*deviceContext2);
+		HookRenderTarget(*deviceContext2, D2D1_DEVICE_CONTEXT_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateDeviceContext3 hooked");
 	return hr;
@@ -934,7 +1085,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext4(
 		deviceContext2
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*deviceContext2);
+		HookRenderTarget(*deviceContext2, D2D1_DEVICE_CONTEXT_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateDeviceContext4 hooked");
 	return hr;
@@ -951,7 +1102,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext5(
 		deviceContext
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*deviceContext);
+		HookRenderTarget(*deviceContext, D2D1_DEVICE_CONTEXT_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateDeviceContext5 hooked");
 	return hr;
@@ -968,7 +1119,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext6(
 		deviceContext
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*deviceContext);
+		HookRenderTarget(*deviceContext, D2D1_DEVICE_CONTEXT_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateDeviceContext6 hooked");
 	return hr;
@@ -985,7 +1136,7 @@ HRESULT WINAPI IMPL_CreateDeviceContext7(
 		deviceContext
 		);
 	if (SUCCEEDED(hr)) {
-		HookRenderTarget(*deviceContext);
+		HookRenderTarget(*deviceContext, D2D1_DEVICE_CONTEXT_CATEGORY);
 	}
 	MyDebug(L"IMPL_CreateDeviceContext7 hooked");
 	return hr;
@@ -1376,7 +1527,7 @@ HRESULT  WINAPI IMPL_CreateTextFormat(IDWriteFactory* self,
 		return ORIG_CreateTextFormat(self, fontFamilyName, fontCollection, fontWeight, fontStyle, fontStretch, fontSize, localeName, textFormat);
 }
 
-void WINAPI IMPL_D2D1DeviceContext_DrawGlyphRun(
+void WINAPI IMPL_D2D1RenderTarget_DrawGlyphRun1(
 	ID2D1DeviceContext *This,
 	D2D1_POINT_2F baselineOrigin,
 	CONST DWRITE_GLYPH_RUN *glyphRun,
@@ -1391,7 +1542,7 @@ void WINAPI IMPL_D2D1DeviceContext_DrawGlyphRun(
 		rotate.m12 += 1.0f / 0xFFFF;
 		rotate.m21 += 1.0f / 0xFFFF;
 		This->SetTransform(&rotate);
-		ORIG_D2D1DeviceContext_DrawGlyphRun(
+		ORIG_D2D1RenderTarget_DrawGlyphRun1(
 			This,
 			baselineOrigin,
 			glyphRun,
@@ -1402,7 +1553,81 @@ void WINAPI IMPL_D2D1DeviceContext_DrawGlyphRun(
 		This->SetTransform(&prev);
 	}
 	else {
-		ORIG_D2D1DeviceContext_DrawGlyphRun(
+		ORIG_D2D1RenderTarget_DrawGlyphRun1(
+			This,
+			baselineOrigin,
+			glyphRun,
+			glyphRunDescription,
+			foregroundBrush,
+			measuringMode
+			);
+	}
+}
+
+void WINAPI IMPL_D2D1RenderTarget1_DrawGlyphRun1(
+	ID2D1DeviceContext *This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	CONST DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	) {
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		D2D1_MATRIX_3X2_F prev;
+		This->GetTransform(&prev);
+		D2D1_MATRIX_3X2_F rotate = prev;
+		rotate.m12 += 1.0f / 0xFFFF;
+		rotate.m21 += 1.0f / 0xFFFF;
+		This->SetTransform(&rotate);
+		ORIG_D2D1RenderTarget1_DrawGlyphRun1(
+			This,
+			baselineOrigin,
+			glyphRun,
+			glyphRunDescription,
+			foregroundBrush,
+			measuringMode
+			);
+		This->SetTransform(&prev);
+	}
+	else {
+		ORIG_D2D1RenderTarget1_DrawGlyphRun1(
+			This,
+			baselineOrigin,
+			glyphRun,
+			glyphRunDescription,
+			foregroundBrush,
+			measuringMode
+			);
+	}
+}
+
+void WINAPI IMPL_D2D1DeviceContext_DrawGlyphRun1(
+	ID2D1DeviceContext *This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	CONST DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	) {
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		D2D1_MATRIX_3X2_F prev;
+		This->GetTransform(&prev);
+		D2D1_MATRIX_3X2_F rotate = prev;
+		rotate.m12 += 1.0f / 0xFFFF;
+		rotate.m21 += 1.0f / 0xFFFF;
+		This->SetTransform(&rotate);
+		ORIG_D2D1DeviceContext_DrawGlyphRun1(
+			This,
+			baselineOrigin,
+			glyphRun,
+			glyphRunDescription,
+			foregroundBrush,
+			measuringMode
+			);
+		This->SetTransform(&prev);
+	}
+	else {
+		ORIG_D2D1DeviceContext_DrawGlyphRun1(
 			This,
 			baselineOrigin,
 			glyphRun,
@@ -1447,6 +1672,73 @@ void WINAPI IMPL_D2D1RenderTarget_DrawGlyphRun(
 	}
 }
 
+void WINAPI IMPL_D2D1RenderTarget1_DrawGlyphRun(
+	ID2D1RenderTarget* This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	) {
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		D2D1_MATRIX_3X2_F prev;
+		This->GetTransform(&prev);
+		D2D1_MATRIX_3X2_F rotate = prev;
+		rotate.m12 += 1.0f / 0xFFFF;
+		rotate.m21 += 1.0f / 0xFFFF;
+		This->SetTransform(&rotate);
+		ORIG_D2D1RenderTarget1_DrawGlyphRun(
+			This,
+			baselineOrigin,
+			glyphRun,
+			foregroundBrush,
+			measuringMode
+			);
+		This->SetTransform(&prev);
+	}
+	else {
+		ORIG_D2D1RenderTarget1_DrawGlyphRun(
+			This,
+			baselineOrigin,
+			glyphRun,
+			foregroundBrush,
+			measuringMode
+			);
+	}
+}
+
+void WINAPI IMPL_D2D1DeviceContext_DrawGlyphRun(
+	ID2D1DeviceContext* This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	) {
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		D2D1_MATRIX_3X2_F prev;
+		This->GetTransform(&prev);
+		D2D1_MATRIX_3X2_F rotate = prev;
+		rotate.m12 += 1.0f / 0xFFFF;
+		rotate.m21 += 1.0f / 0xFFFF;
+		This->SetTransform(&rotate);
+		ORIG_D2D1DeviceContext_DrawGlyphRun(
+			This,
+			baselineOrigin,
+			glyphRun,
+			foregroundBrush,
+			measuringMode
+			);
+		This->SetTransform(&prev);
+	}
+	else {
+		ORIG_D2D1DeviceContext_DrawGlyphRun(
+			This,
+			baselineOrigin,
+			glyphRun,
+			foregroundBrush,
+			measuringMode
+			);
+	}
+}
 
 HRESULT WINAPI IMPL_BitmapRenderTarget_DrawGlyphRun(
 	IDWriteBitmapRenderTarget* This,
@@ -1548,6 +1840,49 @@ void WINAPI IMPL_D2D1RenderTarget_DrawText(
 	}
 	else {
 		ORIG_D2D1RenderTarget_DrawText(
+			This,
+			string,
+			stringLength,
+			textFormat,
+			layoutRect,
+			defaultForegroundBrush,
+			options,
+			measuringMode
+			);
+	}
+}
+
+void WINAPI IMPL_D2D1DeviceContext_DrawText(
+	ID2D1DeviceContext* This,
+	CONST WCHAR *string,
+	UINT32 stringLength,
+	IDWriteTextFormat *textFormat,
+	CONST D2D1_RECT_F *layoutRect,
+	ID2D1Brush *defaultForegroundBrush,
+	D2D1_DRAW_TEXT_OPTIONS options,
+	DWRITE_MEASURING_MODE measuringMode
+	) {
+	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		D2D1_MATRIX_3X2_F prev;
+		This->GetTransform(&prev);
+		D2D1_MATRIX_3X2_F rotate = prev;
+		rotate.m12 += 1.0f / 0xFFFF;
+		rotate.m21 += 1.0f / 0xFFFF;
+		This->SetTransform(&rotate);
+		ORIG_D2D1DeviceContext_DrawText(
+			This,
+			string,
+			stringLength,
+			textFormat,
+			layoutRect,
+			defaultForegroundBrush,
+			options,
+			measuringMode
+			);
+		This->SetTransform(&prev);
+	}
+	else {
+		ORIG_D2D1DeviceContext_DrawText(
 			This,
 			string,
 			stringLength,

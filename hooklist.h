@@ -226,12 +226,20 @@ HOOK_MANUALLY(HRESULT, CreateCompatibleRenderTarget, (
 			  ID2D1BitmapRenderTarget** bitmapRenderTarget
 			  ))
 
-HOOK_MANUALLY(void, SetTextAntialiasMode, (
+HOOK_MANUALLY(void, D2D1RenderTarget_SetTextAntialiasMode, (
 			  ID2D1RenderTarget* This,
 			  D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode));
 
-HOOK_MANUALLY(void, SetTextRenderingParams, (
+HOOK_MANUALLY(void, D2D1DeviceContext_SetTextAntialiasMode, (
+			  ID2D1DeviceContext* This,
+			  D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode));
+
+HOOK_MANUALLY(void, D2D1RenderTarget_SetTextRenderingParams, (
 				  ID2D1RenderTarget* This,
+				  _In_opt_ IDWriteRenderingParams* textRenderingParams));
+
+HOOK_MANUALLY(void, D2D1DeviceContext_SetTextRenderingParams, (
+				  ID2D1DeviceContext* This,
 				  _In_opt_ IDWriteRenderingParams* textRenderingParams));
 
 			  /*
@@ -315,7 +323,23 @@ HOOK_MANUALLY(BOOL, MySetProcessMitigationPolicy, (
 	_In_ SIZE_T                    dwLength
 	));
 
-HOOK_MANUALLY(void, D2D1DeviceContext_DrawGlyphRun, (
+HOOK_MANUALLY(void, D2D1RenderTarget_DrawGlyphRun1, (
+	ID2D1DeviceContext *This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	CONST DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode));
+
+HOOK_MANUALLY(void, D2D1RenderTarget1_DrawGlyphRun1, (
+	ID2D1DeviceContext *This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	CONST DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode));
+
+HOOK_MANUALLY(void, D2D1DeviceContext_DrawGlyphRun1, (
 	ID2D1DeviceContext *This,
 	D2D1_POINT_2F baselineOrigin,
 	CONST DWRITE_GLYPH_RUN *glyphRun,
@@ -331,8 +355,34 @@ HOOK_MANUALLY(void, D2D1RenderTarget_DrawGlyphRun, (
 	DWRITE_MEASURING_MODE measuringMode
 	));
 
+HOOK_MANUALLY(void, D2D1RenderTarget1_DrawGlyphRun, (
+	ID2D1RenderTarget* This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	));
+
+HOOK_MANUALLY(void, D2D1DeviceContext_DrawGlyphRun, (
+	ID2D1DeviceContext* This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	));
+
 HOOK_MANUALLY(void, D2D1RenderTarget_DrawText, (
 	ID2D1RenderTarget* This,
+	CONST WCHAR *string,
+	UINT32 stringLength,
+	IDWriteTextFormat *textFormat,
+	CONST D2D1_RECT_F *layoutRect,
+	ID2D1Brush *defaultForegroundBrush,
+	D2D1_DRAW_TEXT_OPTIONS options,
+	DWRITE_MEASURING_MODE measuringMode));
+
+HOOK_MANUALLY(void, D2D1DeviceContext_DrawText, (
+	ID2D1DeviceContext* This,
 	CONST WCHAR *string,
 	UINT32 stringLength,
 	IDWriteTextFormat *textFormat,
