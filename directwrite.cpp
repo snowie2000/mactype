@@ -1089,7 +1089,7 @@ return ORIG_SetTextAntialiasMode(self, g_D2DParamsLarge.AntialiasMode);
 bool hookD2D1() {
 	//MessageBox(NULL, L"HookD2D1", NULL, MB_OK);
 	if (InterlockedExchange((LONG*)&bD2D1Loaded, true)) return false;
-
+	return true;
 }
 
 #define FAILEXIT { /*CoUninitialize();*/ return false;}

@@ -1270,7 +1270,7 @@ ETO_TRY();
 	if (!ORIG_GetObjectW(hCurFont, sizeof(LOGFONT), &lf)) {
 		ETO_THROW(ETOE_SETFONT);
 	}//30ms
-	StringCchCopy(lf.lfFaceName, LF_FACESIZE, (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFaceName));	//把正确的字体名称复制过去
+	StringCchCopy(lf.lfFaceName, LF_FACESIZE, (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName));	//把正确的字体名称复制过去
 	if (lf.lfEscapement != 0) {
 		ETO_THROW(ETOE_ROTATEFONT);// rotated font
 	}
