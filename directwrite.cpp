@@ -75,7 +75,6 @@ struct Params {
 };
 
 Params g_D2DParams, g_DWParams; //g_D2DParamsLarge;
-LONG bDWLoaded = false, bD2D1Loaded = false, bParamInited = false, bParamCreated = false;
 IDWriteFactory* g_pDWriteFactory = NULL;
 IDWriteGdiInterop* g_pGdiInterop = NULL;
 
@@ -190,166 +189,164 @@ IDWriteRenderingParams* Params::GetRenderingParams(IDWriteRenderingParams* defau
 bool MakeD2DParams()
 {
 	//MessageBox(NULL, L"MakeParam", NULL, MB_OK);
-	if (bParamInited) return true;
-	CCriticalSectionLock __lock(CCriticalSectionLock::CS_DWRITE);
-	if (bParamInited) return true;
+	static bool inited = [&] {
+		CCriticalSectionLock __lock(CCriticalSectionLock::CS_DWRITE);
 
-	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
-	//
-	g_D2DParams.Gamma = pSettings->GammaValueForDW();	//user defined value preferred.
-	//if (g_D2DParams.Gamma == 0)
-	//	g_D2DParams.Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
-	g_D2DParams.EnhancedContrast = pSettings->ContrastForDW();
-	g_D2DParams.ClearTypeLevel = pSettings->ClearTypeLevelForDW();
-	switch (pSettings->GetFontSettings().GetAntiAliasMode())
-	{
-	case 2:
-	case 4:
-		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_RGB;
-		break;
-	case 3:
-	case 5:
-		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_BGR;
-		break;
-	default:
-		g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_FLAT;
-	}
+		const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
+		//
+		g_D2DParams.Gamma = pSettings->GammaValueForDW();	//user defined value preferred.
+		//if (g_D2DParams.Gamma == 0)
+		//	g_D2DParams.Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
+		g_D2DParams.EnhancedContrast = pSettings->ContrastForDW();
+		g_D2DParams.ClearTypeLevel = pSettings->ClearTypeLevelForDW();
+		switch (pSettings->GetFontSettings().GetAntiAliasMode())
+		{
+		case 2:
+		case 4:
+			g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_RGB;
+			break;
+		case 3:
+		case 5:
+			g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_BGR;
+			break;
+		default:
+			g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_FLAT;
+		}
 
-	g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
-	g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)pSettings->RenderingModeForDW();
-	g_D2DParams.GrayscaleEnhancedContrast = pSettings->ContrastForDW();
-	switch (pSettings->GetFontSettings().GetHintingMode())
-	{
-	case 0: g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DEFAULT;
-		break;
-	case 1: g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
-		break;
-	default:
-		g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_ENABLED;
-		break;
-	} 	
-	g_D2DParams.RenderingMode1 = (DWRITE_RENDERING_MODE1)pSettings->RenderingModeForDW();
+		g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
+		g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)pSettings->RenderingModeForDW();
+		g_D2DParams.GrayscaleEnhancedContrast = pSettings->ContrastForDW();
+		switch (pSettings->GetFontSettings().GetHintingMode())
+		{
+		case 0: g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DEFAULT;
+			break;
+		case 1: g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
+			break;
+		default:
+			g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_ENABLED;
+			break;
+		} 	
+		g_D2DParams.RenderingMode1 = (DWRITE_RENDERING_MODE1)pSettings->RenderingModeForDW();
 
-	memcpy(&g_DWParams, &g_D2DParams, sizeof(g_D2DParams));
+		memcpy(&g_DWParams, &g_D2DParams, sizeof(g_D2DParams));
 
-	if (pSettings->RenderingModeForDW() == 6) {	//DW rendering in mode6 is horrible
-		g_DWParams.RenderingMode = DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC;
-		g_DWParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
-	}
-	//g_DWParams.Gamma = powf(g_D2DParams.Gamma, 1.0 / 3.0);
-	bParamInited = true;
-	return true;
+		if (pSettings->RenderingModeForDW() == 6) {	//DW rendering in mode6 is horrible
+			g_DWParams.RenderingMode = DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC;
+			g_DWParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
+		}
+		//g_DWParams.Gamma = powf(g_D2DParams.Gamma, 1.0 / 3.0);
+		return true;
+	}();
+	return inited;
 }
 
 void HookFactory(ID2D1Factory* pD2D1Factory) {
 	if (!MakeD2DParams()) return;
-	{//factory
+	static bool loaded = [&] {
+		HRESULT hr;
 		CComPtr<ID2D1Factory> ptr = pD2D1Factory;
 		HOOK(ptr, CreateWicBitmapRenderTarget, 13);
 		HOOK(ptr, CreateHwndRenderTarget, 14);
 		HOOK(ptr, CreateDxgiSurfaceRenderTarget, 15);
 		HOOK(ptr, CreateDCRenderTarget, 16);
 		MyDebug(L"ID2D1Factory hooked");
-	}
-	{//factory1
-	CComPtr<ID2D1Factory1> ptr;
-	HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
-	if (SUCCEEDED(hr)){
-		HOOK(ptr, CreateDevice1, 17);
-		MyDebug(L"ID2D1Factory1 hooked");
-	}
-}
-	{//factory2
-		CComPtr<ID2D1Factory2> ptr;
-		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+
+		CComPtr<ID2D1Factory1> ptr1;
+		hr = pD2D1Factory->QueryInterface(&ptr1);
 		if (SUCCEEDED(hr)){
-			HOOK(ptr, CreateDevice2, 27);
+			HOOK(ptr1, CreateDevice1, 17);
+			MyDebug(L"ID2D1Factory1 hooked");
+		}
+
+		CComPtr<ID2D1Factory2> ptr2;
+		hr = pD2D1Factory->QueryInterface(&ptr2);
+		if (SUCCEEDED(hr)){
+			HOOK(ptr2, CreateDevice2, 27);
 			MyDebug(L"ID2D1Factory2 hooked");
 		}
-	}
-	{//factory3
-		CComPtr<ID2D1Factory3> ptr;
-		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+
+		CComPtr<ID2D1Factory3> ptr3;
+		hr = pD2D1Factory->QueryInterface(&ptr3);
 		if (SUCCEEDED(hr)){
-			HOOK(ptr, CreateDevice3, 28);
+			HOOK(ptr3, CreateDevice3, 28);
 			MyDebug(L"ID2D1Factory3 hooked");
 		}
-	}
-	{//factory4
-		CComPtr<ID2D1Factory4> ptr;
-		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+
+		CComPtr<ID2D1Factory4> ptr4;
+		hr = pD2D1Factory->QueryInterface(&ptr4);
 		if (SUCCEEDED(hr)){
-			HOOK(ptr, CreateDevice4, 29);
+			HOOK(ptr4, CreateDevice4, 29);
 			MyDebug(L"ID2D1Factory4 hooked");
 		}
-	}
-	{//factory5
-		CComPtr<ID2D1Factory5> ptr;
-		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+
+		CComPtr<ID2D1Factory5> ptr5;
+		hr = pD2D1Factory->QueryInterface(&ptr5);
 		if (SUCCEEDED(hr)){
-			HOOK(ptr, CreateDevice5, 30);
+			HOOK(ptr5, CreateDevice5, 30);
 			MyDebug(L"ID2D1Factory5 hooked");
 		}
-	}
-	{//factory6
-		CComPtr<ID2D1Factory6> ptr;
-		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+
+		CComPtr<ID2D1Factory6> ptr6;
+		hr = pD2D1Factory->QueryInterface(&ptr6);
 		if (SUCCEEDED(hr)){
-			HOOK(ptr, CreateDevice6, 31);
+			HOOK(ptr6, CreateDevice6, 31);
 			MyDebug(L"ID2D1Factory6 hooked");
 		}
-	}
-	{//factory7
-		CComPtr<ID2D1Factory7> ptr;
-		HRESULT hr = pD2D1Factory->QueryInterface(&ptr);
+
+		CComPtr<ID2D1Factory7> ptr7;
+		hr = pD2D1Factory->QueryInterface(&ptr7);
 		if (SUCCEEDED(hr)){
-			HOOK(ptr, CreateDevice7, 32);
+			HOOK(ptr7, CreateDevice7, 32);
 			MyDebug(L"ID2D1Factory7 hooked");
 		}
-	}
+		return true;
+	}();
 }
 
 void HookDevice(ID2D1Device* d2dDevice){
-	CComPtr<ID2D1Device> ptr = d2dDevice;
-	HOOK(ptr, CreateDeviceContext, 4);
-	MyDebug(L"ID2D1Device hooked");
+	static bool loaded = [&] {
+		CComPtr<ID2D1Device> ptr = d2dDevice;
+		HOOK(ptr, CreateDeviceContext, 4);
+		MyDebug(L"ID2D1Device hooked");
 
-	CComPtr<ID2D1Device1> ptr2;
-	HRESULT hr = (d2dDevice)->QueryInterface(&ptr2);
-	if SUCCEEDED(hr) {
-		HOOK(ptr2, CreateDeviceContext2, 11);
-		MyDebug(L"ID2D1Device1 hooked");
-	}
-	CComPtr<ID2D1Device2> ptr3;
-	hr = (d2dDevice)->QueryInterface(&ptr3);
-	if SUCCEEDED(hr) {
-		HOOK(ptr3, CreateDeviceContext3, 12);
-		MyDebug(L"ID2D1Device2 hooked");
-	}
-	CComPtr<ID2D1Device3> ptr4;
-	hr = (d2dDevice)->QueryInterface(&ptr4);
-	if SUCCEEDED(hr) {
-		HOOK(ptr4, CreateDeviceContext4, 15);
-		MyDebug(L"ID2D1Device3 hooked");
-	}
-	CComPtr<ID2D1Device4> ptr5;
-	hr = (d2dDevice)->QueryInterface(&ptr5);
-	if SUCCEEDED(hr) {
-		HOOK(ptr5, CreateDeviceContext5, 16);
-		MyDebug(L"ID2D1Device4 hooked");
-	}
-	CComPtr<ID2D1Device5> ptr6;
-	hr = (d2dDevice)->QueryInterface(&ptr6);
-	if SUCCEEDED(hr) {
-		HOOK(ptr6, CreateDeviceContext6, 17);
-		MyDebug(L"ID2D1Device5 hooked");
-	}
-	CComPtr<ID2D1Device6> ptr7;
-	hr = (d2dDevice)->QueryInterface(&ptr7);
-	if SUCCEEDED(hr) {
-		HOOK(ptr7, CreateDeviceContext7, 18);
-		MyDebug(L"ID2D1Device6 hooked");
-	}
+		CComPtr<ID2D1Device1> ptr2;
+		HRESULT hr = (d2dDevice)->QueryInterface(&ptr2);
+		if SUCCEEDED(hr) {
+			HOOK(ptr2, CreateDeviceContext2, 11);
+			MyDebug(L"ID2D1Device1 hooked");
+		}
+		CComPtr<ID2D1Device2> ptr3;
+		hr = (d2dDevice)->QueryInterface(&ptr3);
+		if SUCCEEDED(hr) {
+			HOOK(ptr3, CreateDeviceContext3, 12);
+			MyDebug(L"ID2D1Device2 hooked");
+		}
+		CComPtr<ID2D1Device3> ptr4;
+		hr = (d2dDevice)->QueryInterface(&ptr4);
+		if SUCCEEDED(hr) {
+			HOOK(ptr4, CreateDeviceContext4, 15);
+			MyDebug(L"ID2D1Device3 hooked");
+		}
+		CComPtr<ID2D1Device4> ptr5;
+		hr = (d2dDevice)->QueryInterface(&ptr5);
+		if SUCCEEDED(hr) {
+			HOOK(ptr5, CreateDeviceContext5, 16);
+			MyDebug(L"ID2D1Device4 hooked");
+		}
+		CComPtr<ID2D1Device5> ptr6;
+		hr = (d2dDevice)->QueryInterface(&ptr6);
+		if SUCCEEDED(hr) {
+			HOOK(ptr6, CreateDeviceContext6, 17);
+			MyDebug(L"ID2D1Device5 hooked");
+		}
+		CComPtr<ID2D1Device6> ptr7;
+		hr = (d2dDevice)->QueryInterface(&ptr7);
+		if SUCCEEDED(hr) {
+			HOOK(ptr7, CreateDeviceContext7, 18);
+			MyDebug(L"ID2D1Device6 hooked");
+		}
+		return true;
+	}();
 }
 
 void HookRenderTargetMethod(
@@ -851,10 +848,7 @@ HRESULT WINAPI IMPL_D2D1CreateDevice(
 		d2dDevice
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = [&] {
-			HookDevice(*d2dDevice);
-			return true;
-		}();
+		HookDevice(*d2dDevice);
 	}
 	MyDebug(L"IMPL_D2D1CreateDevice hooked");
 	return hr;
@@ -1153,10 +1147,7 @@ HRESULT WINAPI IMPL_CreateDevice1(
 		d2dDevice
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = [&] {
-			HookDevice(*d2dDevice);
-			return true;
-		}();
+		HookDevice(*d2dDevice);
 	}
 	MyDebug(L"IMPL_CreateDevice1 hooked");
 	return hr;
@@ -1173,10 +1164,7 @@ HRESULT WINAPI IMPL_CreateDevice2(
 		d2dDevice1
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = [&] {
-			HookDevice(*d2dDevice1);
-			return true;
-		}();
+		HookDevice(*d2dDevice1);
 	}
 	MyDebug(L"IMPL_CreateDevice2 hooked");
 	return hr;
@@ -1193,10 +1181,7 @@ HRESULT WINAPI IMPL_CreateDevice3(
 		d2dDevice2
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = [&] {
-			HookDevice(*d2dDevice2);
-			return true;
-		}();
+		HookDevice(*d2dDevice2);
 	}
 	MyDebug(L"IMPL_CreateDevice3 hooked");
 	return hr;
@@ -1213,10 +1198,7 @@ HRESULT WINAPI IMPL_CreateDevice4(
 		d2dDevice3
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = [&] {
-			HookDevice(*d2dDevice3);
-			return true;
-		}();
+		HookDevice(*d2dDevice3);
 	}
 	MyDebug(L"IMPL_CreateDevice4 hooked");
 	return hr;
@@ -1233,10 +1215,7 @@ HRESULT WINAPI IMPL_CreateDevice5(
 		d2dDevice4
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = [&] {
-			HookDevice(*d2dDevice4);
-			return true;
-		}();
+		HookDevice(*d2dDevice4);
 	}
 	MyDebug(L"IMPL_CreateDevice5 hooked");
 	return hr;
@@ -1253,10 +1232,7 @@ HRESULT WINAPI IMPL_CreateDevice6(
 		d2dDevice5
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = [&] {
-			HookDevice(*d2dDevice5);
-			return true;
-		}();
+		HookDevice(*d2dDevice5);
 	}
 	MyDebug(L"IMPL_CreateDevice6 hooked");
 	return hr;
@@ -1273,10 +1249,7 @@ HRESULT WINAPI IMPL_CreateDevice7(
 		d2dDevice6
 		);
 	if (SUCCEEDED(hr)) {
-		static bool loaded = [&] {
-			HookDevice(*d2dDevice6);
-			return true;
-		}();
+		HookDevice(*d2dDevice6);
 	}
 	MyDebug(L"IMPL_CreateDevice7 hooked");
 	return hr;
@@ -1310,8 +1283,10 @@ return ORIG_SetTextAntialiasMode(self, g_D2DParamsLarge.AntialiasMode);
 
 bool hookD2D1() {
 	//MessageBox(NULL, L"HookD2D1", NULL, MB_OK);
-	if (InterlockedExchange((LONG*)&bD2D1Loaded, true)) return false;
-
+	static bool loaded = [&] {
+		return true;
+	}();
+	return loaded;
 }
 
 #define FAILEXIT { /*CoUninitialize();*/ return false;}
@@ -1342,31 +1317,30 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 #ifdef DEBUG
 	//MessageBox(NULL, L"HookDW", NULL, MB_OK);
 #endif
-	if (InterlockedExchange((LONG*)&bDWLoaded, true)) return false;
+	static bool loaded = [&] {
+		CComPtr<IDWriteFactory> pDWriteFactory;
+		HRESULT hr1 = (*factory)->QueryInterface(&pDWriteFactory);
+		if (FAILED(hr1)) FAILEXIT;
+		HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
+		HOOK(pDWriteFactory, GetGdiInterop, 17);
+		hookFontCreation(pDWriteFactory);
+		if (!MakeD2DParams()) FAILEXIT;
+		MyDebug(L"DW1 hooked");
 
-	//dwrite 1
-	CComPtr<IDWriteFactory> pDWriteFactory;
-	HRESULT hr1 = (*factory)->QueryInterface(&pDWriteFactory);
-	if (FAILED(hr1)) FAILEXIT;
-	HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
-	HOOK(pDWriteFactory, GetGdiInterop, 17);
-	hookFontCreation(pDWriteFactory);
-	if (!MakeD2DParams()) FAILEXIT;
+		CComPtr<IDWriteFactory2> pDWriteFactory2;
+		HRESULT hr2 = (*factory)->QueryInterface(&pDWriteFactory2);
+		if (FAILED(hr2)) FAILEXIT;
+		HOOK(pDWriteFactory2, CreateGlyphRunAnalysis2, 30);
+		MyDebug(L"DW2 hooked");
 
-	MyDebug(L"DW1 hooked");
-	//dwrite2
-	CComPtr<IDWriteFactory2> pDWriteFactory2;
-	HRESULT hr2 = (*factory)->QueryInterface(&pDWriteFactory2);
-	if (FAILED(hr2)) FAILEXIT;
-	HOOK(pDWriteFactory2, CreateGlyphRunAnalysis2, 30);
-	MyDebug(L"DW2 hooked");
-	//dwrite3
-	CComPtr<IDWriteFactory3> pDWriteFactory3;
-	HRESULT hr3 = (*factory)->QueryInterface(&pDWriteFactory3);
-	if (FAILED(hr3)) FAILEXIT;
-	HOOK(pDWriteFactory3, CreateGlyphRunAnalysis3, 31);
-	MyDebug(L"DW3 hooked");
-	return true;
+		CComPtr<IDWriteFactory3> pDWriteFactory3;
+		HRESULT hr3 = (*factory)->QueryInterface(&pDWriteFactory3);
+		if (FAILED(hr3)) FAILEXIT;
+		HOOK(pDWriteFactory3, CreateGlyphRunAnalysis3, 31);
+		MyDebug(L"DW3 hooked");
+		return true;
+	}();
+	return loaded;
 }
 
 #undef FAILEXIT
@@ -1480,7 +1454,7 @@ HRESULT WINAPI IMPL_DWriteCreateFactory(__in DWRITE_FACTORY_TYPE factoryType,
 	__out IUnknown **factory)
 {
 	HRESULT ret = ORIG_DWriteCreateFactory(factoryType, iid, factory); 
-	if (!bDWLoaded && SUCCEEDED(ret))
+	if (SUCCEEDED(ret))
 		hookDirectWrite(factory);
 	return ret;
 }
