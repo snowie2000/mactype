@@ -1314,7 +1314,7 @@ ETO_TRY();
 	BITMAP bm;
 	HBITMAP hbmpSrc = (HBITMAP)GetCurrentObject(hdc, OBJ_BITMAP);
 
-	if(hbmpSrc && ORIG_GetObjectW(hbmpSrc, sizeof(BITMAP), &bm) && bm.bmBitsPixel == 1) {
+	if(hbmpSrc && ORIG_GetObjectW(hbmpSrc, sizeof(BITMAP), &bm) && bm.bmBitsPixel <= 16) {
 		//自动设置为单色渲染方式
 		ETO_THROW(ETOE_MONO);	//不渲染单色文字
 		//params.ftOptions |= FTO_MONO;
