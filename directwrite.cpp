@@ -71,11 +71,12 @@ struct Params {
 	FLOAT GrayscaleEnhancedContrast;
 	DWRITE_GRID_FIT_MODE GridFitMode;
 	DWRITE_RENDERING_MODE1 RenderingMode1;
-	IDWriteRenderingParams* GetRenderingParams(IDWriteRenderingParams* default);
+
+	Params();
+	void CreateParams(IDWriteFactory* dw_factory);
 };
 
-Params g_D2DParams, g_DWParams; //g_D2DParamsLarge;
-IDWriteFactory* g_pDWriteFactory = NULL;
+//IDWriteFactory* g_pDWriteFactory = NULL;
 IDWriteGdiInterop* g_pGdiInterop = NULL;
 
 enum D2D1RenderTargetCategory {
@@ -95,7 +96,7 @@ inline HRESULT IfSupport(IUnknown* pUnknown, void(*lpFunc)(Intf*)) {
 	return hr;
 }
 
-IDWriteRenderingParams* CreateParam(Params* d2dParams,  IDWriteFactory *dw_factory)
+void Params::CreateParams(IDWriteFactory *dw_factory)
 {
 	IDWriteFactory3* dw3 = NULL;
 	IDWriteFactory2* dw2 = NULL;
@@ -116,132 +117,158 @@ IDWriteRenderingParams* CreateParam(Params* d2dParams,  IDWriteFactory *dw_facto
 	HRESULT hr = dw_factory->QueryInterface(&dw3);
 	if SUCCEEDED(hr) {
 		hr = dw3->CreateCustomRenderingParams(
-			d2dParams->Gamma,
-			d2dParams->EnhancedContrast,
-			d2dParams->GrayscaleEnhancedContrast,
-			d2dParams->ClearTypeLevel,
-			d2dParams->PixelGeometry,
-			d2dParams->RenderingMode1,
-			d2dParams->GridFitMode,
+			this->Gamma,
+			this->EnhancedContrast,
+			this->GrayscaleEnhancedContrast,
+			this->ClearTypeLevel,
+			this->PixelGeometry,
+			this->RenderingMode1,
+			this->GridFitMode,
 			&r3);
 		dw3->Release();
 		if SUCCEEDED(hr) {
-			return r3;
+			RenderingParams = r3;
+			return;
 		}
 	}
 
 	hr = dw_factory->QueryInterface(&dw2);
 	if SUCCEEDED(hr) {
 		hr = dw2->CreateCustomRenderingParams(
-			d2dParams->Gamma,
-			d2dParams->EnhancedContrast,
-			d2dParams->GrayscaleEnhancedContrast,
-			d2dParams->ClearTypeLevel,
-			d2dParams->PixelGeometry,
-			d2dParams->RenderingMode,
-			d2dParams->GridFitMode,
+			this->Gamma,
+			this->EnhancedContrast,
+			this->GrayscaleEnhancedContrast,
+			this->ClearTypeLevel,
+			this->PixelGeometry,
+			this->RenderingMode,
+			this->GridFitMode,
 			&r2);
 		dw2->Release();
 		if SUCCEEDED(hr) {
-			return r2;
+			RenderingParams = r2;
+			return;
 		}
 	}
 
 	hr = dw_factory->QueryInterface(&dw1);
 	if SUCCEEDED(hr) {
 		hr = dw1->CreateCustomRenderingParams(
-			d2dParams->Gamma,
-			d2dParams->EnhancedContrast,
-			d2dParams->GrayscaleEnhancedContrast,
-			d2dParams->ClearTypeLevel,
-			d2dParams->PixelGeometry,
-			d2dParams->RenderingMode,
+			this->Gamma,
+			this->EnhancedContrast,
+			this->GrayscaleEnhancedContrast,
+			this->ClearTypeLevel,
+			this->PixelGeometry,
+			this->RenderingMode,
 			&r1);
 		dw1->Release();
 		if SUCCEEDED(hr) {
-			return r1;
+			RenderingParams = r1;
+			return;
 		}
 	}
 
-	if (SUCCEEDED(dw_factory->CreateCustomRenderingParams(
-		d2dParams->Gamma,
-		d2dParams->EnhancedContrast,
-		d2dParams->ClearTypeLevel,
-		d2dParams->PixelGeometry,
-		d2dParams->RenderingMode,
-		&r0)))
-		return r0;
+	hr = dw_factory->CreateCustomRenderingParams(
+		this->Gamma,
+		this->EnhancedContrast,
+		this->ClearTypeLevel,
+		this->PixelGeometry,
+		this->RenderingMode,
+		&r0);
+	if (SUCCEEDED(hr)) {
+		RenderingParams = r0;
+		return;
+	}
 
-	return NULL;
+	RenderingParams = NULL;
 }
 
-IDWriteRenderingParams* Params::GetRenderingParams(IDWriteRenderingParams* default) {
-	if (this->RenderingParams)
-		return this->RenderingParams;
-	CCriticalSectionLock __lock(CCriticalSectionLock::CS_DWRITE);
-	this->RenderingParams = CreateParam(this, NULL);
-	if (this->RenderingParams)
-		return this->RenderingParams;
-	else 
-		return default;
-}
-
-bool MakeD2DParams()
-{
+Params::Params() {
 	//MessageBox(NULL, L"MakeParam", NULL, MB_OK);
-	static bool inited = [&] {
-		CCriticalSectionLock __lock(CCriticalSectionLock::CS_DWRITE);
-
-		const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
-		//
-		g_D2DParams.Gamma = pSettings->GammaValueForDW();	//user defined value preferred.
-		//if (g_D2DParams.Gamma == 0)
-		//	g_D2DParams.Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
-		g_D2DParams.EnhancedContrast = pSettings->ContrastForDW();
-		g_D2DParams.ClearTypeLevel = pSettings->ClearTypeLevelForDW();
-		switch (pSettings->GetFontSettings().GetAntiAliasMode())
-		{
+	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
+	//
+	Gamma = pSettings->GammaValueForDW();	//user defined value preferred.
+	//if (Gamma == 0)
+	//	Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
+	EnhancedContrast = pSettings->ContrastForDW();
+	ClearTypeLevel = pSettings->ClearTypeLevelForDW();
+	switch (pSettings->GetFontSettings().GetAntiAliasMode())
+	{
 		case 2:
 		case 4:
-			g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_RGB;
+			PixelGeometry = DWRITE_PIXEL_GEOMETRY_RGB;
 			break;
 		case 3:
 		case 5:
-			g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_BGR;
+			PixelGeometry = DWRITE_PIXEL_GEOMETRY_BGR;
 			break;
 		default:
-			g_D2DParams.PixelGeometry = DWRITE_PIXEL_GEOMETRY_FLAT;
-		}
+			PixelGeometry = DWRITE_PIXEL_GEOMETRY_FLAT;
+	}
 
-		g_D2DParams.AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
-		g_D2DParams.RenderingMode = (DWRITE_RENDERING_MODE)pSettings->RenderingModeForDW();
-		g_D2DParams.GrayscaleEnhancedContrast = pSettings->ContrastForDW();
-		switch (pSettings->GetFontSettings().GetHintingMode())
-		{
-		case 0: g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DEFAULT;
+	AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
+	RenderingMode = (DWRITE_RENDERING_MODE)pSettings->RenderingModeForDW();
+	GrayscaleEnhancedContrast = pSettings->ContrastForDW();
+	switch (pSettings->GetFontSettings().GetHintingMode())
+	{
+		case 0: GridFitMode = DWRITE_GRID_FIT_MODE_DEFAULT;
 			break;
-		case 1: g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
+		case 1: GridFitMode = DWRITE_GRID_FIT_MODE_DISABLED;
 			break;
 		default:
-			g_D2DParams.GridFitMode = DWRITE_GRID_FIT_MODE_ENABLED;
+			GridFitMode = DWRITE_GRID_FIT_MODE_ENABLED;
 			break;
-		} 	
-		g_D2DParams.RenderingMode1 = (DWRITE_RENDERING_MODE1)pSettings->RenderingModeForDW();
+	}
+	RenderingMode1 = (DWRITE_RENDERING_MODE1)pSettings->RenderingModeForDW();
+	RenderingParams = NULL;
+}
 
-		memcpy(&g_DWParams, &g_D2DParams, sizeof(g_D2DParams));
+Params* GetD2DParams() {
+	static Params d2dParams;
+	return &d2dParams;
+}
 
+Params* GetDWParams() {
+	static Params dwParams = [] {
+		const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
+
+		Params p;
 		if (pSettings->RenderingModeForDW() == 6) {	//DW rendering in mode6 is horrible
-			g_DWParams.RenderingMode = DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC;
-			g_DWParams.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
+			p.RenderingMode = DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC;
+			p.RenderingMode1 = DWRITE_RENDERING_MODE1_NATURAL_SYMMETRIC;
 		}
 		//g_DWParams.Gamma = powf(g_D2DParams.Gamma, 1.0 / 3.0);
+		return p;
+	}();
+	return &dwParams;
+}
+
+IDWriteRenderingParams* GetD2DRenderingParams(IDWriteRenderingParams* default) {
+	Params* params = GetD2DParams();
+	static bool inited = [&] {
+		params->CreateParams(NULL);
 		return true;
 	}();
-	return inited;
+
+	if (params->RenderingParams)
+		return params->RenderingParams;
+	else
+		return default;
+}
+
+IDWriteRenderingParams* GetDWRenderingParams(IDWriteRenderingParams* default) {
+	Params* params = GetDWParams();
+	static bool inited = [&] {
+		params->CreateParams(NULL);
+		return true;
+	}();
+
+	if (params->RenderingParams)
+		return params->RenderingParams;
+	else
+		return default;
 }
 
 void HookFactory(ID2D1Factory* pD2D1Factory) {
-	if (!MakeD2DParams()) return;
 	static bool loaded = [&] {
 		HRESULT hr;
 		CComPtr<ID2D1Factory> ptr = pD2D1Factory;
@@ -478,8 +505,8 @@ void HookRenderTarget(
 	}
 
 	pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
-	if (g_D2DParams.GetRenderingParams(NULL)) {
-		pD2D1RenderTarget->SetTextRenderingParams(g_D2DParams.GetRenderingParams(NULL));
+	if (GetD2DRenderingParams(NULL)) {
+		pD2D1RenderTarget->SetTextRenderingParams(GetD2DRenderingParams(NULL));
 	}
 }
 
@@ -533,9 +560,10 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE_ALIASED) {
 		MyDebug(L"Try DW1");
+		Params* dwParams = GetDWParams();
 		DWRITE_MATRIX m;
 		DWRITE_MATRIX const* pm = transform;
-		if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 			if (transform) {
 				m = *transform;
 				m.m12 += 1.0f / 0xFFFF;
@@ -551,7 +579,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis(
 			glyphRun,
 			pixelsPerDip,
 			pm,
-			g_DWParams.RenderingMode,
+			dwParams->RenderingMode,
 			measuringMode,
 			baselineOriginX,
 			baselineOriginY,
@@ -636,7 +664,7 @@ HRESULT WINAPI IMPL_GetAlphaBlendParams(
 	if (FAILED(hr)) {
 		hr = ORIG_GetAlphaBlendParams(
 			This,
-			g_DWParams.GetRenderingParams(renderingParams),
+			GetDWRenderingParams(renderingParams),
 			blendGamma,
 			blendEnhancedContrast,
 			blendClearTypeLevel
@@ -687,14 +715,16 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis2(
 			f->Release();
 		}
 	}
+
+	Params* dwParams = GetDWParams();
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE_ALIASED) {
 		hr = ORIG_CreateGlyphRunAnalysis2(
 			This,
 			glyphRun,
 			transform,
-			g_DWParams.RenderingMode,
+			dwParams->RenderingMode,
 			measuringMode,
-			g_DWParams.GridFitMode,
+			dwParams->GridFitMode,
 			antialiasMode,
 			baselineOriginX,
 			baselineOriginY,
@@ -704,7 +734,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis2(
 	if (FAILED(hr)) {
 		DWRITE_MATRIX m = {};
 		DWRITE_MATRIX const* pm = transform;
-		if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 			if (transform) {
 				m = *transform;
 				m.m12 += 1.0f / 0xFFFF;
@@ -767,15 +797,16 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 	)
 {
 	MyDebug(L"CreateGlyphRunAnalysis3 hooked");
+	Params* dwParams = GetDWParams();
 	HRESULT hr = E_FAIL;
 	if (FAILED(hr) && renderingMode != DWRITE_RENDERING_MODE1_ALIASED) {
 		hr = ORIG_CreateGlyphRunAnalysis3(
 			This,
 			glyphRun,
 			transform,
-			g_DWParams.RenderingMode1,
+			dwParams->RenderingMode1,
 			measuringMode,
-			g_DWParams.GridFitMode,
+			dwParams->GridFitMode,
 			antialiasMode,
 			baselineOriginX,
 			baselineOriginY,
@@ -786,7 +817,7 @@ HRESULT WINAPI IMPL_CreateGlyphRunAnalysis3(
 		MyDebug(L"try again with only transformation");
 		DWRITE_MATRIX m = {};
 		DWRITE_MATRIX const* pm = transform;
-		if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+		if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 			if (transform) {
 				m = *transform;
 				m.m12 += 1.0f / 0xFFFF;
@@ -1006,7 +1037,7 @@ void WINAPI IMPL_D2D1RenderTarget_SetTextRenderingParams(
 	_In_opt_ IDWriteRenderingParams* textRenderingParams
 	) {
 	MyDebug(L"IMPL_D2D1RenderTarget_SetTextRenderingParams hooked");
-	ORIG_D2D1RenderTarget_SetTextRenderingParams(This, g_D2DParams.GetRenderingParams(textRenderingParams));
+	ORIG_D2D1RenderTarget_SetTextRenderingParams(This, GetD2DRenderingParams(textRenderingParams));
 }
 
 void WINAPI IMPL_D2D1DeviceContext_SetTextRenderingParams(
@@ -1014,7 +1045,7 @@ void WINAPI IMPL_D2D1DeviceContext_SetTextRenderingParams(
 	_In_opt_ IDWriteRenderingParams* textRenderingParams
 	) {
 	MyDebug(L"IMPL_D2D1DeviceContext_SetTextRenderingParams hooked");
-	ORIG_D2D1DeviceContext_SetTextRenderingParams(This, g_D2DParams.GetRenderingParams(textRenderingParams));
+	ORIG_D2D1DeviceContext_SetTextRenderingParams(This, GetD2DRenderingParams(textRenderingParams));
 }
 
 HRESULT WINAPI IMPL_CreateDeviceContext(
@@ -1324,7 +1355,6 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 		HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
 		HOOK(pDWriteFactory, GetGdiInterop, 17);
 		hookFontCreation(pDWriteFactory);
-		if (!MakeD2DParams()) FAILEXIT;
 		MyDebug(L"DW1 hooked");
 
 		CComPtr<IDWriteFactory2> pDWriteFactory2;
@@ -1509,7 +1539,8 @@ void WINAPI IMPL_D2D1RenderTarget_DrawGlyphRun1(
 	ID2D1Brush *foregroundBrush,
 	DWRITE_MEASURING_MODE measuringMode
 	) {
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	Params* dwParams = GetDWParams();
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		D2D1_MATRIX_3X2_F prev;
 		This->GetTransform(&prev);
 		D2D1_MATRIX_3X2_F rotate = prev;
@@ -1546,7 +1577,8 @@ void WINAPI IMPL_D2D1RenderTarget1_DrawGlyphRun1(
 	ID2D1Brush *foregroundBrush,
 	DWRITE_MEASURING_MODE measuringMode
 	) {
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	Params* dwParams = GetDWParams();
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		D2D1_MATRIX_3X2_F prev;
 		This->GetTransform(&prev);
 		D2D1_MATRIX_3X2_F rotate = prev;
@@ -1583,7 +1615,8 @@ void WINAPI IMPL_D2D1DeviceContext_DrawGlyphRun1(
 	ID2D1Brush *foregroundBrush,
 	DWRITE_MEASURING_MODE measuringMode
 	) {
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	Params* dwParams = GetDWParams();
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		D2D1_MATRIX_3X2_F prev;
 		This->GetTransform(&prev);
 		D2D1_MATRIX_3X2_F rotate = prev;
@@ -1619,7 +1652,8 @@ void WINAPI IMPL_D2D1RenderTarget_DrawGlyphRun(
 	ID2D1Brush *foregroundBrush,
 	DWRITE_MEASURING_MODE measuringMode
 	) {
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	Params* dwParams = GetDWParams();
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		D2D1_MATRIX_3X2_F prev;
 		This->GetTransform(&prev);
 		D2D1_MATRIX_3X2_F rotate = prev;
@@ -1653,7 +1687,8 @@ void WINAPI IMPL_D2D1RenderTarget1_DrawGlyphRun(
 	ID2D1Brush *foregroundBrush,
 	DWRITE_MEASURING_MODE measuringMode
 	) {
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	Params* dwParams = GetDWParams();
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		D2D1_MATRIX_3X2_F prev;
 		This->GetTransform(&prev);
 		D2D1_MATRIX_3X2_F rotate = prev;
@@ -1687,7 +1722,8 @@ void WINAPI IMPL_D2D1DeviceContext_DrawGlyphRun(
 	ID2D1Brush *foregroundBrush,
 	DWRITE_MEASURING_MODE measuringMode
 	) {
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	Params* dwParams = GetDWParams();
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		D2D1_MATRIX_3X2_F prev;
 		This->GetTransform(&prev);
 		D2D1_MATRIX_3X2_F rotate = prev;
@@ -1724,8 +1760,9 @@ HRESULT WINAPI IMPL_BitmapRenderTarget_DrawGlyphRun(
 	COLORREF textColor,
 	RECT* blackBoxRect)
 {
+	Params* dwParams = GetDWParams();
 	HRESULT hr = E_FAIL;
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		DWRITE_MATRIX prev;
 		hr = This->GetCurrentTransform(&prev);
 		if (SUCCEEDED(hr)) {
@@ -1740,7 +1777,7 @@ HRESULT WINAPI IMPL_BitmapRenderTarget_DrawGlyphRun(
 					baselineOriginY,
 					measuringMode,
 					glyphRun,
-					g_DWParams.GetRenderingParams(renderingParams),
+					GetDWRenderingParams(renderingParams),
 					textColor,
 					blackBoxRect
 					);
@@ -1755,7 +1792,7 @@ HRESULT WINAPI IMPL_BitmapRenderTarget_DrawGlyphRun(
 			baselineOriginY,
 			measuringMode,
 			glyphRun,
-			g_DWParams.GetRenderingParams(renderingParams),
+			GetDWRenderingParams(renderingParams),
 			textColor,
 			blackBoxRect
 			);
@@ -1793,7 +1830,8 @@ void WINAPI IMPL_D2D1RenderTarget_DrawText(
 	D2D1_DRAW_TEXT_OPTIONS options,
 	DWRITE_MEASURING_MODE measuringMode
 	) {
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	Params* dwParams = GetDWParams();
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		D2D1_MATRIX_3X2_F prev;
 		This->GetTransform(&prev);
 		D2D1_MATRIX_3X2_F rotate = prev;
@@ -1836,7 +1874,8 @@ void WINAPI IMPL_D2D1DeviceContext_DrawText(
 	D2D1_DRAW_TEXT_OPTIONS options,
 	DWRITE_MEASURING_MODE measuringMode
 	) {
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	Params* dwParams = GetDWParams();
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		D2D1_MATRIX_3X2_F prev;
 		This->GetTransform(&prev);
 		D2D1_MATRIX_3X2_F rotate = prev;
@@ -1876,7 +1915,8 @@ void WINAPI IMPL_D2D1RenderTarget_DrawTextLayout(
 	ID2D1Brush *defaultForegroundBrush,
 	D2D1_DRAW_TEXT_OPTIONS options
 	) {
-	if (g_DWParams.GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
+	Params* dwParams = GetDWParams();
+	if (dwParams->GridFitMode == DWRITE_GRID_FIT_MODE_DISABLED) {
 		D2D1_MATRIX_3X2_F prev;
 		This->GetTransform(&prev);
 		D2D1_MATRIX_3X2_F rotate = prev;
