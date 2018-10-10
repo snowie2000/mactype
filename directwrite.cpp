@@ -1383,7 +1383,9 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 		if (FAILED(hr1)) FAILEXIT;
 		HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
 		HOOK(pDWriteFactory, GetGdiInterop, 17);
-		hookFontCreation(pDWriteFactory);
+		const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+		if (pSettings->GetFontSubstitutesInfoForDW().GetSize())
+			hookFontCreation(pDWriteFactory);
 		MyDebug(L"DW1 hooked");
 
 		CComPtr<IDWriteFactory2> pDWriteFactory2;
