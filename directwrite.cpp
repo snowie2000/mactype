@@ -17,6 +17,7 @@ void MyDebug(const TCHAR * sz, ...)
 }
 
 #define SET_VAL(x, y) *(DWORD_PTR*)&(x) = *(DWORD_PTR*)&(y)
+// To hook a method, add HOOK_MANUALLY() in hooklist.h and use this.
 #define HOOK(obj, name, index) { \
 	if (!HOOK_##name.Link) {  \
 		AutoEnableDynamicCodeGen dynHelper(true);  \
@@ -27,8 +28,11 @@ void MyDebug(const TCHAR * sz, ...)
 };
 
 struct ComMethodHooker {
+	// The target function if it has been hooked
 	void*(*lpGetTargetFunc)();
+	// The method the vftable refers to
 	void*(*lpGetMethod)(IUnknown* obj);
+	// Hook the method
 	void(*lpHookFunc)(IUnknown* obj);
 };
 
@@ -61,12 +65,14 @@ struct ComMethodHooker {
 
 struct Params {
 	D2D1_TEXT_ANTIALIAS_MODE AntialiasMode;
-	IDWriteRenderingParams *RenderingParams; //RenderingMode=6 is invalid for DWrite interface
+	// Don't access directly. Use Get(D2D|DW)RenderingParams().
+	IDWriteRenderingParams *RenderingParams;
 
 	FLOAT Gamma;
 	FLOAT EnhancedContrast;
 	FLOAT ClearTypeLevel;
 	DWRITE_PIXEL_GEOMETRY PixelGeometry;
+	// RenderingMode=6 is invalid for DWrite interface
 	DWRITE_RENDERING_MODE RenderingMode;
 	FLOAT GrayscaleEnhancedContrast;
 	DWRITE_GRID_FIT_MODE GridFitMode;
@@ -268,10 +274,16 @@ IDWriteRenderingParams* GetDWRenderingParams(IDWriteRenderingParams* default) {
 		return default;
 }
 
+// Hook the implementation rather than an interface.
+// There are many versions but inside the DLL there's only one implementation
+// that supports the latest available one. Older versions are just upcasts,
+// they share the same vftable.
 void HookFactory(ID2D1Factory* pD2D1Factory) {
 	static bool loaded = [&] {
 		HRESULT hr;
 		CComPtr<ID2D1Factory> ptr = pD2D1Factory;
+		// index is the index in the vftable. Their order is the same as
+		// methods declared in the header.
 		HOOK(ptr, CreateWicBitmapRenderTarget, 13);
 		HOOK(ptr, CreateHwndRenderTarget, 14);
 		HOOK(ptr, CreateDxgiSurfaceRenderTarget, 15);
@@ -376,6 +388,7 @@ void HookDevice(ID2D1Device* d2dDevice){
 	}();
 }
 
+// Hook the method if it has not been hooked. It's not thread safe.
 void HookRenderTargetMethod(
 	ID2D1RenderTarget* pD2D1RenderTarget,
 	D2D1RenderTargetCategory hookCategory,
@@ -420,6 +433,8 @@ void HookRenderTarget(
 		if (pD2D1Factory)
 			HookFactory(pD2D1Factory);
 
+		// Actually it always implements ID2D1DeviceContext regardless of
+		// hookCategory.
 		CComPtr<ID2D1DeviceContext> ptr1;
 		HRESULT hr = pD2D1RenderTarget->QueryInterface(&ptr1);
 		if (SUCCEEDED(hr)) {
@@ -431,12 +446,18 @@ void HookRenderTarget(
 		return true;
 	}();
 
+	// Some methods are duplicated across interfaces. Hook them whenever they're
+	// available from an instance. Make sure don't hook the same function
+	// multiple times.
+	//
+	// Up to two instances of the same function
 	static ComMethodHooker hookDrawText[] = {
 		COM_METHOD_HOOKER_EMPTY(),
 		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_DrawText, 27),
 		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_DrawText, 27),
 		COM_METHOD_HOOKER(ID2D1DeviceContext, D2D1DeviceContext_DrawText, 27)
 	};
+	// Up to three instances of the same function
 	static ComMethodHooker hookDrawGlyphRun[] = {
 		COM_METHOD_HOOKER_EMPTY(),
 		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_DrawGlyphRun, 29),
@@ -455,6 +476,14 @@ void HookRenderTarget(
 		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_SetTextRenderingParams, 36),
 		COM_METHOD_HOOKER(ID2D1DeviceContext, D2D1DeviceContext_SetTextRenderingParams, 36)
 	};
+	// Note that there's a branch in the inheritance hierarchy in
+	// ID2D1RenderTarget. But the implementation always supports
+	// ID2D1DeviceContext, thus multiple inheritance should take place. The
+	// vftable for ID2D1DeviceContext is different if hookCategory is not
+	// D2D1_DEVICE_CONTEXT_CATEGORY. It consists of thunks each of which adjusts
+	// the this pointer and then jumps to the corresponding method for
+	// ID2D1RenderTarget (So we don't have to hook them as well), and the other
+	// functions for ID2D1DeviceContext.
 	static ComMethodHooker hookDrawGlyphRun1[] = {
 		COM_METHOD_HOOKER_EMPTY(),
 		COM_METHOD_HOOKER(ID2D1RenderTarget, D2D1RenderTarget_DrawGlyphRun1, 82),
@@ -1383,6 +1412,67 @@ void TriggerHook(ID2D1Factory* d2d_factory) {
 	if (FAILED(d2d_factory->CreateDCRenderTarget(&properties, &target))) FAILEXIT;
 }
 
+// The entry point of DirectWrite hooking
+//
+// D2D1CreateFactory
+//     HookFactory
+//         ID2D1Factory
+//             CreateWicBitmapRenderTarget
+//             CreateHwndRenderTarget
+//             CreateDxgiSurfaceRenderTarget
+//             CreateDCRenderTarget
+//                 HookRenderTarget ->
+//         ID2D1Factory<N>
+//             CreateDevice<N>
+//                 HookDevice ->
+// 
+// D2D1CreateDevice
+//     HookDevice
+//         ID2D1Device<N>
+//             CreateDeviceContext<N>
+//                 HookRenderTarget ->
+// 
+// D2D1CreateDeviceContext
+//     HookRenderTarget
+//         ID2D1RenderTarget
+//             CreateCompatibleRenderTarget
+//                 HookRenderTarget ->
+//             DrawText
+//             DrawTextLayout
+//             DrawGlyphRun
+//             SetTextAntialiasMode
+//             SetTextRenderingParams
+//             GetFactory()
+//                 HookFactory ->
+// 
+//         ID2D1DeviceContext
+//             DrawGlyphRun1
+//             GetDevice()
+//                 HookDevice ->
+// 
+// DWriteCreateFactory
+//     hookDirectWrite
+//         IDWriteFactory
+//             GetGdiInterop
+//                 CreateBitmapRenderTarget
+//                     IDWriteBitmapRenderTarget
+//                         DrawGlyphRun
+// 
+//             CreateGlyphRunAnalysis
+//                 IDWriteGlyphRunAnalysis
+//                     GetAlphaBlendParams
+// 
+//             hookFontCreation
+//                 CreateTextFormat
+//                     IDWriteTextFormat
+//                 IDWriteFont
+//                     CreateFontFace
+//                         IDWriteFontFace
+// 
+//         IDWriteFactory<N>
+//             CreateGlyphRunAnalysis<N>
+//                 IDWriteGlyphRunAnalysis
+//                     GetAlphaBlendParams
 void HookD2DDll()
 {
 	typedef HRESULT (WINAPI *PFN_DWriteCreateFactory)(
