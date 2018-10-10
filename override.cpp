@@ -1057,7 +1057,7 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 	//CThreadCounter __counter;		//用于安全退出的计数器
 	INT* lpDx = const_cast<INT*>(SyslpDx);
 
-	if (!hdc || !lpString || !cbString || !g_ccbRender) {		//没有有效参数，直接交给Windows处理 或者 控制中心要求停止渲染
+	if (!hdc || !lpString || !cbString || !g_ccbRender || cbString>8192) {		//no valid param or rendering is disabled from control center.
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	}
 	if (!(fuOptions & ETO_GLYPH_INDEX) && cbString==1 && *lpString==32)	//空格
@@ -1270,7 +1270,7 @@ ETO_TRY();
 	if (!ORIG_GetObjectW(hCurFont, sizeof(LOGFONT), &lf)) {
 		ETO_THROW(ETOE_SETFONT);
 	}//30ms
-	StringCchCopy(lf.lfFaceName, LF_FACESIZE, (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFaceName));	//把正确的字体名称复制过去
+	StringCchCopy(lf.lfFaceName, LF_FACESIZE, (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName));	//把正确的字体名称复制过去
 	if (lf.lfEscapement != 0) {
 		ETO_THROW(ETOE_ROTATEFONT);// rotated font
 	}
@@ -1314,7 +1314,7 @@ ETO_TRY();
 	BITMAP bm;
 	HBITMAP hbmpSrc = (HBITMAP)GetCurrentObject(hdc, OBJ_BITMAP);
 
-	if(hbmpSrc && ORIG_GetObjectW(hbmpSrc, sizeof(BITMAP), &bm) && bm.bmBitsPixel == 1) {
+	if(hbmpSrc && ORIG_GetObjectW(hbmpSrc, sizeof(BITMAP), &bm) && bm.bmBitsPixel <= 16) {
 		//自动设置为单色渲染方式
 		ETO_THROW(ETOE_MONO);	//不渲染单色文字
 		//params.ftOptions |= FTO_MONO;

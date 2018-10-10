@@ -23,6 +23,10 @@ Latest release version
 
 1.2017.628.0
 
+Latest beta
+-------------------
+[1.2018.917.0-beta2](https://github.com/snowie2000/mactype/releases/tag/1.2018.917.0-beta2)
+
 Binary Installer
 ------------------
 
@@ -55,12 +59,15 @@ Thank you for your support! Your donations will keep the server running, keep me
 Known issues
 ---------------
 
-- Please backup your profile before upgrading!
+- Please backup your profiles before upgrading!
 
-- Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file.
+- Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file
 
-- If you want to use MacType-patch together with MacType official release, Do remember to add DirectWrite=0 to your profile or you will have mysterious problems.
+- If you want to use MacType-patch together with MacType official release, remember to add DirectWrite=0 to your profile or you will have mysterious problems
 
+- If you're running 64 bit Windows, antimalware/antivirus software may conflict with MacType, because it sees MacType trying to modify running software. One possible workaround is to try running in Service Mode (recommended), or add HookChildProcesses=0 to your profile. See https://github.com/snowie2000/mactype/wiki/HookChildProcesses for an explanation
+
+- Office 2013 does not use DirectWrite or GDI (it uses its own custom rendering), so Office 2013 doesn't work with MacType. Recommended workarounds are to use Office 2010 which uses GDI or Office 2016 which uses DirectWrite.
 
 How to build
 -------------
