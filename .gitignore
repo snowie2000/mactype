@@ -1,0 +1,8 @@
+.vs/
+.vscode/
+deps/
+Debug/
+Release/
+x64/
+*.vcxproj.user
+*.DotSettings.user

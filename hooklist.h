@@ -1,4 +1,4 @@
-HOOK_DEFINE(int, GetObjectW,  (__in HANDLE h, __in int c, __out_bcount_opt(c) LPVOID pv))
+ÔªøHOOK_DEFINE(int, GetObjectW,  (__in HANDLE h, __in int c, __out_bcount_opt(c) LPVOID pv))
 HOOK_DEFINE(int, GetObjectA,  (__in HANDLE h, __in int c, __out_bcount_opt(c) LPVOID pv))
 HOOK_DEFINE(int, GetTextFaceAliasW, (HDC hdc, int nLen, LPWSTR lpAliasW))
 HOOK_DEFINE(BOOL, DeleteObject, ( HGDIOBJ hObject))
@@ -26,8 +26,8 @@ HOOK_DEFINE(DWORD, GetGlyphOutlineA, (__in HDC hdc, \
 // TabbedTextOutA,W
 // TextOutA,W
 // ExtTextOutA
-// ÇÕì‡ïîÇ≈ ExtTextOutWÇåƒÇÒÇ≈ÇÈÇ©ÇÁ ExtTextOutW ÇæÇØé¿ëïÇ∑ÇÍÇŒOKÅBÅ©XPÇÃèÍçá
-// Windows 2000 Ç≈Ç‡ìÆÇ≠ÇÊÇ§Ç…ÇªÇÃëºÇÃAPIÇ‡ÉtÉbÉNÇä|ÇØÇƒÇ®Ç≠ÅB
+// „ÅØÂÜÖÈÉ®„Åß ExtTextOutW„ÇíÂëº„Çì„Åß„Çã„Åã„Çâ ExtTextOutW „Å†„ÅëÂÆüË£Ö„Åô„Çå„Å∞OK„ÄÇ‚ÜêXP„ÅÆÂ†¥Âêà
+// Windows 2000 „Åß„ÇÇÂãï„Åè„Çà„ÅÜ„Å´„Åù„ÅÆ‰ªñ„ÅÆAPI„ÇÇ„Éï„ÉÉ„ÇØ„ÇíÊéõ„Åë„Å¶„Åä„Åè„ÄÇ
 /*
 HOOK_DEFINE(HFONT, CreateFontA, (int nHeight, int nWidth, int nEscapement, int nOrientation, int fnWeight, DWORD fdwItalic, DWORD fdwUnderline, DWORD fdwStrikeOut, DWORD fdwCharSet, DWORD fdwOutputPrecision, DWORD fdwClipPrecision, DWORD fdwQuality, DWORD fdwPitchAndFamily, LPCSTR  lpszFace))
 HOOK_DEFINE(HFONT, CreateFontW, (int nHeight, int nWidth, int nEscapement, int nOrientation, int fnWeight, DWORD fdwItalic, DWORD fdwUnderline, DWORD fdwStrikeOut, DWORD fdwCharSet, DWORD fdwOutputPrecision, DWORD fdwClipPrecision, DWORD fdwQuality, DWORD fdwPitchAndFamily, LPCWSTR lpszFace))
@@ -187,6 +187,12 @@ HOOK_MANUALLY(HRESULT, CreateDeviceContext6, (
 			  ID2D1DeviceContext5** deviceContext
 			  ))
 
+HOOK_MANUALLY(HRESULT, CreateDeviceContext7, (
+			  ID2D1Device6* This,
+			  D2D1_DEVICE_CONTEXT_OPTIONS options,
+			  ID2D1DeviceContext6** deviceContext
+			  ))
+
 HOOK_MANUALLY(HRESULT, CreateTextFormat, (
 			   IDWriteFactory* self,
 			   __in_z WCHAR const* fontFamilyName,
@@ -220,12 +226,20 @@ HOOK_MANUALLY(HRESULT, CreateCompatibleRenderTarget, (
 			  ID2D1BitmapRenderTarget** bitmapRenderTarget
 			  ))
 
-HOOK_MANUALLY(void, SetTextAntialiasMode, (
+HOOK_MANUALLY(void, D2D1RenderTarget_SetTextAntialiasMode, (
 			  ID2D1RenderTarget* This,
 			  D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode));
 
-HOOK_MANUALLY(void, SetTextRenderingParams, (
+HOOK_MANUALLY(void, D2D1DeviceContext_SetTextAntialiasMode, (
+			  ID2D1DeviceContext* This,
+			  D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode));
+
+HOOK_MANUALLY(void, D2D1RenderTarget_SetTextRenderingParams, (
 				  ID2D1RenderTarget* This,
+				  _In_opt_ IDWriteRenderingParams* textRenderingParams));
+
+HOOK_MANUALLY(void, D2D1DeviceContext_SetTextRenderingParams, (
+				  ID2D1DeviceContext* This,
 				  _In_opt_ IDWriteRenderingParams* textRenderingParams));
 
 			  /*
@@ -297,13 +311,35 @@ HOOK_MANUALLY(HRESULT, CreateDevice6, (
 	ID2D1Device5** d2dDevice5
 	));
 
+HOOK_MANUALLY(HRESULT, CreateDevice7, (
+	ID2D1Factory7* This,
+	IDXGIDevice* dxgiDevice,
+	ID2D1Device6** d2dDevice6
+	));
+
 HOOK_MANUALLY(BOOL, MySetProcessMitigationPolicy, (
 	_In_ PROCESS_MITIGATION_POLICY MitigationPolicy,
 	_In_ PVOID                     lpBuffer,
 	_In_ SIZE_T                    dwLength
 	));
 
-HOOK_MANUALLY(void, D2D1DeviceContext_DrawGlyphRun, (
+HOOK_MANUALLY(void, D2D1RenderTarget_DrawGlyphRun1, (
+	ID2D1DeviceContext *This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	CONST DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode));
+
+HOOK_MANUALLY(void, D2D1RenderTarget1_DrawGlyphRun1, (
+	ID2D1DeviceContext *This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	CONST DWRITE_GLYPH_RUN_DESCRIPTION *glyphRunDescription,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode));
+
+HOOK_MANUALLY(void, D2D1DeviceContext_DrawGlyphRun1, (
 	ID2D1DeviceContext *This,
 	D2D1_POINT_2F baselineOrigin,
 	CONST DWRITE_GLYPH_RUN *glyphRun,
@@ -319,8 +355,34 @@ HOOK_MANUALLY(void, D2D1RenderTarget_DrawGlyphRun, (
 	DWRITE_MEASURING_MODE measuringMode
 	));
 
+HOOK_MANUALLY(void, D2D1RenderTarget1_DrawGlyphRun, (
+	ID2D1RenderTarget* This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	));
+
+HOOK_MANUALLY(void, D2D1DeviceContext_DrawGlyphRun, (
+	ID2D1DeviceContext* This,
+	D2D1_POINT_2F baselineOrigin,
+	CONST DWRITE_GLYPH_RUN *glyphRun,
+	ID2D1Brush *foregroundBrush,
+	DWRITE_MEASURING_MODE measuringMode
+	));
+
 HOOK_MANUALLY(void, D2D1RenderTarget_DrawText, (
 	ID2D1RenderTarget* This,
+	CONST WCHAR *string,
+	UINT32 stringLength,
+	IDWriteTextFormat *textFormat,
+	CONST D2D1_RECT_F *layoutRect,
+	ID2D1Brush *defaultForegroundBrush,
+	D2D1_DRAW_TEXT_OPTIONS options,
+	DWRITE_MEASURING_MODE measuringMode));
+
+HOOK_MANUALLY(void, D2D1DeviceContext_DrawText, (
+	ID2D1DeviceContext* This,
 	CONST WCHAR *string,
 	UINT32 stringLength,
 	IDWriteTextFormat *textFormat,

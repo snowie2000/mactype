@@ -123,6 +123,15 @@ void CGdippSettings::DelayedInit()
 		AddListFromSection(_T("FontSubstitutes"), m_szFileName, arrFontSubstitutes);
 	m_FontSubstitutesInfo.init(m_nFontSubstitutes, arrFontSubstitutes);
 
+	//FontSubstitutesDW
+	CFontSubstitutesIniArray arrFontSubstitutesForDW;
+	names = _T("FontSubstitutesDW@") + wstring(m_szexeName);
+	if (_IsFreeTypeProfileSectionExists(names.c_str(), m_szFileName))
+		AddListFromSection(names.c_str(), m_szFileName, arrFontSubstitutesForDW);
+	else
+		AddListFromSection(_T("FontSubstitutesDW"), m_szFileName, arrFontSubstitutesForDW);
+	m_FontSubstitutesInfoForDW.init(m_nFontSubstitutes, arrFontSubstitutesForDW);
+
 	names = _T("Individual@") + wstring(m_szexeName);
 	if (_IsFreeTypeProfileSectionExists(names.c_str(), NULL))
 		AddIndividualFromSection(names.c_str(), NULL, m_arrIndividual);
@@ -1061,6 +1070,30 @@ bool CGdippSettings::CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const
 		lplf = &m_lfForceFont;
 	} else {
 		lplf = GetFontSubstitutesInfo().lookup((LOGFONT&)lfOrg);
+		if (lplf) bForceFont = true;
+	}
+	if (bForceFont) {
+		memcpy(&lf, &lfOrg, sizeof(LOGFONT)-sizeof(lf.lfFaceName));
+		StringCchCopy(lf.lfFaceName, LF_FACESIZE, lplf->lfFaceName);
+	}
+	return bForceFont;
+}
+
+bool CGdippSettings::CopyForceFontForDW(LOGFONT& lf, const LOGFONT& lfOrg) const
+{
+	_ASSERTE(m_bDelayedInit);
+	//__asm{ int 3 }
+	GetEnvironmentVariableW(L"MACTYPE_FONTSUBSTITUTES_ENV", NULL, 0);
+	if (GetLastError()!=ERROR_ENVVAR_NOT_FOUND)
+		return false;
+	//&lf == &lfOrg‚à‰Â
+	bool bForceFont = !!GetForceFontName();
+	BOOL bFontExist = true;
+	const LOGFONT *lplf;
+	if (bForceFont) {
+		lplf = &m_lfForceFont;
+	} else {
+		lplf = GetFontSubstitutesInfoForDW().lookup((LOGFONT&)lfOrg);
 		if (lplf) bForceFont = true;
 	}
 	if (bForceFont) {
