@@ -288,6 +288,8 @@ private:
 
 	//settings for experimental
 	bool m_bEnableClipBoxFix;
+	bool m_bColorFont;
+	bool m_bInvertColor;
 
 
 	//settings for directwrite
@@ -445,6 +447,8 @@ public:
 	int WidthMode() const { return m_nWidthMode; }
 	int FontLoader() const { return m_nFontLoader; }
 	bool EnableClipBoxFix() const { return m_bEnableClipBoxFix; }
+	bool LoadColorFont() const { return m_bColorFont; }
+	bool InvertColor() const { return m_bInvertColor; }
 	DWORD ShadowLightColor() const { return m_nShadowLightColor; }
 	DWORD ShadowDarkColor() const { return m_nShadowDarkColor; }
 	int FontSubstitutes() const { return m_nFontSubstitutes; }	//ÅÐ¶ÏÌæ»»Ä£Ê½

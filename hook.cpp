@@ -486,7 +486,6 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			bEnableDW = pSettings->DirectWrite();
 		}
 		if (!IsUnload) hook_initinternal();	//不加载的模块就不做任何事情
-
 		//5
 		if (!IsProcessExcluded() && !IsUnload) {
 #ifndef _WIN64
