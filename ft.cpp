@@ -624,9 +624,17 @@ COLORREF _rgbamixer(COLORREF bkColor, int b, int g, int r, int a) {
 COLORREF _invert_rgbamixer(COLORREF bkColor, int b, int g, int r, int a) {
 	if (!a)
 		return bkColor;
-	int invertr = InvertRed[Min(r * 255 / a, 255)] * a / 255;
-	int invertg = InvertGreen[Min(g * 255 / a, 255)] * a / 255;
-	int invertb = InvertBlue[Min(b * 255 / a, 255)] * a / 255;
+	int invertr, invertg, invertb;
+	if (a == 255) {
+		invertr = InvertRed[r];
+		invertg = InvertGreen[g];
+		invertb = InvertBlue[b];
+	}
+	else {
+		invertr = InvertRed[r * 255 / a] * a / 255;
+		invertg = InvertGreen[g * 255 / a] * a / 255;
+		invertb = InvertBlue[b * 255 / a] * a / 255;
+	}
 	return _rgbamixer(bkColor, invertb, invertg, invertr, a);
 }
 
