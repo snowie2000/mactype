@@ -380,13 +380,17 @@ struct FreeTypeDrawInfo
 		{
 			CCriticalSectionLock __lock(CCriticalSectionLock::CS_MANAGER);
 			FT_Size font_size;
-			FTC_ScalerRec fscaler={face_id_list[index], 1,1,1,0,0};
-			//fscaler.face_id = face_id_list[index];
-			if (FTC_Manager_LookupSize(cache_man, &fscaler, &font_size))
+			//FTC_ScalerRec fscaler={face_id_list[index], 1,1,1,0,0};
+			scaler.face_id = face_id_list[index];
+			if (FTC_Manager_LookupSize(cache_man, &scaler, &font_size))
 			//if (FTC_Manager_LookupFace(cache_man, face_id_list[index], &freetype_face_list[index]))
 				freetype_face_list[index] = NULL;
-			else
+			else {
+				if (scaler.height == 0)
+					return font_size->face;	// return without save, because the scaler is not prepared yet.
 				freetype_face_list[index] = font_size->face;
+			}
+
 		}
 		return freetype_face_list[index];
 	}
