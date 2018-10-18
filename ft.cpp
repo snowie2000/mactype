@@ -644,10 +644,15 @@ static void FreeTypeDrawBitmapPixelModeBGRA(FreeTypeGlyphInfo& FTGInfo, int x, i
 	CBitmapCache& cache = *FTGInfo.FTInfo->pCache;
 	const FT_Bitmap *bitmap = &FTGInfo.FTGlyph->bitmap;
 	BYTE alphatuner = FTGInfo.FTInfo->params->alphatuner;
+	BOOL bAlphaDraw = FTGInfo.FTInfo->params->alpha != 1;
 	int AAMode = FTGInfo.AAMode;
 	int i, j;
 	int dx, dy;	// display
 	FT_Bytes p;
+
+	if (bAlphaDraw) {	// no shadow for color font
+		return;
+	}
 
 	if (bitmap->pixel_mode != FT_PIXEL_MODE_BGRA) {
 		return;
@@ -676,67 +681,36 @@ static void FreeTypeDrawBitmapPixelModeBGRA(FreeTypeGlyphInfo& FTGInfo, int x, i
 
 	COLORREF backColor, newColor;
 	unsigned int alphaR, alphaG, alphaB, alpha;
-	BOOL bAlphaDraw = FTGInfo.FTInfo->params->alpha != 1;
 
-	if (bAlphaDraw)
-		for (j = 0, dy = y; j < height; ++j, ++dy) {
-			if ((unsigned int)dy >= (unsigned int)cachebufsize.cy) continue;
+	for (j = 0, dy = y; j < height; ++j, ++dy) {
+		if ((unsigned int)dy >= (unsigned int)cachebufsize.cy) continue;
 
-			p = bitmap->pitch < 0 ?
-				&bitmap->buffer[(-bitmap->pitch * bitmap->rows) - bitmap->pitch * j] :	// up-flow
-				&bitmap->buffer[bitmap->pitch * j];	// down-flow
+		p = bitmap->pitch < 0 ?
+			&bitmap->buffer[(-bitmap->pitch * bitmap->rows) - bitmap->pitch * j] :	// up-flow
+			&bitmap->buffer[bitmap->pitch * j];	// down-flow
 
-			cachebufrowp = &cachebufp[dy * cachebufsize.cx];
-			for (i = left, dx = x; i < width; i += 4, ++dx) {
-				backColor = cachebufrowp[dx];
-				COLORREF last = 0xFFFFFFFF;
-				if (AAMode == 2 || AAMode == 4) {
-					alphaR = p[i + 0] / alphatuner;
-					alphaG = p[i + 1] / alphatuner;
-					alphaB = p[i + 2] / alphatuner;
-					alpha = p[i + 3] / alphatuner;
-				}
-				else {
-					// BGR
-					alphaR = p[i + 2] / alphatuner;
-					alphaG = p[i + 1] / alphatuner;
-					alphaB = p[i + 0] / alphatuner;
-					alpha = p[i + 3] / alphatuner;
-				}
-
-				newColor = mixer(backColor, alphaB, alphaG, alphaR, alpha);
-				cachebufrowp[dx] = newColor;
+		cachebufrowp = &cachebufp[dy * cachebufsize.cx];
+		for (i = left, dx = x; i < width; i += 4, ++dx) {
+			backColor = cachebufrowp[dx];
+			COLORREF last = 0xFFFFFFFF;
+			if (AAMode == 3 || AAMode == 5) {
+				// BGR
+				alphaR = p[i + 2];
+				alphaG = p[i + 1];
+				alphaB = p[i + 0];
+				alpha = p[i + 3];
 			}
-		}
-	else
-		for (j = 0, dy = y; j < height; ++j, ++dy) {
-			if ((unsigned int)dy >= (unsigned int)cachebufsize.cy) continue;
-
-			p = bitmap->pitch < 0 ?
-				&bitmap->buffer[(-bitmap->pitch * bitmap->rows) - bitmap->pitch * j] :	// up-flow
-				&bitmap->buffer[bitmap->pitch * j];	// down-flow
-
-			cachebufrowp = &cachebufp[dy * cachebufsize.cx];
-			for (i = left, dx = x; i < width; i += 4, ++dx) {
-				backColor = cachebufrowp[dx];
-				COLORREF last = 0xFFFFFFFF;
-				if (AAMode == 2 || AAMode == 4) {
-					alphaR = p[i + 0];
-					alphaG = p[i + 1];
-					alphaB = p[i + 2];
-					alpha = p[i + 3];
-				}
-				else {
-					// BGR
-					alphaR = p[i + 2];
-					alphaG = p[i + 1];
-					alphaB = p[i + 0];
-					alpha = p[i + 3];
-				}
-				newColor = mixer(backColor, alphaB, alphaG, alphaR, alpha);
-				cachebufrowp[dx] = newColor;
+			else {
+				// RGB
+				alphaR = p[i + 0];
+				alphaG = p[i + 1];
+				alphaB = p[i + 2];
+				alpha = p[i + 3];
 			}
+			newColor = mixer(backColor, alphaB, alphaG, alphaR, alpha);
+			cachebufrowp[dx] = newColor;
 		}
+	}
 }
 
 static void FreeTypeDrawBitmapGray(FreeTypeGlyphInfo& FTGInfo, CAlphaBlendColor& ab, int x, int y)
@@ -1373,11 +1347,13 @@ BOOL FreeTypePrepare(FreeTypeDrawInfo& FTInfo)
 	default:
 		return FALSE;
 	}
-// 	if (!(freetype_face = FTInfo.GetFace(0)))
-// 	{
-// 		pSettings->AddFontExclude(lf.lfFaceName);
-// 		return FALSE;
-// 	}
+
+	// fetch face again to get the correct one.
+	if (!(freetype_face = FTInfo.GetFace(0)))
+	{
+		pSettings->AddFontExclude(lf.lfFaceName);
+		return FALSE;
+	}
 
 	pftCache = pfi->GetCache(scaler, lf);
 	if(!pftCache)
@@ -1760,8 +1736,6 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 						freetype_face = FTInfo.GetFace(j);	//同时更新对应faceid的实际face
 						//接下来更新对应的fontsetting
 						FTInfo.font_type.flags = FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
-						if (bLoadColor && FT_HAS_COLOR(freetype_face))
-							FTInfo.font_type.flags |= FT_LOAD_COLOR;	// load color font if requested and font supports it
 						// 僸儞僥傿儞僌
 						//extern CFontSetCache g_fsetcache;
 						//pfs = g_fsetcache.Get(FTInfo.font_type.face_id);
@@ -2026,7 +2000,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 				}
 				{
 					CCriticalSectionLock __lock(CCriticalSectionLock::CS_LIBRARY);
-					if (bLoadColor) {
+					if (bLoadColor && FT_HAS_COLOR(freetype_face)) {
 						// use custom API to get color bitmap
 						if (FT_Glyph_To_BitmapEx(&((*glyph_bitmap)->ft_glyph), render_mode, 0, 1, 1, glyph_index, freetype_face)) {
 							FT_Done_Ref_Glyph(glyph_bitmap);
@@ -2070,7 +2044,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 				FTInfo.y -= dy;
 			} else {
 					int bx = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.width;
-					if (render_mode == FT_RENDER_MODE_LCD) bx /= 3;
+					if (render_mode == FT_RENDER_MODE_LCD && FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.pixel_mode == FT_PIXEL_MODE_BGRA) bx /= 3;
 					bx += left;
 					FTInfo.px = FTInfo.x + Max(Max(dx, bx), cx);	//有文字的情况下,绘图宽度=ft计算的宽度，鼠标位置=win宽度
 					FTInfo.x += dx;//Max(dx, gdi32x);//Max(Max(dx, bx), cx);
