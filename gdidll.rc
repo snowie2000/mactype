@@ -12,7 +12,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 非特定语言(系统默认值) resources
+// Neutral (Sys. Default) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
 LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
@@ -24,8 +24,8 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2018,719,1
- PRODUCTVERSION 1,2018,719,1
+ FILEVERSION 1,2018,1019,0
+ PRODUCTVERSION 1,2018,1019,0
  FILEFLAGSMASK 0x8L
 #ifdef _DEBUG
  FILEFLAGS 0xbL
@@ -43,14 +43,14 @@ BEGIN
             VALUE "Comments", "Portions of this software are copyright (c) 2005-2017 The FreeType Project (www.freetype.org). All rights reserved."
             VALUE "CompanyName", "2ch & THEMEX"
             VALUE "FileDescription", "The Ultimate Font Rasterizer with Infinality patch"
-            VALUE "FileVersion", "1.2018.719.1"
+            VALUE "FileVersion", "1.2018.1019.0"
             VALUE "InternalName", "MacType"
             VALUE "LegalCopyright", "(C) 460, 168, Higambana, 555 and sy567. All rights reserved. FlyingSnow republished"
             VALUE "OriginalFilename", "MacType.dll"
             VALUE "PrivateBuild", "True"
             VALUE "ProductName", "The Ultimate Font Rasterizer"
-            VALUE "ProductVersion", "1.2018.719.1"
-            VALUE "URL", "http://mactype.themex.net http://drwatson.nobody.jp/gdi++/"
+            VALUE "ProductVersion", "1.2018.1019.0"
+            VALUE "URL", "http://www.mactype.net http://drwatson.nobody.jp/gdi++/"
         END
     END
     BLOCK "VarFileInfo"
@@ -59,12 +59,12 @@ BEGIN
     END
 END
 
-#endif    // 非特定语言(系统默认值) resources
+#endif    // Neutral (Sys. Default) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// 中文(简体，中国) resources
+// Chinese (Simplified, PRC) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
@@ -93,7 +93,7 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // 中文(简体，中国) resources
+#endif    // Chinese (Simplified, PRC) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

@@ -693,20 +693,11 @@ static void FreeTypeDrawBitmapPixelModeBGRA(FreeTypeGlyphInfo& FTGInfo, int x, i
 		for (i = left, dx = x; i < width; i += 4, ++dx) {
 			backColor = cachebufrowp[dx];
 			COLORREF last = 0xFFFFFFFF;
-			if (AAMode == 3 || AAMode == 5) {
-				// BGR
-				alphaR = p[i + 2];
-				alphaG = p[i + 1];
-				alphaB = p[i + 0];
-				alpha = p[i + 3];
-			}
-			else {
-				// RGB
-				alphaR = p[i + 0];
-				alphaG = p[i + 1];
-				alphaB = p[i + 2];
-				alpha = p[i + 3];
-			}
+			// always RGB
+			alphaR = p[i + 0];
+			alphaG = p[i + 1];
+			alphaB = p[i + 2];
+			alpha = p[i + 3];
 			newColor = mixer(backColor, alphaB, alphaG, alphaR, alpha);
 			cachebufrowp[dx] = newColor;
 		}
