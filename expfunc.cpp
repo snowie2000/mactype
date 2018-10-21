@@ -15,7 +15,11 @@
 // win2kà»ç~
 //#pragma comment(linker, "/subsystem:windows,5.0")
 #ifndef _WIN64
+#ifdef DEBUG
+#pragma comment(lib, "wow64ext_dbg.lib")
+#else
 #pragma comment(lib, "wow64ext.lib")
+#endif
 #endif
 
 EXTERN_C LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
