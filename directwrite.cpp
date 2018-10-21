@@ -1367,7 +1367,22 @@ bool hookFontCreation(CComPtr<IDWriteFactory>& pDWriteFactory) {
 	if (FAILED(pDWriteFactory->GetSystemFontCollection(&fontcollection, false))) FAILEXIT;
 	if (FAILED(fontcollection->GetFontFamily(0, &ffamily))) FAILEXIT;
 	if (FAILED(ffamily->GetFont(0, &dfont))) FAILEXIT;
-	HOOK(dfont, CreateFontFace, 13);
+
+	CComPtr<IDWriteFont3> dfont3 = NULL;
+	HRESULT hr = dfont->QueryInterface(&dfont3);
+	if (FAILED(hr)) {
+		HOOK(dfont, CreateFontFace, 13);
+	} else {
+		// IDWriteFont::CreateFontFace just wraps this
+		HOOK(dfont3, CreateFontFace, 19);
+
+		CComPtr<IDWriteFontFaceReference> ffref;
+		if (SUCCEEDED(dfont3->GetFontFaceReference(&ffref))) {
+			// Same as IDWriteFontFaceReference1::CreateFontFace
+			HOOK(ffref, DWriteFontFaceReference_CreateFontFace, 3);
+			HOOK(ffref, DWriteFontFaceReference_CreateFontFaceWithSimulations, 4);
+		}
+	}
 	return true;
 }
 
@@ -1415,66 +1430,72 @@ void TriggerHook(ID2D1Factory* d2d_factory) {
 }
 
 // The entry point of DirectWrite hooking
-//
+
 // D2D1CreateFactory
-//     HookFactory
-//         ID2D1Factory
-//             CreateWicBitmapRenderTarget
-//             CreateHwndRenderTarget
-//             CreateDxgiSurfaceRenderTarget
-//             CreateDCRenderTarget
-//                 HookRenderTarget ->
-//         ID2D1Factory<N>
-//             CreateDevice<N>
-//                 HookDevice ->
-// 
+// 	HookFactory
+// 		ID2D1Factory
+// 			CreateWicBitmapRenderTarget
+// 			CreateHwndRenderTarget
+// 			CreateDxgiSurfaceRenderTarget
+// 			CreateDCRenderTarget
+// 				HookRenderTarget ->
+// 		ID2D1Factory<N>
+// 			CreateDevice<N>
+// 				HookDevice ->
+
 // D2D1CreateDevice
-//     HookDevice
-//         ID2D1Device<N>
-//             CreateDeviceContext<N>
-//                 HookRenderTarget ->
-// 
+// 	HookDevice
+// 		ID2D1Device<N>
+// 			CreateDeviceContext<N>
+// 				HookRenderTarget ->
+
 // D2D1CreateDeviceContext
-//     HookRenderTarget
-//         ID2D1RenderTarget
-//             CreateCompatibleRenderTarget
-//                 HookRenderTarget ->
-//             DrawText
-//             DrawTextLayout
-//             DrawGlyphRun
-//             SetTextAntialiasMode
-//             SetTextRenderingParams
-//             GetFactory()
-//                 HookFactory ->
-// 
-//         ID2D1DeviceContext
-//             DrawGlyphRun1
-//             GetDevice()
-//                 HookDevice ->
-// 
+// 	HookRenderTarget
+// 		ID2D1RenderTarget
+// 			CreateCompatibleRenderTarget
+// 				HookRenderTarget ->
+// 			DrawText
+// 			DrawTextLayout
+// 			DrawGlyphRun
+// 			SetTextAntialiasMode
+// 			SetTextRenderingParams
+// 			GetFactory()
+// 				HookFactory ->
+
+// 		ID2D1DeviceContext
+// 			DrawGlyphRun1
+// 			GetDevice()
+// 				HookDevice ->
+
 // DWriteCreateFactory
-//     hookDirectWrite
-//         IDWriteFactory
-//             GetGdiInterop
-//                 CreateBitmapRenderTarget
-//                     IDWriteBitmapRenderTarget
-//                         DrawGlyphRun
-// 
-//             CreateGlyphRunAnalysis
-//                 IDWriteGlyphRunAnalysis
-//                     GetAlphaBlendParams
-// 
-//             hookFontCreation
-//                 CreateTextFormat
-//                     IDWriteTextFormat
-//                 IDWriteFont
-//                     CreateFontFace
-//                         IDWriteFontFace
-// 
-//         IDWriteFactory<N>
-//             CreateGlyphRunAnalysis<N>
-//                 IDWriteGlyphRunAnalysis
-//                     GetAlphaBlendParams
+// 	hookDirectWrite
+// 		IDWriteFactory
+// 			GetGdiInterop
+// 				CreateBitmapRenderTarget
+// 					IDWriteBitmapRenderTarget
+// 						DrawGlyphRun
+
+// 			CreateGlyphRunAnalysis
+// 				IDWriteGlyphRunAnalysis
+// 					GetAlphaBlendParams
+
+// 			hookFontCreation
+// 				CreateTextFormat
+// 					IDWriteTextFormat
+// 				IDWriteFont
+// 					CreateFontFace
+// 						IDWriteFontFace
+// 				IDWriteFont3
+// 					   CreateFontFace
+// 					GetFontFaceReference()
+// 						IDWriteFontFaceReference
+// 							CreateFontFace
+// 							CreateFontFaceWithSimulations
+
+// 		IDWriteFactory<N>
+// 			CreateGlyphRunAnalysis<N>
+// 				IDWriteGlyphRunAnalysis
+// 					GetAlphaBlendParams
 void HookD2DDll()
 {
 	typedef HRESULT (WINAPI *PFN_DWriteCreateFactory)(
@@ -1600,6 +1621,54 @@ HRESULT WINAPI IMPL_CreateFontFace(IDWriteFont* self,
 			ORIG_CreateFontFace(writefont, fontFace);
 			writefont->Release();
 		}
+	}
+	return ret;
+}
+
+bool SubstituteDWriteFont3(__out IDWriteFontFace3** fontFace3)
+{
+	LOGFONT lf = { 0 };
+	if (FAILED(g_pGdiInterop->ConvertFontFaceToLOGFONT(*fontFace3, &lf)))
+		return false;
+	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+	if (pSettings->CopyForceFontForDW(lf, lf))
+	{
+		CComPtr<IDWriteFont> writefont;
+		if (FAILED(g_pGdiInterop->CreateFontFromLOGFONT(&lf, &writefont)))
+			return false;
+
+		CComPtr<IDWriteFontFace> fontFaceOut;
+		ORIG_CreateFontFace(writefont, &fontFaceOut);
+		IDWriteFontFace3* fontFace3Out;
+		if (FAILED(fontFaceOut->QueryInterface(&fontFace3Out)))
+			return false;
+		
+		(*fontFace3)->Release();
+		*fontFace3 = fontFace3Out;
+	}
+	return true;
+}
+
+HRESULT WINAPI IMPL_DWriteFontFaceReference_CreateFontFace(
+	IDWriteFontFaceReference* self,
+	__out IDWriteFontFace3** fontFace)
+{
+	HRESULT ret = ORIG_DWriteFontFaceReference_CreateFontFace(self, fontFace);
+	if (ret == S_OK) {
+		SubstituteDWriteFont3(fontFace);
+	}
+	return ret;
+}
+
+HRESULT WINAPI IMPL_DWriteFontFaceReference_CreateFontFaceWithSimulations(
+	IDWriteFontFaceReference* self,
+	DWRITE_FONT_SIMULATIONS fontFaceSimulationFlags,
+	__out IDWriteFontFace3** fontFace)
+{
+	HRESULT ret = ORIG_DWriteFontFaceReference_CreateFontFaceWithSimulations(self,
+		fontFaceSimulationFlags, fontFace);
+	if (ret == S_OK) {
+		SubstituteDWriteFont3(fontFace);
 	}
 	return ret;
 }

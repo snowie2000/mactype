@@ -209,6 +209,17 @@ HOOK_MANUALLY(HRESULT, CreateFontFace, (
 			  __out IDWriteFontFace** fontFace
 			  ))
 
+HOOK_MANUALLY(HRESULT, DWriteFontFaceReference_CreateFontFace, (
+			  IDWriteFontFaceReference* self,
+			  __out IDWriteFontFace3** fontFace
+			  ))
+
+HOOK_MANUALLY(HRESULT, DWriteFontFaceReference_CreateFontFaceWithSimulations, (
+			  IDWriteFontFaceReference* self,
+			  DWRITE_FONT_SIMULATIONS fontFaceSimulationFlags,
+			  __out IDWriteFontFace3** fontFace
+			  ))
+
 HOOK_MANUALLY(HRESULT, CreateBitmapRenderTarget, (
 			  IDWriteGdiInterop* This,
 			  HDC hdc,
