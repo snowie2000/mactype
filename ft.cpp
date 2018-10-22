@@ -2016,7 +2016,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			int dy = clpdx.gety(0);	//获得高度
 			int dx = clpdx.get(bWidthGDI32 ? gdi32x : cx);	//获得宽度
 			int left = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->left;
-			/*if (gdi32x == 0) {	// zero width text (most likely a diacritic)
+			if (gdi32x == 0) {	// zero width text (most likely a diacritic)
 				if (FTInfo.x + dx + left < FTInfo.xBase)
 					FTInfo.xBase = FTInfo.x + dx + left;	
 				//it needs to be drawn at the end of the offset (Windows specific, Windows will "share" half of letter's width to the diacritic)
@@ -2028,18 +2028,14 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			else {
 				if (FTInfo.x + left < FTInfo.xBase)
 					FTInfo.xBase = FTInfo.x + left;	//如果有字符是负数起始位置的（合成符号）， 调整文字的起始位置
-			}*/
-
-			// until full opentype layout is supported, keep the simple logic, don't make any guess
-			if (FTInfo.x + left < FTInfo.xBase)
-				FTInfo.xBase = FTInfo.x + left;	//如果有字符是负数起始位置的（合成符号）， 调整文字的起始位置
+			}
 
 			if (lpString < lpEnd - 1) {
 				FTInfo.x += dx;
 				FTInfo.y -= dy;
 			} else {
 					int bx = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.width;
-					if (render_mode == FT_RENDER_MODE_LCD && FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.pixel_mode == FT_PIXEL_MODE_BGRA) bx /= 3;
+					if (render_mode == FT_RENDER_MODE_LCD && FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.pixel_mode != FT_PIXEL_MODE_BGRA) bx /= 3;
 					bx += left;
 					FTInfo.px = FTInfo.x + Max(Max(dx, bx), cx);	//有文字的情况下,绘图宽度=ft计算的宽度，鼠标位置=win宽度
 					FTInfo.x += dx;//Max(dx, gdi32x);//Max(Max(dx, bx), cx);

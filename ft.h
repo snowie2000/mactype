@@ -358,6 +358,9 @@ struct FreeTypeDrawInfo
 		Dx = new int[cbString];
 		Dy = new int[cbString];
 		AAModes = new int[cbString];
+		scaler.height = 12;
+		scaler.width = 12;
+		scaler.pixel = 1;
 	}
 	~FreeTypeDrawInfo()
 	{
