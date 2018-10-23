@@ -487,7 +487,8 @@ SKIP:
 
 	//experimental settings:
 	m_bEnableClipBoxFix = !!_GetFreeTypeProfileIntFromSection(_T("Experimental"), _T("ClipBoxFix"), 1, lpszFile);
-
+	m_bColorFont = !!_GetFreeTypeProfileIntFromSection(_T("Experimental"), _T("ColorFont"), 0, lpszFile);
+	m_bInvertColor = !!_GetFreeTypeProfileIntFromSection(_T("Experimental"), _T("InvertColor"), 0, lpszFile);
 #ifdef INFINALITY
 	// define some macros
 #define INF_INT_ENV(y, def) \

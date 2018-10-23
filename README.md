@@ -1,36 +1,19 @@
 MacType
 ========================
 
-Important notice!
-------------------
-
-The following will prevent several unexpected problems:
-
-- For Windows 10 latest version:
-  - Until next update **DO NOT** use Registry Mode as it will very likely to crash and lock you out in the logon screen
-  - Instead use Service Mode, go to Services -> Mactype Service and change the Startup Type **Automatic (Delayed Start)**
-  - Or use Tray mode
-- There are some known problems with the new installer as it is a big update, it is very much recommended to:
-  - **Stop old MacType, uninstall and reboot**
-  - Do a clean install, make sure you chose **Typical install** (not Custom)
-- Secure Boot
-  - Use **Service Mode** if you prefer to keep Secure Boot enabled (recommended)
-  - For **Registry Mode** to work, Secure Boot must be disabled
-  - Service Mode and Registry Mode give the same results in most cases so most people will want to select Service Mode
-
-Latest release version
-------------------
-
-1.2017.628.0
+Better font rendering for Windows.
 
 Latest beta
--------------------
-[1.2018.917.0-beta2](https://github.com/snowie2000/mactype/releases/tag/1.2018.917.0-beta2)
-
-Binary Installer
 ------------------
 
-Visit MacType official site to download: 
+[1.2018.10.19-beta4](https://github.com/snowie2000/mactype/releases/tag/v1.2018.10.19-beta4)
+
+Please read the release notes for how 
+
+Official site
+------------------
+
+MacType official site (download is an older release version): 
 
 http://www.mactype.net
 
@@ -38,14 +21,22 @@ What's new?
 ------------------
 
 - Win10 compatible
-- Traditional Chinese localization has been greatly improved thanks to GT Wang.
-- MultiLang system improved.
-- Better DirectWrite support thanks to しらいと[http://silight.hatenablog.jp].
-- FreeType 2.8.0 included.
-- Two-stage mactype loader introduced.
-- Separate DirectWrite parameter adjustment.
-- ClipboxFix is reverted to 0 by default to avoid some incompatibility issues.
+- Updated FreeType (up to git commit 0c4feb72cf976f63d4bf62436bc48f190d0e0c28)
+- Support for color fonts :sunglasses:
+- New installer
+- Lots of bug fixes
+- Updates for multi-monitor support
+- Tray app can intercept explorer in Service Mode now
+- Tweaks for diacritics
+- Updates to EasyHook
+- Lower CPU in Tray Mode
+- Better DirectWrite support thanks to しらいと[http://silight.hatenablog.jp]
+- Separate DirectWrite parameter adjustment
+- Traditional Chinese localization greatly improved thanks to GT Wang
+- English localization improved
 - Added Korea localization, thanks to 조현희
+- MultiLang system improved
+- (Does not include Infinality as this is still experimental)
 
 Donation
 ------------------
@@ -59,12 +50,15 @@ Thank you for your support! Your donations will keep the server running, keep me
 Known issues
 ---------------
 
-- Please backup your profile before upgrading!
+- Please backup your profiles before upgrading!
 
-- Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file.
+- Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file. You can help with translations!
 
-- If you want to use MacType-patch together with MacType official release, Do remember to add DirectWrite=0 to your profile or you will have mysterious problems.
+- If you want to use MacType-patch together with MacType official release, remember to add DirectWrite=0 to your profile or you will have mysterious problems
 
+- If you're running 64 bit Windows, antimalware/antivirus software may conflict with MacType, because it sees MacType trying to modify running software. One possible workaround is to try running in Service Mode (recommended), or add HookChildProcesses=0 to your profile. See https://github.com/snowie2000/mactype/wiki/HookChildProcesses for an explanation
+
+- Office 2013 does not use DirectWrite or GDI (it uses its own custom rendering), so Office 2013 doesn't work with MacType. If this bothers you you can use Office 2010 which uses GDI or Office 2016 which uses DirectWrite.
 
 How to build
 -------------

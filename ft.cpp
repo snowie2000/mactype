@@ -44,6 +44,8 @@
 
 #include "ft2vert.h"
 
+#include "colorinvert.h"
+
 FT_BitmapGlyphRec empty_glyph = {};//优化控制字
 
 #define FT_BOLD_LOW 15
@@ -445,6 +447,7 @@ typedef struct
 	int	AAMode;							//antialiased mode for every char
 	CAlphaBlendColor* solid;
 	CAlphaBlendColor* shadow;	//alpha blender
+	bool bInvertColor;	// invert color for chrome/skia
 } FreeTypeGlyphInfo, *PFreeTypeGlyphInfo;
 
 
@@ -612,6 +615,95 @@ static void FreeTypeDrawBitmapPixelModeLCD(FreeTypeGlyphInfo& FTGInfo,
 	}
 }
 
+COLORREF _rgbamixer(COLORREF bkColor, int b, int g, int r, int a) {
+	int bkr = GetRValue(bkColor), bkg = GetGValue(bkColor), bkb = GetBValue(bkColor);
+	return a << 24 | (bkb - a*bkb / 255 + b) << 16 | (bkg - a*bkg / 255 + g) << 8 | (bkr - a*bkr / 255 + r);
+}
+
+// color blender for color font
+COLORREF _invert_rgbamixer(COLORREF bkColor, int b, int g, int r, int a) {
+	if (!a)
+		return bkColor;
+	int invertr, invertg, invertb;
+	if (a == 255) {
+		invertr = InvertRed[r];
+		invertg = InvertGreen[g];
+		invertb = InvertBlue[b];
+	}
+	else {
+		invertr = InvertRed[r * 255 / a] * a / 255;
+		invertg = InvertGreen[g * 255 / a] * a / 255;
+		invertb = InvertBlue[b * 255 / a] * a / 255;
+	}
+	return _rgbamixer(bkColor, invertb, invertg, invertr, a);
+}
+
+// draw color emoji
+static void FreeTypeDrawBitmapPixelModeBGRA(FreeTypeGlyphInfo& FTGInfo, int x, int y)
+{
+	CBitmapCache& cache = *FTGInfo.FTInfo->pCache;
+	const FT_Bitmap *bitmap = &FTGInfo.FTGlyph->bitmap;
+	BYTE alphatuner = FTGInfo.FTInfo->params->alphatuner;
+	BOOL bAlphaDraw = FTGInfo.FTInfo->params->alpha != 1;
+	int AAMode = FTGInfo.AAMode;
+	int i, j;
+	int dx, dy;	// display
+	FT_Bytes p;
+
+	if (bAlphaDraw) {	// no shadow for color font
+		return;
+	}
+
+	if (bitmap->pixel_mode != FT_PIXEL_MODE_BGRA) {
+		return;
+	}
+
+	const COLORREF color = FTGInfo.FTInfo->Color();
+
+	const SIZE cachebufsize = cache.Size();
+	DWORD * const cachebufp = (DWORD *)cache.GetPixels();
+	DWORD * cachebufrowp;
+	typedef COLORREF (*pfnmixer) (COLORREF bkColor, int b, int g, int r, int a);
+
+	pfnmixer mixer = FTGInfo.bInvertColor? _invert_rgbamixer:_rgbamixer;
+
+	int left, top, width, height;
+	if (x < 0) {
+		left = -x * 4;
+		x = 0;
+	}
+	else {
+		left = 0;
+	}
+	width = Min((int)bitmap->width*4, (int)(cachebufsize.cx - x) * 4);
+	top = 0;
+	height = bitmap->rows;
+
+	COLORREF backColor, newColor;
+	unsigned int alphaR, alphaG, alphaB, alpha;
+
+	for (j = 0, dy = y; j < height; ++j, ++dy) {
+		if ((unsigned int)dy >= (unsigned int)cachebufsize.cy) continue;
+
+		p = bitmap->pitch < 0 ?
+			&bitmap->buffer[(-bitmap->pitch * bitmap->rows) - bitmap->pitch * j] :	// up-flow
+			&bitmap->buffer[bitmap->pitch * j];	// down-flow
+
+		cachebufrowp = &cachebufp[dy * cachebufsize.cx];
+		for (i = left, dx = x; i < width; i += 4, ++dx) {
+			backColor = cachebufrowp[dx];
+			COLORREF last = 0xFFFFFFFF;
+			// always RGB
+			alphaR = p[i + 0];
+			alphaG = p[i + 1];
+			alphaB = p[i + 2];
+			alpha = p[i + 3];
+			newColor = mixer(backColor, alphaB, alphaG, alphaR, alpha);
+			cachebufrowp[dx] = newColor;
+		}
+	}
+}
+
 static void FreeTypeDrawBitmapGray(FreeTypeGlyphInfo& FTGInfo, CAlphaBlendColor& ab, int x, int y)
 {
 	int i, j;
@@ -674,6 +766,9 @@ static void FreeTypeDrawBitmap(
 			break;
 		case FT_PIXEL_MODE_LCD:
 			FreeTypeDrawBitmapPixelModeLCD(FTGInfo, ab, x, y);
+			break;
+		case FT_PIXEL_MODE_BGRA:
+			FreeTypeDrawBitmapPixelModeBGRA(FTGInfo, x, y);
 			break;
 		default:
 			return;		// 枹懳墳
@@ -850,6 +945,9 @@ static void FreeTypeDrawBitmapV(FreeTypeGlyphInfo& FTGInfo, CAlphaBlendColor& ab
 			break;
 		case FT_PIXEL_MODE_LCD_V:
 			FreeTypeDrawBitmapPixelModeLCDV(FTGInfo, ab, x, y);
+			break;
+		case FT_PIXEL_MODE_BGRA:
+			FreeTypeDrawBitmapPixelModeBGRA(FTGInfo, x, y);
 			break;
 		default:
 			return;		// 枹懳墳
@@ -1240,11 +1338,13 @@ BOOL FreeTypePrepare(FreeTypeDrawInfo& FTInfo)
 	default:
 		return FALSE;
 	}
-// 	if (!(freetype_face = FTInfo.GetFace(0)))
-// 	{
-// 		pSettings->AddFontExclude(lf.lfFaceName);
-// 		return FALSE;
-// 	}
+
+	// fetch face again to get the correct one.
+	if (!(freetype_face = FTInfo.GetFace(0)))
+	{
+		pSettings->AddFontExclude(lf.lfFaceName);
+		return FALSE;
+	}
 
 	pftCache = pfi->GetCache(scaler, lf);
 	if(!pftCache)
@@ -1497,6 +1597,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 	FreeTypeFontCache* pftCache = FTInfo.pftCache;
 	const CFontSettings*& pfs = FTInfo.pfs;
 	FreeTypeFontInfo*& pfi	= FTInfo.pfi;
+	const bool bLoadColor = pSettings->LoadColorFont();
 	const bool bGlyphIndex = FTInfo.IsGlyphIndex();
 	//const bool bSizeOnly = FTInfo.IsSizeOnly();
 	//const bool bOwnCache = !(FTInfo.font_type.flags & FT_LOAD_RENDER);
@@ -1890,6 +1991,14 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 				}
 				{
 					CCriticalSectionLock __lock(CCriticalSectionLock::CS_LIBRARY);
+					if (bLoadColor && FT_HAS_COLOR(freetype_face)) {
+						// use custom API to get color bitmap
+						if (FT_Glyph_To_BitmapEx(&((*glyph_bitmap)->ft_glyph), render_mode, 0, 1, 1, glyph_index, freetype_face)) {
+							FT_Done_Ref_Glyph(glyph_bitmap);
+							nRet = false;
+							goto gdiexit;
+						}
+					} else
 					if(FT_Glyph_To_Bitmap(&((*glyph_bitmap)->ft_glyph), render_mode, 0, 1)){
 						FT_Done_Ref_Glyph(glyph_bitmap);
 						nRet= false;
@@ -1907,15 +2016,26 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			int dy = clpdx.gety(0);	//获得高度
 			int dx = clpdx.get(bWidthGDI32 ? gdi32x : cx);	//获得宽度
 			int left = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->left;
-			if (FTInfo.x + left< FTInfo.xBase)
-				FTInfo.xBase = FTInfo.x + left;	//如果有字符是负数起始位置的（合成符号）， 调整文字的起始位置
+			if (gdi32x == 0) {	// zero width text (most likely a diacritic)
+				if (FTInfo.x + dx + left < FTInfo.xBase)
+					FTInfo.xBase = FTInfo.x + dx + left;	
+				//it needs to be drawn at the end of the offset (Windows specific, Windows will "share" half of letter's width to the diacritic)
+				if (i > 0) {
+					// we need to update the logical start position of the previous letter to compensate the strange behavior.
+					*(Dx - 1) = FTInfo.x + dx;
+				}
+			}
+			else {
+				if (FTInfo.x + left < FTInfo.xBase)
+					FTInfo.xBase = FTInfo.x + left;	//如果有字符是负数起始位置的（合成符号）， 调整文字的起始位置
+			}
 
 			if (lpString < lpEnd - 1) {
 				FTInfo.x += dx;
 				FTInfo.y -= dy;
 			} else {
 					int bx = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.width;
-					if (render_mode == FT_RENDER_MODE_LCD) bx /= 3;
+					if (render_mode == FT_RENDER_MODE_LCD && FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.pixel_mode != FT_PIXEL_MODE_BGRA) bx /= 3;
 					bx += left;
 					FTInfo.px = FTInfo.x + Max(Max(dx, bx), cx);	//有文字的情况下,绘图宽度=ft计算的宽度，鼠标位置=win宽度
 					FTInfo.x += dx;//Max(dx, gdi32x);//Max(Max(dx, bx), cx);
@@ -2602,18 +2722,18 @@ BOOL FreeTypeTextOut(
 
 //===============计算完成==========================
 
-	FreeTypeGlyphInfo FTGInfo = {&FTInfo, 0, 0, 0, solid, shadow};
+	FreeTypeGlyphInfo FTGInfo = {&FTInfo, 0, 0, 0, solid, shadow, pSettings->InvertColor()};
 	for (int i=0; i<cbString; ++i, ++lpString)
 	{
 		WCHAR wch = *lpString;
-		if (Glyphs[i])
+		if (Glyphs[i])	// paint text with FreeType
 		{
 			FTGInfo.wch = wch;
 			FTGInfo.FTGlyph = (FT_BitmapGlyph)(Glyphs[i]->ft_glyph);
 			FTGInfo.AAMode = FTInfo.AAModes[i];
 			TextOutCallback(FTGInfo);
 		}
-		else
+		else // paint text(bitmap) with gdi
 		{
 			int j = i;
 			FT_DRAW_STATE st= drState[i];

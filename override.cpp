@@ -1270,7 +1270,7 @@ ETO_TRY();
 	if (!ORIG_GetObjectW(hCurFont, sizeof(LOGFONT), &lf)) {
 		ETO_THROW(ETOE_SETFONT);
 	}//30ms
-	StringCchCopy(lf.lfFaceName, LF_FACESIZE, (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFaceName));	//把正确的字体名称复制过去
+	StringCchCopy(lf.lfFaceName, LF_FACESIZE, (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName));	//把正确的字体名称复制过去
 	if (lf.lfEscapement != 0) {
 		ETO_THROW(ETOE_ROTATEFONT);// rotated font
 	}
@@ -1314,7 +1314,7 @@ ETO_TRY();
 	BITMAP bm;
 	HBITMAP hbmpSrc = (HBITMAP)GetCurrentObject(hdc, OBJ_BITMAP);
 
-	if(hbmpSrc && ORIG_GetObjectW(hbmpSrc, sizeof(BITMAP), &bm) && bm.bmBitsPixel == 1) {
+	if(hbmpSrc && ORIG_GetObjectW(hbmpSrc, sizeof(BITMAP), &bm) && bm.bmBitsPixel <= 16) {
 		//自动设置为单色渲染方式
 		ETO_THROW(ETOE_MONO);	//不渲染单色文字
 		//params.ftOptions |= FTO_MONO;
