@@ -1,23 +1,23 @@
 /* 2006-10-23(by 555)
- * http://hp.vector.co.jp/authors/VA028002/winfreetype.c (higambana(悰栰桭婭))
- * 傪娵幨偟
- */
+* http://hp.vector.co.jp/authors/VA028002/winfreetype.c (higambana(菅野友紀))
+* を丸写し
+*/
 /* 2006-10-27(by 555)
- * http://hp.vector.co.jp/authors/VA028002/freetype.html (higambana(悰栰桭婭))
- * 傪嶲峫偵偟偰傗傝捈偟
- */
+* http://hp.vector.co.jp/authors/VA028002/freetype.html (higambana(菅野友紀))
+* を参考にしてやり直し
+*/
 /* 2006-10-29(by 555)
- * 693巵(偲屇傇偙偲偵偡傞)偺惛椡揑側妶摦偵傛偭偰弌棃忋偑偭偨僂僴僂僴僜乕僗偲
- * 忋婰僒僀僩偺曄峏揰傪尦偵傒傒偭偪偄廋惓丅(儀乕僗gdi0164)
- */
+* 693氏(と呼ぶことにする)の精力的な活動によって出来上がったウハウハソースと
+* 上記サイトの変更点を元にみみっちい修正。(ベースgdi0164)
+*/
 /* (by 555)
- * 偝傜偵慄堷偒傕僂僴僂僴偵偟偰傕傜偭偨gdi0168傪尦偵
- * 僀僞儕僢僋偲儃乕儖僪傪捛壛丅
- */
+* さらに線引きもウハウハにしてもらったgdi0168を元に
+* イタリックとボールドを追加。
+*/
 /* (by sy567)
- * 懢帤偺傾儖僑儕僘儉傪曄峏丅
- * 僈儞儅曗惓傪幚憰偟偰傒傞丅
- */
+* 太字のアルゴリズムを変更。
+* ガンマ補正を実装してみる。
+*/
 #include "override.h"
 #include "ft.h"
 #include <windows.h>
@@ -320,7 +320,7 @@ private:
 	CAlphaBlendColorOne g;
 	CAlphaBlendColorOne b;
 public:
-	CAlphaBlendColor( COLORREF newColor, int paramalpha, BOOL lcd, BOOL dark, bool gbr = false);
+	CAlphaBlendColor( COLORREF newColor, int paramalpha, BOOL lcd, BOOL dark, BOOL gbr = false);
 	~CAlphaBlendColor() { }
 	BYTE doABsub(BYTE fg, int temp_fg, BYTE bg, int temp_alpha) const;
 	COLORREF doAB(COLORREF baseColor, int alphaR, int alphaG, int alphaB, BOOL bClearAlpha);
@@ -331,7 +331,7 @@ private:
 	CAlphaBlendColor() { }
 };
 
-FORCEINLINE CAlphaBlendColor::CAlphaBlendColor( COLORREF newColor, int paramalpha, BOOL lcd, BOOL dark, bool gbr)
+FORCEINLINE CAlphaBlendColor::CAlphaBlendColor( COLORREF newColor, int paramalpha, BOOL lcd, BOOL dark, BOOL gbr)
 {
 	const int *tblR;
 	const int *tblG;
@@ -1650,8 +1650,8 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 		{
 			*drState = FT_DRAW_NOTFOUND;
 			bUnicodePlane = false;
-			clpdx.get(0);
-			FTInfo.px = FTInfo.x;
+			FTInfo.y -= clpdx.gety(0);
+			FTInfo.x += clpdx.get(0);
 			goto cont;
 		}
 		WCHAR wch = *lpString;
@@ -1895,10 +1895,8 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			if(bVertical && IsVerticalChar(wch)){
 				FTInfo.font_type.flags |= FT_LOAD_VERTICAL_LAYOUT;
 				if(bLcdMode){
-					if(!bLightLcdMode){
-						FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD;
-						FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD_V;
-					}
+					FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD;
+					FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD_V;
 					render_mode             = FT_RENDER_MODE_LCD_V;
 				}
 			}else{
@@ -1906,10 +1904,8 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					swap(FTInfo.font_type.height, FTInfo.font_type.width);	//交换无法旋转的文字宽高
 				FTInfo.font_type.flags &=~FT_LOAD_VERTICAL_LAYOUT;
 				if(bLcdMode){
-					if(!bLightLcdMode){
-						FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD_V;
-						FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD;
-					}
+					FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD_V;
+					FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD;
 					render_mode             = FT_RENDER_MODE_LCD;
 				}
 			}
@@ -2319,10 +2315,8 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 			if(bVertical && IsVerticalChar(wch)){
 				FTInfo.font_type.flags |= FT_LOAD_VERTICAL_LAYOUT;
 				if(bLcdMode){
-					if(!bLightLcdMode){
-						FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD;
-						FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD_V;
-					}
+					FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD;
+					FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD_V;
 					render_mode             = FT_RENDER_MODE_LCD_V;
 				}
 			}else{
@@ -2330,10 +2324,8 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 					swap(FTInfo.font_type.height, FTInfo.font_type.width);	//交换无法旋转的文字宽高
 				FTInfo.font_type.flags &=~FT_LOAD_VERTICAL_LAYOUT;
 				if(bLcdMode){
-					if(!bLightLcdMode){
-						FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD_V;
-						FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD;
-					}
+					FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD_V;
+					FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD;
 					render_mode             = FT_RENDER_MODE_LCD;
 				}
 			}
