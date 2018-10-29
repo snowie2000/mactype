@@ -753,7 +753,7 @@ static void FreeTypeDrawBitmapGray(FreeTypeGlyphInfo& FTGInfo, CAlphaBlendColor&
 }
 
 // ƒOƒŠƒtƒrƒbƒgƒ}ƒbƒv‚ÌƒŒƒ“ƒ_ƒŠƒ“ƒO
-static void FreeTypeDrawBitmap(
+static bool FreeTypeDrawBitmap(
 		FreeTypeGlyphInfo& FTGInfo,
 		CAlphaBlendColor& ab,
 		int x, int y)
@@ -771,11 +771,12 @@ static void FreeTypeDrawBitmap(
 			FreeTypeDrawBitmapPixelModeBGRA(FTGInfo, x, y);
 			break;
 		default:
-			return;		// –¢‘Î‰ž
+			return false;		// –¢‘Î‰ž
 		}
-		return;
+		return true;
 	}
 	FreeTypeDrawBitmapGray(FTGInfo, ab, x, y);
+	return true;
 }
 
 // c‘‚«—p‚ÌƒŒƒ“ƒ_ƒŠƒ“ƒO(ƒRƒsƒyŽè”²‚«)
@@ -935,7 +936,7 @@ void FreeTypeDrawBitmapGrayV(FreeTypeGlyphInfo& FTGInfo, CAlphaBlendColor& ab, i
 	}
 }
 
-static void FreeTypeDrawBitmapV(FreeTypeGlyphInfo& FTGInfo, CAlphaBlendColor& ab, const int x, const int y)
+static bool FreeTypeDrawBitmapV(FreeTypeGlyphInfo& FTGInfo, CAlphaBlendColor& ab, const int x, const int y)
 {
 	if(FTGInfo.FTGlyph->bitmap.pixel_mode != FT_PIXEL_MODE_GRAY){
 		// ‚±‚ÌŠÖ”Ž©‘Ì‚ÍFT_PIXEL_MODE_GRAY‚É‚Ì‚Ý‘Î‰ž‚µ‘¼‚ÉˆÏ÷‚·‚é
@@ -950,10 +951,12 @@ static void FreeTypeDrawBitmapV(FreeTypeGlyphInfo& FTGInfo, CAlphaBlendColor& ab
 			FreeTypeDrawBitmapPixelModeBGRA(FTGInfo, x, y);
 			break;
 		default:
-			return;		// –¢‘Î‰ž
+			return false;		// –¢‘Î‰ž
 		}
-		return;
+		return true;
 	}
+	FreeTypeDrawBitmapGrayV(FTGInfo, ab, x, y);
+	return true;
 }
 
 class CGGOGlyphLoader
@@ -1871,14 +1874,14 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 				goto cont;
 			}
 
-				// c‘‚«
+				// ¿k•ø¤­
 				if(bVertical){
 					glyph_index = ft2vert_get_gid(
 						(struct ft2vert_st *)freetype_face->generic.data,
 						glyph_index);
 				}
 
-				// ƒJ[ƒjƒ“ƒO
+				// ¥«©`¥Ë¥ó¥°
 				if(useKerning){
 					if(previous != 0 && glyph_index){
 						FT_Vector delta;
@@ -1891,7 +1894,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 				}
 
 
-			// c‰¡
+			// ¿kºá
 			if(bVertical && IsVerticalChar(wch)){
 				FTInfo.font_type.flags |= FT_LOAD_VERTICAL_LAYOUT;
 				if(bLcdMode){
@@ -2508,8 +2511,12 @@ BOOL CALLBACK TextOutCallback(FreeTypeGlyphInfo& FTGInfo)
 					FTInfo->yTop + FTInfo->params->otm->otmTextMetrics.tmHeight - (glyph_bitmap->left + glyph_bitmap->bitmap.width) - 1 + FTInfo->sy);//»­ÒõÓ°
 				FTInfo->params->alpha = 1;
 			}
-			FreeTypeDrawBitmapV(FTGInfo,*FTGInfo.solid,	FTInfo->x,
-				FTInfo->yTop + FTInfo->params->otm->otmTextMetrics.tmHeight - (glyph_bitmap->left + glyph_bitmap->bitmap.width) - 1);	//»­ÎÄ×Ö	
+			if (!FreeTypeDrawBitmapV(FTGInfo, *FTGInfo.solid, FTInfo->x,
+				FTInfo->yTop + FTInfo->params->otm->otmTextMetrics.tmHeight - (glyph_bitmap->left + glyph_bitmap->bitmap.width) - 1))	//»­ÎÄ×Ö	
+			{
+				// fallback to GDI when fail to draw with FT
+				ORIG_ExtTextOutW(FTInfo->hdc, FTInfo->x, FTInfo->yTop, FTInfo->GetETO(), NULL, &FTGInfo.wch, 1, NULL);
+			}
 		}else{
 			if (FTInfo->params->alpha>1)
 			{
@@ -2518,9 +2525,13 @@ BOOL CALLBACK TextOutCallback(FreeTypeGlyphInfo& FTGInfo)
 					FTInfo->yTop + FTInfo->yBase - glyph_bitmap->top + FTInfo->sy);	//»­ÒõÓ°
 				FTInfo->params->alpha = 1;
 			}
-			FreeTypeDrawBitmap(FTGInfo,*FTGInfo.solid,
+			if (!FreeTypeDrawBitmap(FTGInfo,*FTGInfo.solid,
 				FTInfo->x + glyph_bitmap->left,
-				FTInfo->yTop + FTInfo->yBase - glyph_bitmap->top);	//»­ÎÄ×Ö
+				FTInfo->yTop + FTInfo->yBase - glyph_bitmap->top))	//»­ÎÄ×Ö
+			{
+				// fallback to GDI when fail to draw with FT
+				ORIG_ExtTextOutW(FTInfo->hdc, FTInfo->x, FTInfo->yTop, FTInfo->GetETO(), NULL, &FTGInfo.wch, 1, NULL);
+			}
 
 		}
 	}
