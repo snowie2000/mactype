@@ -1649,15 +1649,24 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 
 	bool bUnicodePlane = false;
 	for (int i=0 ; lpString < lpEnd; ++lpString, ++gi, ++GlyphArray, ++drState, ++AAList, /*ggdi32++,*/ i++){
+		WCHAR wch = *lpString;
 		if (bUnicodePlane)
 		{
 			*drState = FT_DRAW_NOTFOUND;
 			bUnicodePlane = false;
-			FTInfo.y -= clpdx.gety(0);
-			FTInfo.x += clpdx.get(0);
+			if (lpString < lpEnd - 1) {
+				FTInfo.y -= clpdx.gety(0);
+				FTInfo.x += clpdx.get(0);
+			} else
+			{
+				int gdi32x = 0;
+				GetCharWidth32W(FTInfo.hdc, wch, wch, &gdi32x);
+				FTInfo.y -= clpdx.gety(0);
+				FTInfo.x += clpdx.get(gdi32x);
+				FTInfo.px = FTInfo.x;
+			}
 			goto cont;
 		}
-		WCHAR wch = *lpString;
 		if (!bGlyphIndex && bIsSymbol && !bWindowsLink)
 			wch |= 0xF000;
 		FT_Referenced_Glyph* glyph_bitmap = GlyphArray;
