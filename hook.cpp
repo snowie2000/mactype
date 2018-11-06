@@ -248,8 +248,13 @@ HANDLE						g_hfDbgText;
 #pragma comment(linker, "/base:0x06540000")
 #endif
 
+typedef BOOL(WINAPI *TIsImmersiveProcess)(_In_ HANDLE hProcess);
+
+TIsImmersiveProcess IsUWP = (TIsImmersiveProcess)GetProcAddress(GetModuleHandle(L"user32.dll"), "IsImmersiveProcess");
+
 BOOL WINAPI IsRunAsUser(VOID)
 {
+	if (IsUWP && IsUWP(GetCurrentProcess())) return true;	// treat all UWP apps as user exe
 	HANDLE hProcessToken = NULL;
 	DWORD groupLength = 50;
 
