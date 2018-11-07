@@ -55,72 +55,73 @@
     <ProjectGuid>{15C33FD9-0811-4981-B08F-E0BAD74A3028}</ProjectGuid>
     <RootNamespace>gdipp</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -172,7 +173,7 @@
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
-    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype\include;$(WinSDK)\um;$(WinSDK)\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser\;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include;$(WinSDK)\um;$(WinSDK)\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser\;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName).Core</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|Win32'">
@@ -190,7 +191,7 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
-    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype\include;$(WinSDK)\um;$(WinSDK)\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser\;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include;$(WinSDK)\um;$(WinSDK)\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser\;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)64.Core</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|x64'">
@@ -226,7 +227,7 @@
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
-    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype\include;$(WinSDK)\um;$(WinSDK)\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser\;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include;$(WinSDK)\um;$(WinSDK)\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser\;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.15063.0\um\x86;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName).Core</TargetName>
   </PropertyGroup>
@@ -246,7 +247,7 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
-    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype\include;$(WinSDK)\um;$(WinSDK)\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser\;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include;$(WinSDK)\um;$(WinSDK)\shared;C:\Users\Peace\Documents\Visual Studio 2013\Projects\IniParser\;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)64.Core</TargetName>
     <LibraryPath>$(VC_LibraryPath_x64);C:\Program Files (x86)\Windows Kits\10\Lib\10.0.15063.0\um\x64</LibraryPath>
   </PropertyGroup>
@@ -662,6 +663,7 @@
   <ItemGroup>
     <ClInclude Include="array.h" />
     <ClInclude Include="cache.h" />
+    <ClInclude Include="colorinvert.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="directwrite.h" />
     <ClInclude Include="dll.h" />
@@ -676,7 +678,7 @@
     <ClInclude Include="hash_list.h" />
     <ClInclude Include="hooklist.h" />
     <ClInclude Include="ivs_otft.h" />
-    <ClInclude Include="lrucache.hpp" />
+    <ClInclude Include="mrucache.h" />
     <ClInclude Include="override.h" />
     <ClInclude Include="ownedcs.h" />
     <ClInclude Include="resource.h" />

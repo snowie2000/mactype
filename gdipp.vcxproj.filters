@@ -151,7 +151,10 @@
     <ClInclude Include="wow64ext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lrucache.hpp">
+    <ClInclude Include="colorinvert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mrucache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
