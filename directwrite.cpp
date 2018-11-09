@@ -1399,7 +1399,7 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 		HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
 		HOOK(pDWriteFactory, GetGdiInterop, 17);
 		const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-		if (pSettings->GetFontSubstitutesInfoForDW().GetSize())
+		if (pSettings->GetFontSubstitutesInfo().GetSize())
 			hookFontCreation(pDWriteFactory);
 		MyDebug(L"DW1 hooked");
 
@@ -1514,8 +1514,12 @@ void HookD2DDll()
 #ifdef DEBUG
 	MessageBox(0, L"HookD2DDll", NULL, MB_OK);
 #endif
-	HMODULE d2d1 = LoadLibrary(_T("d2d1.dll"));
-	HMODULE dw = LoadLibrary(_T("dwrite.dll"));
+	HMODULE d2d1 = GetModuleHandle(_T("d2d1.dll"));
+	if (!d2d1)
+		d2d1 = LoadLibrary(_T("d2d1.dll"));
+	HMODULE dw = GetModuleHandle(_T("dwrite.dll"));
+	if (!dw)
+		dw = LoadLibrary(_T("dwrite.dll"));
 	void* D2D1Factory = GetProcAddress(d2d1, "D2D1CreateFactory");
 	void* D2D1Device = GetProcAddress(d2d1, "D2D1CreateDevice");
 	void* D2D1Context = GetProcAddress(d2d1, "D2D1CreateDeviceContext");
@@ -1612,7 +1616,7 @@ HRESULT WINAPI IMPL_CreateFontFace(IDWriteFont* self,
 		if (FAILED(g_pGdiInterop->ConvertFontFaceToLOGFONT(*fontFace, &lf)))
 			return ret;
 		const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-		if (pSettings->CopyForceFontForDW(lf, lf))
+		if (pSettings->CopyForceFont(lf, lf))
 		{
 			IDWriteFont* writefont = NULL;
 			if (FAILED(g_pGdiInterop->CreateFontFromLOGFONT(&lf, &writefont)))
@@ -1631,7 +1635,7 @@ bool SubstituteDWriteFont3(__out IDWriteFontFace3** fontFace3)
 	if (FAILED(g_pGdiInterop->ConvertFontFaceToLOGFONT(*fontFace3, &lf)))
 		return false;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	if (pSettings->CopyForceFontForDW(lf, lf))
+	if (pSettings->CopyForceFont(lf, lf))
 	{
 		CComPtr<IDWriteFont> writefont;
 		if (FAILED(g_pGdiInterop->CreateFontFromLOGFONT(&lf, &writefont)))
@@ -1686,7 +1690,7 @@ HRESULT  WINAPI IMPL_CreateTextFormat(IDWriteFactory* self,
 	LOGFONT lf = { 0 };
 	StringCchCopy(lf.lfFaceName, LF_FACESIZE, fontFamilyName);
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	if (pSettings->CopyForceFontForDW(lf, lf))
+	if (pSettings->CopyForceFont(lf, lf))
 		return ORIG_CreateTextFormat(self, lf.lfFaceName, fontCollection, fontWeight, fontStyle, fontStretch, fontSize, localeName, textFormat);
 	else
 		return ORIG_CreateTextFormat(self, fontFamilyName, fontCollection, fontWeight, fontStyle, fontStretch, fontSize, localeName, textFormat);

@@ -357,6 +357,7 @@ private:
 	void InitInitTuneTable();
 	static void InitTuneTable(int v, int* table);
 	void DelayedInit();
+	int	_GetAlternativeProfileName(LPTSTR lpszName, LPCTSTR lpszFile);
 
 	CFontLinkInfo m_fontlinkinfo;
 	CFontSubstitutesInfo m_FontSubstitutesInfo;
@@ -432,8 +433,8 @@ public:
 	float ContrastForDW() const { return m_fContrastForDW;  }
 	float ClearTypeLevelForDW() const { return m_fClearTypeLevelForDW;  }
 	int RenderingModeForDW() const { return m_nRenderingModeForDW; }
-	const CFontSubstitutesInfo& GetFontSubstitutesInfoForDW() const
-		{ _ASSERTE(m_bDelayedInit); return m_FontSubstitutesInfoForDW; }
+	/*const CFontSubstitutesInfo& GetFontSubstitutesInfoForDW() const
+		{ _ASSERTE(m_bDelayedInit); return m_FontSubstitutesInfoForDW; }*/
 
 	float RenderWeight() const { return m_fRenderWeight; }
 	float Contrast() const { return m_fContrast; }
@@ -468,7 +469,6 @@ public:
 	}
 
 	bool CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const;
-    bool CopyForceFontForDW(LOGFONT& lf, const LOGFONT& lfOrg) const;
 
 	//‚»‚êˆÈŠO
 	bool IsWinXPorLater() const { return m_bIsWinXPorLater; }
