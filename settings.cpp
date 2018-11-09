@@ -123,6 +123,15 @@ void CGdippSettings::DelayedInit()
 		AddListFromSection(_T("FontSubstitutes"), m_szFileName, arrFontSubstitutes);
 	m_FontSubstitutesInfo.init(m_nFontSubstitutes, arrFontSubstitutes);
 
+	//FontSubstitutesDW
+	/*CFontSubstitutesIniArray arrFontSubstitutesForDW;
+	names = _T("FontSubstitutesDW@") + wstring(m_szexeName);
+	if (_IsFreeTypeProfileSectionExists(names.c_str(), m_szFileName))
+		AddListFromSection(names.c_str(), m_szFileName, arrFontSubstitutesForDW);
+	else
+		AddListFromSection(_T("FontSubstitutesDW"), m_szFileName, arrFontSubstitutesForDW);
+	m_FontSubstitutesInfoForDW.init(m_nFontSubstitutes, arrFontSubstitutesForDW);*/
+
 	names = _T("Individual@") + wstring(m_szexeName);
 	if (_IsFreeTypeProfileSectionExists(names.c_str(), NULL))
 		AddIndividualFromSection(names.c_str(), NULL, m_arrIndividual);
@@ -292,8 +301,14 @@ DWORD CGdippSettings::FastGetProfileString(LPCTSTR lpszSection, LPCTSTR lpszKey,
 	}
 	else
 	{
-		StringCchCopy(lpszRet, cch, lpszDefault);
-		return wcslen(lpszDefault);
+		if (lpszDefault) {
+			StringCchCopy(lpszRet, cch, lpszDefault);
+			return wcslen(lpszDefault);
+		}
+		else {
+			lpszRet = NULL;
+			return 0;
+		}
 	}
 }
 
@@ -386,6 +401,7 @@ bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 		m_Config.LoadFromFile(lpszFile);
 	}
 
+	_GetAlternativeProfileName(m_szexeName, lpszFile);
 	CFontSettings& fs = m_FontSettings;
 	fs.Clear();
 	fs.SetHintingMode(_GetFreeTypeProfileBoundInt(_T("HintingMode"), 0, HINTING_MIN, HINTING_MAX, lpszFile));
@@ -1045,6 +1061,25 @@ const CFontSettings& CGdippSettings::FindIndividual(LPCTSTR lpFaceName) const
 		}
 	}
 	return GetFontSettings();
+}
+
+int CGdippSettings::_GetAlternativeProfileName(LPTSTR lpszName, LPCTSTR lpszFile)
+{
+	TCHAR szexe[MAX_PATH + 1];
+	TCHAR* pexe = szexe + GetModuleFileName(NULL, szexe, MAX_PATH);
+	while (pexe >= szexe && *pexe != '\\')
+		pexe--;
+	pexe++;
+	wstring exename = _T("General@") + wstring((LPTSTR)pexe);
+	if (FastGetProfileString(exename.c_str(), _T("Alternative"), NULL, lpszName, MAX_PATH))
+	{
+		return true;
+	}
+	else
+	{
+		//StringCchCopy(lpszName, MAX_PATH + 1, pexe);
+		return false;
+	}
 }
 
 bool CGdippSettings::CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const
