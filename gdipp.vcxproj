@@ -659,7 +659,6 @@
     <ClInclude Include="hash_list.h" />
     <ClInclude Include="hooklist.h" />
     <ClInclude Include="ivs_otft.h" />
-    <ClInclude Include="lrucache.hpp" />
     <ClInclude Include="override.h" />
     <ClInclude Include="ownedcs.h" />
     <ClInclude Include="resource.h" />
