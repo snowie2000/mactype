@@ -1,4 +1,4 @@
-MacType
+MacType [[中文文档]](https://github.com/snowie2000/mactype/blob/master/doc/README_CHS.md)
 ========================
 
 Better font rendering for Windows.
