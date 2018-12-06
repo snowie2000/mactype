@@ -40,30 +40,28 @@ http://www.mactype.net
 - 多国语言支持优化
 - (暂不包含Infinality补丁，该补丁仍不稳定)
 
-Donation
+捐赠
 ------------------
 
-MacType now accepts donations. 
+MacType 现在接收捐赠. 
 
-Please visit http://www.mactype.net and keep an eye on the bottom right corner :heart:
+请访问 https://www.mactype.net 然后注意下右下角的咖啡哦 :heart:
 
-Thank you for your support! Your donations will keep the server running, keep me updating, and buy more coffees :coffee:
+感谢您的支持，您的捐赠将用于服务器的运营，并保持我们的开发热情（以及用于买奶茶咖啡） :coffee:
 
-Known issues
+已知问题
 ---------------
 
-- Please backup your profiles before upgrading!
+- 升级前请备份您的配置文件，升级将删除您原有的配置!
 
-- Only Chinese simplified/Traditional and English are fully localized, some options may missing in MacType Tuner due to the strings missing in the language file. You can help with translations!
+- 目前仅简体中文、繁体中文和英语实现了完全本地化，其他语言由于本地化的缺失可能在使用MacTuner时会存在选项缺失等问题，我们非常抱歉。我们非常欢迎您能帮助我们提供或优化我们的翻译。
 
-- If you want to use MacType-patch together with MacType official release, remember to add DirectWrite=0 to your profile or you will have mysterious problems
+- 如果您要和 MacType-patch 一起使用，请一定记得设置 DirectWrite=0, 否则可能会出现无法预料的问题。
 
-- If you're running 64 bit Windows, antimalware/antivirus software may conflict with MacType, because it sees MacType trying to modify running software. One possible workaround is to try running in Service Mode (recommended), or add HookChildProcesses=0 to your profile. See https://github.com/snowie2000/mactype/wiki/HookChildProcesses for an explanation
+- 如果您正在使用64位的Windows，部分安全软件、杀毒软件可能会和MacType冲突。这些软件会误认为MacType尝试修改运行中的程序。 一个可行的方案是使用“服务模式”，并关闭子进程加载（HookChildProcesses=0）详见 https://github.com/snowie2000/mactype/wiki/HookChildProcesses。请注意，关闭子进程加载后，Chrome和firefox可能无法被渲染，并且UWP程序将无法被渲染。
 
-- Office 2013 does not use DirectWrite or GDI (it uses its own custom rendering), so Office 2013 doesn't work with MacType. If this bothers you you can use Office 2010 which uses GDI or Office 2016 which uses DirectWrite.
-
-How to build
+从源码构建
 -------------
 
-Check how to build [document](https://github.com/snowie2000/mactype/blob/master/doc/HOWTOBUILD.md)
+请参照文档从源码编译（英文） [构建文档](https://github.com/snowie2000/mactype/blob/master/doc/HOWTOBUILD.md)
 
