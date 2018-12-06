@@ -6,7 +6,7 @@ Better font rendering for Windows.
 Latest beta
 ------------------
 
-[1.2018.10.19-beta4](https://github.com/snowie2000/mactype/releases/tag/v1.2018.10.19-beta4)
+[2018.1-beta5](https://github.com/snowie2000/mactype/releases/tag/2018.1-beta5)
 
 Please read the release notes for how 
 
@@ -59,6 +59,8 @@ Known issues
 - If you're running 64 bit Windows, antimalware/antivirus software may conflict with MacType, because it sees MacType trying to modify running software. One possible workaround is to try running in Service Mode (recommended), or add HookChildProcesses=0 to your profile. See https://github.com/snowie2000/mactype/wiki/HookChildProcesses for an explanation
 
 - Office 2013 does not use DirectWrite or GDI (it uses its own custom rendering), so Office 2013 doesn't work with MacType. If this bothers you you can use Office 2010 which uses GDI or Office 2016 which uses DirectWrite.
+
+- WPS 2019 is known to filter the MacType dll so that it can't be loaded into the WPS.exe process. Users are preferred to downupgrade the WPS or ask Kingsoft to modify their protection of WPS.
 
 How to build
 -------------
