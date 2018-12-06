@@ -58,7 +58,7 @@ MacType 现在接收捐赠.
 
 - 如果您要和 MacType-patch 一起使用，请一定记得设置 DirectWrite=0, 否则可能会出现无法预料的问题。
 
-- 如果您正在使用64位的Windows，部分安全软件、杀毒软件可能会和MacType冲突。这些软件会误认为MacType尝试修改运行中的程序。 一个可行的方案是使用“服务模式”，并关闭子进程加载（HookChildProcesses=0）详见 https://github.com/snowie2000/mactype/wiki/HookChildProcesses。请注意，关闭子进程加载后，Chrome和firefox可能无法被渲染，并且UWP程序将无法被渲染。
+- 如果您正在使用64位的Windows，部分安全软件、杀毒软件可能会和MacType冲突。这些软件会误认为MacType尝试修改运行中的程序。 一个可行的方案是使用“服务模式”，并关闭子进程加载（HookChildProcesses=0）详见 https://github.com/snowie2000/mactype/wiki/HookChildProcesses 请注意，关闭子进程加载后，Chrome和firefox可能无法被渲染，并且UWP程序将无法被渲染。
 
 从源码构建
 -------------
