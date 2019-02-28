@@ -11,6 +11,7 @@
 #include <locale>
 #include "wow64ext.h"
 #include <VersionHelpers.h>
+#include "crc32.h"
 
 // win2kà»ç~
 //#pragma comment(linker, "/subsystem:windows,5.0")
@@ -188,6 +189,12 @@ std::string WstringToString(const std::wstring str)
 	std::string str1(p);
 	delete[] p;
 	return str1;
+}
+
+// make a unique name with fullname + crc32_of_fullname + familyname +stylename
+std::wstring MakeUniqueFontName(const std::wstring strFullName, const std::wstring strFamilyName, const std::wstring strStyleName)
+{
+	return strFullName + to_wstring(crc32::getCrc32(0, strFullName.c_str(), strFullName.length() * sizeof(WCHAR))) + strFamilyName + strStyleName;
 }
 
 #ifndef Assert

@@ -1307,7 +1307,7 @@ ETO_TRY();
 			DCTrans->TransformlpDx(lpDx, outlpDx, szDx);	//lpDx has a size of cbString -1
 		}
 	}
-	FREETYPE_PARAMS params(fuOptions & ~ETO_OPAQUE, hdc, &lf, otm, &strFamilyName);
+	FREETYPE_PARAMS params(fuOptions & ~ETO_OPAQUE, hdc, &lf, otm);
 	if (bZoomedDC)
 		params.charExtra = DCTrans->TransformXAB(params.charExtra);
 	SetTextCharacterExtra(hCanvasDC, params.charExtra);

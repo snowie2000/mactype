@@ -49,7 +49,7 @@ BEGIN
             VALUE "OriginalFilename", "MacType.dll"
             VALUE "ProductName", "The Ultimate Font Rasterizer"
             VALUE "ProductVersion", "1.2018.1205.0"
-            VALUE "SpecialBuild", "DirectWrite beta2"
+            VALUE "SpecialBuild", "beta 5 with DirectWrite"
             VALUE "URL", "http://www.mactype.net http://drwatson.nobody.jp/gdi++/"
         END
     END

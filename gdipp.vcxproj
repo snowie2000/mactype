@@ -646,6 +646,7 @@
     <ClInclude Include="array.h" />
     <ClInclude Include="cache.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="crc32.h" />
     <ClInclude Include="directwrite.h" />
     <ClInclude Include="dll.h" />
     <ClInclude Include="dynCodeHelper.h" />

@@ -218,7 +218,7 @@ struct FREETYPE_PARAMS
 
 
 	//FreeTypeTextOut—p (ƒTƒCƒYŒvŽZ{•¶Žš•`‰æ)
-	FREETYPE_PARAMS(UINT eto, HDC hdc, LOGFONTW* p, OUTLINETEXTMETRIC* lpotm = NULL, wstring* fname = NULL)
+	FREETYPE_PARAMS(UINT eto, HDC hdc, LOGFONTW* p, OUTLINETEXTMETRIC* lpotm = NULL)
 		: etoOptions(eto)
 		, ftOptions(0)
 		, charExtra(GetTextCharacterExtra(hdc))
@@ -234,21 +234,13 @@ struct FREETYPE_PARAMS
 		}
 		if (otm)
 		{
-			if (otm->otmSize == sizeof(OUTLINETEXTMETRIC) && fname)
-			{
-				strFamilyName = *fname;
-				strFullName = *fname;
-			}
-			else
-			{
-				strFamilyName = (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName);
-				strFullName = wstring((LPWSTR)((DWORD_PTR)otm + (DWORD_PTR)otm->otmpFullName));
-				if (strFullName.length() == 0)
-					strFullName = strFamilyName;
-				strFullName += wstring((LPWSTR)((DWORD_PTR)otm + (DWORD_PTR)otm->otmpStyleName));
-				if (strFamilyName.size()>0 && strFamilyName.c_str()[0]==L'@')
-					strFullName = L'@'+strFullName;
-			}
+			strFamilyName = (LPWSTR)((DWORD_PTR)otm + (DWORD_PTR)otm->otmpFamilyName);
+			strFullName = wstring((LPWSTR)((DWORD_PTR)otm + (DWORD_PTR)otm->otmpFullName));
+			std::wstring strStyleName = wstring((LPWSTR)((DWORD_PTR)otm + (DWORD_PTR)otm->otmpStyleName));
+
+			strFullName = MakeUniqueFontName(strFullName, strFamilyName, strStyleName);
+			if (strFamilyName.size() > 0 && strFamilyName.c_str()[0] == L'@')
+				strFullName = L'@' + strFullName;
 		}
 	}
 
