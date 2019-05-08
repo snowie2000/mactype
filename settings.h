@@ -299,14 +299,16 @@ private:
 	int	m_nRenderingModeForDW;
     CFontSubstitutesInfo m_FontSubstitutesInfoForDW;
 
-	//FTC_Manager_New偵搉偡僷儔儊乕僞
+	//FTC_Manager_Newに渡すパラメータ
 	int  m_nCacheMaxFaces;
 	int  m_nCacheMaxSizes;
 	int  m_nCacheMaxBytes;
+	int	 m_dwOSMajorVer;
+	int	 m_dwOSMinorVer;
 
-	// 傾儞僠僄僀儕傾僗挷惍梡僥乕僽儖
+	// アンチエイリアス調整用テーブル
 	int  m_nTuneTable[256];
-	// LCD梡
+	// LCD用
 	int  m_nTuneTableR[256];
 	int  m_nTuneTableG[256];
 	int  m_nTuneTableB[256];
@@ -317,21 +319,23 @@ private:
 	typedef set<wstring> FontSubSet;
 	typedef CArray<CFontIndividual>	IndividualArray;
 	FontHashMap		m_arrExcludeFont;
+	FontHashMap		m_arrIncludeFont;
 	ModuleHashMap	m_arrExcludeModule;
 	ModuleHashMap	m_arrIncludeModule;
 	ModuleHashMap	m_arrUnloadModule;
 	ModuleHashMap	m_arrUnFontSubModule;
 	IndividualArray	m_arrIndividual;
 
-	// 巜掕僼僅儞僩
+	// 指定フォント
 	LOGFONT m_lfForceFont;
 	TCHAR m_szForceChangeFont[LF_FACESIZE];
 
-	//INI僼傽僀儖柤
+	//INIファイル名
 	TCHAR m_szFileName[MAX_PATH];
 
-	//INI偐傜偺撉傒崬傒張棟
+	//INIからの読み込み処理
 	bool LoadAppSettings(LPCTSTR lpszFile);
+	void GetOSVersion();
 	float FastGetProfileFloat(LPCTSTR lpszSection, LPCTSTR lpszKey, float fDefault);
 	int FastGetProfileInt(LPCTSTR lpszSection, LPCTSTR lpszKey, int nDefault);
 	DWORD FastGetProfileString(LPCTSTR lpszSection, LPCTSTR lpszKey, LPCTSTR lpszDefault, LPTSTR lpszRet, DWORD cch);
@@ -459,8 +463,12 @@ public:
 
 	bool EnableShadow()  const { return m_bEnableShadow; }
 	const int* GetShadowParams() const { return m_nShadow; }
+	bool DelayedInited() const { return m_bDelayedInit; }	// return the delayedinit status
 
-	// 僼僅儞僩柤傛傒偲傝
+// OS version comparsion for magic code
+	bool IsWindows8() const { return m_dwOSMajorVer == 6 && m_dwOSMinorVer == 2; }
+	bool IsWindows81() const { return m_dwOSMajorVer == 6 && m_dwOSMinorVer == 3; }
+	// フォント名よみとり
 	LPCTSTR GetForceFontName() const
 	{
 		_ASSERTE(m_bDelayedInit);
@@ -470,7 +478,7 @@ public:
 
 	bool CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const;
 
-	//偦傟埲奜
+	//それ以外
 	bool IsWinXPorLater() const { return m_bIsWinXPorLater; }
 	bool IsInclude() const { return m_bIsInclude; }
 //	bool IsHDBench() const { return m_bIsHDBench; }

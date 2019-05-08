@@ -420,7 +420,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 	switch(reason) {
 	case DLL_PROCESS_ATTACH:
 #ifdef DEBUG
-		//MessageBox(0, L"Load", NULL, MB_OK);
+		MessageBox(0, L"Load", NULL, MB_OK);
 #endif
 		if (bDllInited)
 			return true;

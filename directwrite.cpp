@@ -83,7 +83,7 @@ struct Params {
 };
 
 //IDWriteFactory* g_pDWriteFactory = NULL;
-IDWriteGdiInterop* g_pGdiInterop = NULL;
+CComPtr<IDWriteGdiInterop> g_pGdiInterop = NULL;
 
 enum D2D1RenderTargetCategory {
 	D2D1_RENDER_TARGET_CATEGORY = 1,
@@ -1375,13 +1375,6 @@ bool hookFontCreation(CComPtr<IDWriteFactory>& pDWriteFactory) {
 	} else {
 		// IDWriteFont::CreateFontFace just wraps this
 		HOOK(dfont3, CreateFontFace, 19);
-
-		CComPtr<IDWriteFontFaceReference> ffref;
-		if (SUCCEEDED(dfont3->GetFontFaceReference(&ffref))) {
-			// Same as IDWriteFontFaceReference1::CreateFontFace
-			HOOK(ffref, DWriteFontFaceReference_CreateFontFace, 3);
-			HOOK(ffref, DWriteFontFaceReference_CreateFontFaceWithSimulations, 4);
-		}
 	}
 	return true;
 }
@@ -1399,7 +1392,8 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 		HOOK(pDWriteFactory, CreateGlyphRunAnalysis, 23);
 		HOOK(pDWriteFactory, GetGdiInterop, 17);
 		const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-		if (pSettings->GetFontSubstitutesInfo().GetSize())
+		// Windows8/8.1 is too buggy, GDIinterpo doesn't work correctly
+		if (!pSettings->IsWindows81() && !pSettings->IsWindows8() && pSettings->DelayedInited() && pSettings->GetFontSubstitutesInfo().GetSize())
 			hookFontCreation(pDWriteFactory);
 		MyDebug(L"DW1 hooked");
 
@@ -1612,6 +1606,20 @@ HRESULT WINAPI IMPL_CreateFontFace(IDWriteFont* self,
 	HRESULT ret = ORIG_CreateFontFace(self, fontFace);
 	if (ret == S_OK)
 	{
+		/*static bool loaded = [&] {
+			CComPtr<IDWriteFontFace3> dfont3 = NULL;
+			HRESULT hr = self->QueryInterface(&dfont3);
+			if (SUCCEEDED(hr)) {
+				CComPtr<IDWriteFontFaceReference> ffref;
+				if (SUCCEEDED(dfont3->GetFontFaceReference(&ffref)) && ffref) {
+					// Same as IDWriteFontFaceReference1::CreateFontFace
+					HOOK(ffref, DWriteFontFaceReference_CreateFontFace, 3);
+					HOOK(ffref, DWriteFontFaceReference_CreateFontFaceWithSimulations, 4);
+				}
+			}
+			return true;
+		}();*/
+
 		LOGFONT lf = { 0 };
 		if (FAILED(g_pGdiInterop->ConvertFontFaceToLOGFONT(*fontFace, &lf)))
 			return ret;

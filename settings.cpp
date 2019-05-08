@@ -85,17 +85,26 @@ void CGdippSettings::DelayedInit()
 	}
 	if (IsBadCodePtr((FARPROC)RegOpenKeyExW) || *(DWORD_PTR*)RegOpenKeyExW==0)
 		return;
-	
+	/*
+	In Windows 8, this call will failed in restricted environment
+	if GetDC failed, we are in a restricted environment where features like font subsitutations doesn't work properly.
+	Because these features requires DC to get the real font name and we don't have access to any DC, even CreateCompatibleDC(null) fails (it will succeed, but DeleteDC will fail)
+	So it is better exit than doing initialization.
+	*/
+	HDC hdcScreen = GetDC(NULL);
+	if (!hdcScreen) {
+		return;	
+	}	
+
 	m_bDelayedInit = true;
 
-	HDC hdc = GetDC(NULL);
 	//ForceChangeFont
 	if (m_szForceChangeFont[0]) {
-		EnumFontFamilies(hdc, m_szForceChangeFont, EnumFontFamProc, reinterpret_cast<LPARAM>(this));
+		EnumFontFamilies(hdcScreen, m_szForceChangeFont, EnumFontFamProc, reinterpret_cast<LPARAM>(this));
 	}
 	//fetch screen dpi
-	m_nScreenDpi = GetDeviceCaps(hdc, LOGPIXELSX);
-	ReleaseDC(NULL, hdc);
+	m_nScreenDpi = GetDeviceCaps(hdcScreen, LOGPIXELSX);
+	ReleaseDC(NULL, hdcScreen);
 
 // 	//FontLink
 // 	if (FontLink()) {
@@ -130,6 +139,7 @@ void CGdippSettings::DelayedInit()
 		AddIndividualFromSection(_T("Individual"), NULL, m_arrIndividual);
 
 	AddExcludeListFromSection(_T("Exclude"), NULL, m_arrExcludeFont);
+	AddExcludeListFromSection(_T("Include"), NULL, m_arrIncludeFont);	//I know it's include not exclude, but they share the same logic.
 	//WritePrivateProfileString(NULL, NULL, NULL, m_szFileName);
 
 	//m_bDelayedInit = true;
@@ -344,6 +354,16 @@ DWORD CGdippSettings::_GetFreeTypeProfileString(LPCTSTR lpszKey, LPCTSTR lpszDef
 	}
 }
 
+void CGdippSettings::GetOSVersion() {
+	OSVERSIONINFO info;
+	memset(&info, 0, sizeof(OSVERSIONINFO));
+	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+
+	GetVersionEx(&info);
+	m_dwOSMajorVer = info.dwMajorVersion;
+	m_dwOSMinorVer = info.dwMinorVersion;
+}
+
 bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 {
 	// äeéÌê›íËì«Ç›çûÇ›
@@ -372,6 +392,7 @@ bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 	// Shadow=1,1,4
 	// [Individual]
 	// ÇlÇr ÇoÉSÉVÉbÉN=0,1,2,3,4,5
+	GetOSVersion();
 	WritePrivateProfileString(NULL, NULL, NULL, lpszFile);
 
 	m_Config.Clear();
@@ -579,6 +600,7 @@ SKIP:
 //	m_bIsHDBench = (GetModuleHandle(_T("HDBENCH.EXE")) == GetModuleHandle(NULL));
 
 	m_arrExcludeFont.clear();
+	m_arrIncludeFont.clear();
 	m_arrExcludeModule.clear();
 	m_arrIncludeModule.clear();
 	m_arrUnloadModule.clear();
@@ -904,8 +926,13 @@ bool CGdippSettings::IsFontExcluded(LPCSTR lpFaceName) const
 
 bool CGdippSettings::IsFontExcluded(LPCWSTR lpFaceName) const
 {
-	FontHashMap::const_iterator it=m_arrExcludeFont.find(lpFaceName);
-	return it!=m_arrExcludeFont.end();
+	FontHashMap::const_iterator it = m_arrExcludeFont.find(lpFaceName);
+	bool bExcluded = it != m_arrExcludeFont.end();	// if it's excluded, true
+	if (!bExcluded && m_arrIncludeFont.size() != 0) {	// if it's not excluded, and includefont enabled
+		FontHashMap::const_iterator it = m_arrIncludeFont.find(lpFaceName);
+		bExcluded = it == m_arrIncludeFont.end();	// check if it's included
+	}
+	return bExcluded;
 }
 
 void CGdippSettings::AddFontExclude(LPCWSTR lpFaceName)
@@ -1269,8 +1296,10 @@ void CFontLinkInfo::init()
 	RegCloseKey(h2);
 	LOGFONT syslf = {0};
 	HGDIOBJ h = ORIG_GetStockObject(DEFAULT_GUI_FONT);
-	ORIG_GetObjectW(h, sizeof syslf, &syslf);
-	GetFontLocalName(syslf.lfFaceName, syslf.lfFaceName);
+	if (h) {
+		ORIG_GetObjectW(h, sizeof syslf, &syslf);
+		GetFontLocalName(syslf.lfFaceName, syslf.lfFaceName);
+	}
 
 	extern HFONT g_alterGUIFont;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
