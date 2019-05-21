@@ -439,7 +439,8 @@ int WINAPI IMPL_GetTextFaceAliasW(HDC hdc, int nLen, LPWSTR lpAliasW)
 	//LOGFONT * lplf = &lf;
 	LPCWSTR fontcache=GetCachedFont(GetCurrentFont(hdc));
 	if (fontcache){
-		StringCchCopy(lpAliasW, LF_FACESIZE, fontcache);
+		if (lpAliasW)
+			StringCchCopy(lpAliasW, LF_FACESIZE, fontcache);
 		bResult = wcslen(fontcache)+1;
 	}
 	return bResult;
@@ -558,9 +559,15 @@ int WINAPI IMPL_GetTextFaceW( __in HDC hdc, __in int c, __out_ecount_part_opt(c,
 	LPCWSTR fontcache=GetCachedFontLocale(GetCurrentFont(hdc));
 	
 	if (fontcache){
-		int len=Min(LF_FACESIZE, c);
-		StringCchCopy(lpName, len, fontcache);
-		nSize = (int)wcslen(fontcache)>len? len: wcslen(fontcache) + 1;
+		if (lpName) {
+			int len = Min(LF_FACESIZE, c);
+			StringCchCopy(lpName, len, fontcache);
+			nSize = (int)wcslen(fontcache) > len ? len : wcslen(fontcache) + 1;
+		}
+		else {
+			// a request for the size of font
+			nSize = Min(LF_FACESIZE, (int)wcslen(fontcache)+1);
+		}
 	}
 	return nSize;
 }
@@ -575,7 +582,8 @@ int WINAPI IMPL_GetTextFaceA( __in HDC hdc, __in int c, __out_ecount_part_opt(c,
 		char *_Dest = new char[_Dsize];
 		memset(_Dest,0,_Dsize);
 		int len =wcstombs(_Dest, fontcache, _Dsize);
-		StringCchCopyA(lpName, LF_FACESIZE, _Dest);
+		if (lpName)
+			StringCchCopyA(lpName, LF_FACESIZE, _Dest);
 		delete[] _Dest;
 		nSize = len+1;
 	}
