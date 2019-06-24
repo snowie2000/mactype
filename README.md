@@ -6,7 +6,7 @@ Better font rendering for Windows.
 Latest beta
 ------------------
 
-[1.2018.10.19-beta4](https://github.com/snowie2000/mactype/releases/tag/v1.2018.10.19-beta4)
+[2019.1-beta6](https://github.com/snowie2000/mactype/releases)
 
 Please read the release notes for how 
 
