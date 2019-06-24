@@ -424,7 +424,6 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 #endif
 		if (bDllInited)
 			return true;
-		bDllInited = true;
 		g_dllInstance = instance;
 		{
 			LPWSTR dllPath = new WCHAR[MAX_PATH + 1];
@@ -475,6 +474,10 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 		if (!g_TLInfo.ProcessInit()) {
 			return FALSE;
 		}
+
+		// Above classes are heavily referenced and must be initialized as early as possible.
+		// Unload dll is not safe until their initialization is complete.
+		bDllInited = true;
 
 		//4
 		{
