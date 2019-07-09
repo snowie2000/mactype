@@ -102,34 +102,50 @@ void Log(wchar_t* Msg)
 class CAlphaBlend
 {
 private:
-	int alphatbl[256];
-	int tbl1[257];
-	BYTE tbl2[256 * 16 + 1];
+	std::vector<int> alphatbl;
+	std::vector<int> tbl1;
+	std::vector<BYTE> tbl2;
 	// 捠忢偺傾儖僼傽抣曗惓
-	int tunetbl[256];
-	int tunetblR[256];
-	int tunetblG[256];
-	int tunetblB[256];
+	std::vector<int> tunetbl;
+	std::vector<int> tunetblR;
+	std::vector<int> tunetblG;
+	std::vector<int> tunetblB;
 	// 塭暥帤梡偺傾儖僼傽抣曗惓
-	int tunetblS[256];
-	int tunetblRS[256];
-	int tunetblGS[256];
-	int tunetblBS[256];
+	std::vector<int> tunetblS;
+	std::vector<int> tunetblRS;
+	std::vector<int> tunetblGS;
+	std::vector<int> tunetblBS;
 
-	int tunetblLS[256];
-	int tunetblLRS[256];
-	int tunetblLGS[256];
-	int tunetblLBS[256];
+	std::vector<int> tunetblLS;
+	std::vector<int> tunetblLRS;
+	std::vector<int> tunetblLGS;
+	std::vector<int> tunetblLBS;
 	//Snowie!!
-	double RGB2CRT[256];	//table used for RGB<->Lab
+	std::vector<double> RGB2CRT;	//table used for RGB<->Lab
 public:
 	static const int BASE;
 public:
-	CAlphaBlend() { }
+	CAlphaBlend() : 
+		alphatbl(256),
+		tbl1(257),
+		tbl2(256 * 16 + 1),
+		tunetbl(256),
+		tunetblR(256),
+		tunetblG(256),
+		tunetblB(256),
+		tunetblS(256),
+		tunetblRS(256),
+		tunetblGS(256),
+		tunetblBS(256),
+		tunetblLS(256),
+		tunetblLRS(256),
+		tunetblLGS(256),
+		tunetblLBS(256),
+		RGB2CRT(256) {}
 	~CAlphaBlend() {}
 	void init();
 	void initRGB();
-	double* GetRGBTable() { return RGB2CRT; }
+	double* GetRGBTable() { return RGB2CRT.data(); }
 	BYTE doAB(BYTE fg, BYTE bg, int alpha);
 	void gettunetbl(int paramalpha, BOOL lcd, BOOL dark, const int * &tblR, const int * &tblG, const int * &tblB) const;
 	inline int conv1(BYTE n) {
@@ -152,31 +168,31 @@ void CAlphaBlend::gettunetbl(int paramalpha, BOOL lcd, BOOL dark, const int * &t
 {
 	if (paramalpha == 1) {	//获取文字混合表
 		if (lcd) {
-			tblR = tunetblR;
-			tblG = tunetblG;
-			tblB = tunetblB;
+			tblR = tunetblR.data();
+			tblG = tunetblG.data();
+			tblB = tunetblB.data();
 		} else {
-			tblR = tblG = tblB = tunetbl;
+			tblR = tblG = tblB = tunetbl.data();
 		}
 	} else {	//获取阴影混合表
 		if (dark)
 		{
 			if (lcd) {
-				tblR = tunetblRS;
-				tblG = tunetblGS;
-				tblB = tunetblBS;
+				tblR = tunetblRS.data();
+				tblG = tunetblGS.data();
+				tblB = tunetblBS.data();
 			} else {
-				tblR = tblG = tblB = tunetblS;
+				tblR = tblG = tblB = tunetblS.data();
 			}
 		}
 		else
 		{
 			if (lcd) {
-				tblR = tunetblLRS;
-				tblG = tunetblLGS;
-				tblB = tunetblLBS;
+				tblR = tunetblLRS.data();
+				tblG = tunetblLGS.data();
+				tblB = tunetblLBS.data();
 			} else {
-				tblR = tblG = tblB = tunetblLS;
+				tblR = tblG = tblB = tunetblLS.data();
 			}
 		}
 	}

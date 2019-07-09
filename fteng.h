@@ -56,7 +56,7 @@ struct myfont
 {
 	wstring name;
 	int hash;
-	bool operator < (const myfont mf) const {
+	bool operator < (const myfont& mf) const {
 		return name==mf.name? hash<mf.hash: name<mf.name;
 	}
 public:

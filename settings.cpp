@@ -448,7 +448,7 @@ bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 		}
 		else
 		{
-			m_nShadowLightColor = m_nShadowLightColor;		//否则和浅色阴影相同
+			m_nShadowLightColor = m_nShadowDarkColor;		//否则和浅色阴影相同
 			m_nShadow[3] = m_nShadow[2];		//深度也相同
 		}
 SKIP:
