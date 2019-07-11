@@ -6,16 +6,14 @@ Better font rendering for Windows.
 Latest beta
 ------------------
 
-[2019.1-beta6](https://github.com/snowie2000/mactype/releases)
-
-Please read the release notes for how 
+[2019.1-beta6](https://github.com/snowie2000/mactype/releases) (Recommended)
 
 Official site
 ------------------
 
 MacType official site (download is an older release version): 
 
-http://www.mactype.net
+http://www.mactype.net (Not recommended)
 
 What's new?
 ------------------
