@@ -177,13 +177,13 @@ class CFontSubstituteData
 	friend CFontSubstitutesInfo;
 private:
 	LOGFONT m_lf;
-	TEXTMETRIC m_tm;
 	bool m_bCharSet;
 	//TCHAR CustomName[LF_FACESIZE];
 public:
 	bool operator == (const CFontSubstituteData& o) const;
 private:
 	CFontSubstituteData();
+	bool initnocheck(LPCTSTR config);	//init data w/o checking the font existence.
 	bool init(LPCTSTR config);
 	static int CALLBACK EnumFontFamProc(const LOGFONT *lplf, const TEXTMETRIC *lptm, DWORD FontType, LPARAM lParam);
 
@@ -207,8 +207,7 @@ public:
 };
 
 #define SETTING_FONTSUBSTITUTE_DISABLE (0)
-#define SETTING_FONTSUBSTITUTE_INIONLY (1)
-#define SETTING_FONTSUBSTITUTE_ALL     (2)
+#define SETTING_FONTSUBSTITUTE_ALL (1)
 
 #define SETTING_WIDTHMODE_GDI32    (0)
 #define SETTING_WIDTHMODE_FREETYPE (1)

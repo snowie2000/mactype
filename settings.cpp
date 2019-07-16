@@ -1303,7 +1303,7 @@ void CFontLinkInfo::init()
 
 	extern HFONT g_alterGUIFont;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	if (pSettings->FontSubstitutes()>=SETTING_FONTSUBSTITUTE_INIONLY && pSettings->CopyForceFont(truefont, syslf))	//使用完全替换模式时，替换掉系统字体
+	if (pSettings->FontSubstitutes()>=SETTING_FONTSUBSTITUTE_ALL && pSettings->CopyForceFont(truefont, syslf))	//使用完全替换模式时，替换掉系统字体
 	{
 		WCHAR envname[30] = L"MT_SYSFONT";
 		WCHAR envvalue[30] = { 0 };
@@ -1411,12 +1411,38 @@ CFontSubstituteData::EnumFontFamProc(const LOGFONT *lplf, const TEXTMETRIC *lptm
 {
 	CFontSubstituteData& self = *(CFontSubstituteData *)lParam;
 	self.m_lf = *lplf;
-	self.m_tm = *lptm;
 	return 0;
 }
 
-bool
-CFontSubstituteData::init(LPCTSTR config)
+bool CFontSubstituteData::initnocheck(LPCTSTR config) {
+	memset(this, 0, sizeof *this);
+
+	TCHAR buf[LF_FACESIZE + 20];
+	StringCchCopy(buf, countof(buf), config);
+
+	memset(&m_lf, 0, sizeof m_lf);
+
+	LPTSTR p;
+	for (p = buf + lstrlen(buf) - 1; p >= buf; --p) {
+		if (*p == _T(',')) {
+			*p++ = 0;
+			break;
+		}
+	}
+	if (p >= buf) {
+		StringCchCopy(m_lf.lfFaceName, countof(m_lf.lfFaceName), buf);
+		m_lf.lfCharSet = (BYTE)CGdippSettings::_StrToInt(p + 1, 0);
+		m_bCharSet = true;
+	}
+	else {
+		StringCchCopy(m_lf.lfFaceName, LF_FACESIZE, buf);
+		m_lf.lfCharSet = DEFAULT_CHARSET;
+		m_bCharSet = false;
+	}
+	return m_lf.lfFaceName[0] != 0;
+}
+
+bool CFontSubstituteData::init(LPCTSTR config)
 {
 	memset(this, 0, sizeof *this);
 
@@ -1461,38 +1487,37 @@ CFontSubstituteData::operator == (const CFontSubstituteData& o) const
 	return false;
 }
 
-
-void
-CFontSubstitutesInfo::initreg()
+// We scan the registry and see if there is any font mapping whose mapping target is also one of our substitution source, 
+// and we add them as our rules.
+void CFontSubstitutesInfo::initreg()
 {
-	/*
 	const LPCTSTR REGKEY = _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes");
-		HKEY h;
-		if (ERROR_SUCCESS != RegOpenKeyEx(HKEY_LOCAL_MACHINE, REGKEY, 0, KEY_QUERY_VALUE, &h)) return;
-	
-		for (int i = 0; ; ++i) {
-			WCHAR name[0x2000];
-			DWORD namesz;
-			WCHAR value[0x2000];
-			DWORD valuesz;
-			namesz = sizeof name;
-			valuesz = sizeof value;
-			DWORD regtype;
-	
-			LONG rc = RegEnumValue(h, i, name, &namesz, 0, &regtype, (LPBYTE)value, &valuesz);
-			if (rc == ERROR_NO_MORE_ITEMS) break;
-			if (rc != ERROR_SUCCESS) break;
-			if (regtype != REG_SZ) continue;
-	
-			CFontSubstituteData k;
-			CFontSubstituteData v;
-			if (k.init(name) && v.init(value)) {
-				if (FindKey(k) < 0 && k.m_bCharSet == v.m_bCharSet) Add(k, v);
+	HKEY h;
+	if (ERROR_SUCCESS != RegOpenKeyEx(HKEY_LOCAL_MACHINE, REGKEY, 0, KEY_QUERY_VALUE, &h)) return;
+	CFontSubstituteData k;
+	CFontSubstituteData v;
+
+	std::vector<WCHAR> name(0x2000);
+	std::vector<WCHAR> value(0x2000);
+	DWORD namesz, valuesz;
+	DWORD regtype;
+
+	for (int i = 0; ; ++i) {
+		namesz = name.size();
+		valuesz = value.size();
+		LONG rc = RegEnumValue(h, i, name.data(), &namesz, 0, &regtype, (LPBYTE)value.data(), &valuesz);
+		if (rc == ERROR_NO_MORE_ITEMS) break;
+		if (rc != ERROR_SUCCESS) break;
+		if (regtype != REG_SZ) continue;
+
+		if (k.initnocheck(name.data()) && v.init(value.data())) {	// init k and v (k is a virtual font)
+			int pos = FindKey(v);
+			if ( pos >= 0) {	// check if v is substituted to another font x
+				Add(k, GetValueAt(pos));	// add k=>x as well
 			}
 		}
-	
-		RegCloseKey(h);*/
-	
+	}
+	RegCloseKey(h);
 }
 
 void
@@ -1537,8 +1562,11 @@ CFontSubstitutesInfo::initini(const CFontSubstitutesIniArray& iniarray)
 void
 CFontSubstitutesInfo::init(int nFontSubstitutes, const CFontSubstitutesIniArray& iniarray)
 {
-	if (nFontSubstitutes >= SETTING_FONTSUBSTITUTE_INIONLY) initini(iniarray);
-	//if (nFontSubstitutes >= SETTING_FONTSUBSTITUTE_ALL) initreg();
+	if (nFontSubstitutes >= SETTING_FONTSUBSTITUTE_ALL) {
+		initini(iniarray);	// init substitution from ini array
+		initreg(); // add more substitutions from registry
+	}
+	//if (nFontSubstitutes >= SETTING_FONTSUBSTITUTE_ALL) 
 }
 
 void GetMacTypeInternalFontName(LOGFONT* lf, LPTSTR fn)
