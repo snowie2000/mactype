@@ -441,15 +441,15 @@ bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 			m_nShadowDarkColor = _httoi(token.GetArgument(3));	//¶ÁÈ¡ÒõÓ°
 		else
 			m_nShadowDarkColor = 0;	//·ñÔòÎªºÚÉ«
-		if (token.GetCount()>=6)	//Èç¹ûÖ¸¶¨ÁËÉîÉ«ÒõÓ°
+		if (token.GetCount()>=6)	//Èç¹ûÖ¸¶¨ÁËÉûå«ÒõÓ°
 		{
 			m_nShadowLightColor = _httoi(token.GetArgument(5));	//¶ÁÈ¡ÒõÓ°
-			m_nShadow[3] = _StrToInt(token.GetArgument(4), m_nShadow[2]); //¶ÁÈ¡Éî¶È
+			m_nShadow[3] = _StrToInt(token.GetArgument(4), m_nShadow[2]); //¶ÁÈ¡ÉûÒÈ
 		}
 		else
 		{
 			m_nShadowLightColor = m_nShadowDarkColor;		//·ñÔòºÍÇ³É«ÒõÓ°ÏàÍ¬
-			m_nShadow[3] = m_nShadow[2];		//Éî¶ÈÒ²ÏàÍ¬
+			m_nShadow[3] = m_nShadow[2];		//ÉûÒÈÒ²ÏàÍ¬
 		}
 SKIP:
 		;
@@ -481,7 +481,7 @@ SKIP:
 	m_bFontLink		= _GetFreeTypeProfileInt(_T("FontLink"), 0, lpszFile);
 
 	m_bIsInclude	= !!_GetFreeTypeProfileInt(_T("UseInclude"), false, lpszFile);
-	m_nMaxHeight	= _GetFreeTypeProfileBoundInt(_T("MaxHeight"), 0, 0, 0xfff, lpszFile);	//×î¸ßÖ»ÄÜµ½65535£¬cacheµÄÏŞÖÆ£¬¶øÇÒ´ó×ÖÌåÎŞÊµ¼Ê¼ÛÖµ
+	m_nMaxHeight	= _GetFreeTypeProfileBoundInt(_T("MaxHeight"), 0, 0, 0xfff, lpszFile);	//×ûÔßÖ»ÄÜµ½65535£¬cacheµÄÏŞÖÆ£¬¶øÇÒ´ó×ÖÌåÎŞÊµ¼Ê¼ÛÖµ
 	m_nMinHeight = _GetFreeTypeProfileBoundInt(_T("MinHeight"), 0, 0,
 				(m_nMaxHeight) ? m_nMaxHeight : 0xfff,  // shouldn't be greater than MaxHeight unless it is undefined
 				lpszFile);	//Minimum size of rendered font. DPI aware alternative.
@@ -613,10 +613,10 @@ SKIP:
 	// [IncludeModule]ƒZƒNƒVƒ‡ƒ“‚©‚ç‘ÎÛƒ‚ƒWƒ…[ƒ‹ƒŠƒXƒg‚ğ“Ç‚İ‚Ş
 	AddListFromSection(_T("IncludeModule"), lpszFile, m_arrIncludeModule);
 	//AddListFromSection(_T("IncludeModule"), szMainFile, m_arrIncludeModule);
-	// [UnloadDLL]ÍêÈ«²»¼ÓÔØµÄÄ£¿é
+	// [UnloadDLL]ÍE«²»¼ÓÔØµÄÄ£¿E
 	AddListFromSection(_T("UnloadDLL"), lpszFile, m_arrUnloadModule);
 	//AddListFromSection(_T("UnloadDLL"), szMainFile, m_arrUnloadModule);
-	// [ExcludeSub]²»½øĞĞ×ÖÌåÌæ»»µÄÄ£¿é
+	// [ExcludeSub]²»½øĞĞ×ÖÌåÌæ»»µÄÄ£¿E
 	AddListFromSection(L"ExcludeSub", lpszFile, m_arrUnFontSubModule);
 	//AddListFromSection(L"ExcludeSub", szMainFile, m_arrUnFontSubModule);
 	//Èç¹ûÊÇÅÅ³ıµÄÄ£¿é£¬Ôò¹Ø±Õ×ÖÌåÌæ»»
@@ -665,7 +665,7 @@ bool CGdippSettings::AddExcludeListFromSection(LPCTSTR lpszSection, LPCTSTR lpsz
 	LOGFONT truefont={0};
 	while (*p) {
 		bool b = false;
-		GetFontLocalName(p, buff);//×ª»»×ÖÌåÃû
+		GetFontLocalName(p, buff);//×ª»»×ÖÌåÃE
 		set<wstring>::const_iterator it = arr.find(buff);
 		if (it==arr.end())
 			arr.insert(buff);
@@ -746,7 +746,7 @@ bool CGdippSettings::AddIndividualFromSection(LPCTSTR lpszSection, LPCTSTR lpszF
 			argc = token.Parse(value);
 		}
 
-		GetFontLocalName(p, buff);//×ª»»×ÖÌåÃû
+		GetFontLocalName(p, buff);//×ª»»×ÖÌåÃE
 
 		CFontIndividual fi(buff);
 		const CFontSettings& fsCommon = m_FontSettings;
@@ -958,7 +958,7 @@ bool CGdippSettings::IsProcessUnload() const
 	return false;
 }
 
-bool CGdippSettings::IsExeUnload(LPCTSTR lpApp) const	//¼ì²éÊÇ·ñÔÚºÚÃûµ¥ÁĞ±íÄÚ
+bool CGdippSettings::IsExeUnload(LPCTSTR lpApp) const	//¼EéÊÇ·ñÔÚºÚÃûµ¥ÁĞ±úàÚ
 {
 	if (m_bRunFromGdiExe) {
 		return false;
@@ -968,14 +968,14 @@ bool CGdippSettings::IsExeUnload(LPCTSTR lpApp) const	//¼ì²éÊÇ·ñÔÚºÚÃûµ¥ÁĞ±íÄÚ
 		return false;
 	ModuleHashMap::const_iterator it = m_arrUnloadModule.begin();
 	for(; it != m_arrUnloadModule.end(); ++it) {
-		if (!lstrcmpi(lpApp, it->c_str())) {	//Æ¥ÅäÅÅ³ıÏî
+		if (!lstrcmpi(lpApp, it->c_str())) {	//Æ¥ÅäÅÅ³ıÏE
 			return true;
 		}
 	}
 	return false;
 }
 
-bool CGdippSettings::IsExeInclude(LPCTSTR lpApp) const	//¼ì²éÊÇ·ñÔÚ°×Ãûµ¥ÁĞ±íÄÚ
+bool CGdippSettings::IsExeInclude(LPCTSTR lpApp) const	//¼EéÊÇ·ñÔÚ°×Ãûµ¥ÁĞ±úàÚ
 {
 	if (m_bRunFromGdiExe) {
 		return false;
@@ -985,7 +985,7 @@ bool CGdippSettings::IsExeInclude(LPCTSTR lpApp) const	//¼ì²éÊÇ·ñÔÚ°×Ãûµ¥ÁĞ±íÄÚ
 		return false;
 	ModuleHashMap::const_iterator it = m_arrIncludeModule.begin();
 	for(; it != m_arrIncludeModule.end(); ++it) {
-		if (!lstrcmpi(lpApp, it->c_str())) {	//Æ¥ÅäÅÅ³ıÏî
+		if (!lstrcmpi(lpApp, it->c_str())) {	//Æ¥ÅäÅÅ³ıÏE
 			return true;
 		}
 	}
@@ -1137,7 +1137,7 @@ const char CFontSettings::m_bound[MAX_FONT_SETTINGS][2] = {
 CFontLinkInfo::CFontLinkInfo()
 {
 	memset(&info, 0, sizeof info);
-	memset(AllowDefaultLink, 1, sizeof(AllowDefaultLink));	//Ä¬ÈÏÔÊĞí×ÖÌåÁ´½Ó
+	memset(AllowDefaultLink, 1, sizeof(AllowDefaultLink));	//Ä¬ÈÏÔÊĞúóÖÌåÁ´½Ó
 }
 
 CFontLinkInfo::~CFontLinkInfo()
@@ -1173,6 +1173,7 @@ void CFontLinkInfo::init()
 	if (ERROR_SUCCESS != RegOpenKeyEx(HKEY_LOCAL_MACHINE, REGKEY1, 0, KEY_QUERY_VALUE, &h1)) return;
 	if (ERROR_SUCCESS != RegOpenKeyEx(HKEY_LOCAL_MACHINE, REGKEY2, 0, KEY_QUERY_VALUE, &h2)) {
 		RegCloseKey(h1);
+		return;
 	}
 	//OSVERSIONINFO sOsVinfo={sizeof(OSVERSIONINFO),0,0,0,0,{0}};
 	//GetVersionEx(&sOsVinfo);	//»ñµÃ²Ù×÷ÏµÍ³°æ±¾ºÅ
@@ -1187,10 +1188,10 @@ void CFontLinkInfo::init()
 	LONG rc;
 	DWORD regtype;
 
-	for (int k = 0; ; ++k) {	//»ñµÃ×ÖÌå±íÖĞµÄËùÓĞ×ÖÌå
+	for (int k = 0; ; ++k) {	//»ñµÃ×ÖÌå±úòĞµÄËùÓĞ×ÖÌE
 		namesz = nBufSize;
 		valuesz = nBufSize;
-		rc = RegEnumValue(h2, k, name, &namesz, 0, &regtype, (LPBYTE)value, &valuesz);		//´Ó×ÖÌå±íÖĞÑ°ÕÒ
+		rc = RegEnumValue(h2, k, name, &namesz, 0, &regtype, (LPBYTE)value, &valuesz);		//´Ó×ÖÌå±úòĞÑ°ÕÒ
 		if (rc == ERROR_NO_MORE_ITEMS) break;
 		if (rc != ERROR_SUCCESS) break;
 		if (regtype != REG_SZ) continue;
@@ -1203,7 +1204,7 @@ void CFontLinkInfo::init()
 		}
 		while (buf[wcslen(buf)-1] == L' ')
 			buf[wcslen(buf)-1] = 0;
-		//»ñµÃµÄ¶ÔÓ¦µÄ×ÖÌåÃû
+		//»ñµÃµÄ¶ÔÓ¦µÄ×ÖÌåÃE
 		FontNameCache.Add(value, buf);
 	}
 
@@ -1224,7 +1225,7 @@ void CFontLinkInfo::init()
 		TCHAR buff[LF_FACESIZE];
 		GetFontLocalName(name, buff);
 
-		info[row][col] = _wcsdup(buff);		//µÚÒ»ÏîÎª×ÖÌåÃû
+		info[row][col] = _wcsdup(buff);		//µÚÒ»Ïûêª×ÖÌåÃE
 		++col;
 
 		for (LPCWSTR linep = value; col < FONTMAX && *linep; linep += wcslen(linep) + 1) {
@@ -1244,11 +1245,11 @@ void CFontLinkInfo::init()
 				/*for (int k = 0; ; ++k) {
 					namesz = sizeof name;
 					value2sz = sizeof value2;
-					rc = RegEnumValue(h2, k, name, &namesz, 0, &regtype, (LPBYTE)value2, &value2sz);		//´Ó×ÖÌå±íÖĞÑ°ÕÒ
+					rc = RegEnumValue(h2, k, name, &namesz, 0, &regtype, (LPBYTE)value2, &value2sz);		//´Ó×ÖÌå±úòĞÑ°ÕÒ
 					if (rc == ERROR_NO_MORE_ITEMS) break;
 					if (rc != ERROR_SUCCESS) break;
 					if (regtype != REG_SZ) continue;
-					if (lstrcmpi(value2, linep) != 0) continue;		//Ñ°ÕÒ×ÖÌåÁ´½ÓÖĞ×ÖÌåÎÄ¼ş¶ÔÓ¦µÄ×ÖÌåÃû
+					if (lstrcmpi(value2, linep) != 0) continue;		//Ñ°ÕÒ×ÖÌåÁ´½ÓÖĞ×ÖÌåÎÄ¼ş¶ÔÓ¦µÄ×ÖÌåÃE
 
 					StringCchCopyW(buf, sizeof(buf)/sizeof(buf[0]), name);
 					if (buf[wcslen(buf) - 1] == L')') {				//È¥µôÀ¨ºÅ
@@ -1272,22 +1273,22 @@ void CFontLinkInfo::init()
 			if (valp) {
 				GetFontLocalName((TCHAR*)valp, buff);;
 				//StringCchCopy(truefont.lfFaceName, LF_FACESIZE, buff);	//¸´ÖÆµ½½á¹¹ÖĞ
-				//pSettings->CopyForceFont(truefont, truefont);		//»ñµÃÌæ»»×ÖÌå
-				info[row][col] = _wcsdup(buff);//truefont.lfFaceName);			//¸´ÖÆµ½Á´½Ó±íÖĞ
+				//pSettings->CopyForceFont(truefont, truefont);		//»ñµÃÌæ»»×ÖÌE
+				info[row][col] = _wcsdup(buff);//truefont.lfFaceName);			//¸´ÖÆµ½Á´½Ó±úòĞ
 				++col;
 			}
 		}
-		if (col == 1) {			//Ö»ÓĞÒ»Ïî£¬¼´Ã»ÓĞÁ´½Ó£¬É¾µô¡£
+		if (col == 1) {			//Ö»ÓĞÒ»Ïû¿¬¼´Ã»ÓĞÁ´½Ó£¬É¾µô¡£
 			free(info[row][0]);
 			info[row][0] = NULL;
 		} else {
 			/*if (sOsVinfo.dwMajorVersion>=6 && sOsVinfo.dwMinorVersion>=1)	//°æ±¾ºÅ>=6.1£¬ÊÇWin7ÏµÁĞ
 			{
-				//¶Ô×ÖÌåÁ´½Ó±í×öÄæÏò´¦Àí
+				//¶Ô×ÖÌåÁ´½Ó±úóöÄæÏò´¦ÀE
 				LPWSTR swapbuff[32];
-				memcpy(swapbuff, info[row], 32*sizeof(LPWSTR));	//Õû¸ö±í¸´ÖÆ¹ıÀ´
+				memcpy(swapbuff, info[row], 32*sizeof(LPWSTR));	//Õû¸ö±úÔ´ÖÆ¹ıÀ´
 				for (int i=1; i<col; i++)
-					info[row][i]=swapbuff[col-i];	//ÄæĞò×ÖÌåÁ´½Ó±í
+					info[row][i]=swapbuff[col-i];	//ÄæĞò×ÖÌåÁ´½Ó±E
 			}*/
 			++row;
 		}
@@ -1303,20 +1304,20 @@ void CFontLinkInfo::init()
 
 	extern HFONT g_alterGUIFont;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	if (pSettings->FontSubstitutes()>=SETTING_FONTSUBSTITUTE_ALL && pSettings->CopyForceFont(truefont, syslf))	//Ê¹ÓÃÍêÈ«Ìæ»»Ä£Ê½Ê±£¬Ìæ»»µôÏµÍ³×ÖÌå
+	if (pSettings->FontSubstitutes()>=SETTING_FONTSUBSTITUTE_ALL && pSettings->CopyForceFont(truefont, syslf))	//Ê¹ÓÃÍE«Ìæ»»Ä£Ê½Ê±£¬Ìæ»»µôÏµÍ³×ÖÌE
 	{
 		WCHAR envname[30] = L"MT_SYSFONT";
 		WCHAR envvalue[30] = { 0 };
 		HFONT tempfont;
 		if (GetEnvironmentVariable(L"MT_SYSFONT", envvalue, 29) && GetObjectType(tempfont = (HFONT)wcstoull(envvalue, 0 ,10)) == OBJ_FONT)//ÒÑ¾­ÓĞ×ÖÌå´æÔÚ
 		{
-			g_alterGUIFont = tempfont;	//Ö±½ÓÊ¹ÓÃÏÈÇ°µÄ×ÖÌå
+			g_alterGUIFont = tempfont;	//Ö±½ÓÊ¹ÓÃÏÈÇ°µÄ×ÖÌE
 		}
 		else
 		{
-			g_alterGUIFont = CreateFontIndirectW(&truefont);	//´´½¨Ò»¸öĞÂµÄÌæ»»×ÖÌå
+			g_alterGUIFont = CreateFontIndirectW(&truefont);	//´´½¨Ò»¸öĞÂµÄÌæ»»×ÖÌE
 			_ui64tow((ULONG_PTR)g_alterGUIFont, envvalue, 10);	//×ª»»Îª×Ö·û´®
-			SetEnvironmentVariable(envname, envvalue);		//Ğ´Èë»·¾³±äÁ¿
+			SetEnvironmentVariable(envname, envvalue);		//Ğ´ÈE·¾³±äÁ¿
 		}
 	}
 
@@ -1540,13 +1541,13 @@ CFontSubstitutesInfo::initini(const CFontSubstitutesIniArray& iniarray)
 /*					StringCchCopy(truefont.lfFaceName, LF_FACESIZE, buf);
 					truefont.lfCharSet=DEFAULT_CHARSET;
 					if (!GetFontLocalName(truefont))
-						continue;	//Ã»ÓĞ´Ë×ÖÌå
+						continue;	//Ã»ÓĞ´Ë×ÖÌE
 					buff = truefont.lfFaceName;
 
 					StringCchCopy(truefont2.lfFaceName, LF_FACESIZE, vp);
 					truefont2.lfCharSet=DEFAULT_CHARSET;
 					if (!GetFontLocalName(truefont2))
-						continue;	//Ã»ÓĞ´Ë×ÖÌå
+						continue;	//Ã»ÓĞ´Ë×ÖÌE
 					buff2 = truefont2.lfFaceName;
 
 				if (m_mfontsub.find(buff)==m_mfontsub.end())
@@ -1590,7 +1591,7 @@ CFontSubstitutesInfo::lookup(LOGFONT& lf) const
 	k.m_bCharSet = true;
 	k.m_lf = lf;
 
-	TCHAR * buff;	//¿ìËÙ»ñµÃ×ÖÌåµÄÕæÊµÃû³Æ
+	TCHAR * buff;	//¿EÙ»ñµÃ×ÖÌåµÄÕæÊµÃû³Æ
 	LOGFONT mylf(lf);
 	if (!(buff = FontNameCache.Find((TCHAR*)lf.lfFaceName)))
 	{
