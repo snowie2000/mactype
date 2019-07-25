@@ -86,17 +86,17 @@ void CGdippSettings::DelayedInit()
 	if (IsBadCodePtr((FARPROC)RegOpenKeyExW) || *(DWORD_PTR*)RegOpenKeyExW==0)
 		return;
 	/*
-	In Windows 8, this call will failed in restricted environment
+	In Windows 8, this call will fail in restricted environment
 	if GetDC failed, we are in a restricted environment where features like font subsitutations doesn't work properly.
 	Because these features requires DC to get the real font name and we don't have access to any DC, even CreateCompatibleDC(null) fails (it will succeed, but DeleteDC will fail)
 	So it is better exit than doing initialization.
 	*/
+	m_bDelayedInit = true;
+
 	HDC hdcScreen = GetDC(NULL);
 	if (!hdcScreen) {
 		return;	
 	}	
-
-	m_bDelayedInit = true;
 
 	//ForceChangeFont
 	if (m_szForceChangeFont[0]) {
@@ -958,7 +958,7 @@ bool CGdippSettings::IsProcessUnload() const
 	return false;
 }
 
-bool CGdippSettings::IsExeUnload(LPCTSTR lpApp) const	//ｼ・鯡ﾇｷﾚｺﾚﾃ遧･ﾁﾐｱ朗ﾚ
+bool CGdippSettings::IsExeUnload(LPCTSTR lpApp) const	//ｼ・鯡ﾇｷﾚｺﾚﾃ遧･ﾁﾐｱ朗?
 {
 	if (m_bRunFromGdiExe) {
 		return false;
@@ -975,7 +975,7 @@ bool CGdippSettings::IsExeUnload(LPCTSTR lpApp) const	//ｼ・鯡ﾇｷﾚｺﾚﾃ遧･ﾁﾐｱ朗ﾚ
 	return false;
 }
 
-bool CGdippSettings::IsExeInclude(LPCTSTR lpApp) const	//ｼ・鯡ﾇｷﾚｰﾗﾃ遧･ﾁﾐｱ朗ﾚ
+bool CGdippSettings::IsExeInclude(LPCTSTR lpApp) const	//ｼ・鯡ﾇｷﾚｰﾗﾃ遧･ﾁﾐｱ朗?
 {
 	if (m_bRunFromGdiExe) {
 		return false;
@@ -1317,7 +1317,7 @@ void CFontLinkInfo::init()
 		{
 			g_alterGUIFont = CreateFontIndirectW(&truefont);	//ｴｴｽｨﾒｻｸﾂｵﾄﾌ貊ｻﾗﾖﾌ・
 			_ui64tow((ULONG_PTR)g_alterGUIFont, envvalue, 10);	//ﾗｪｻｻﾎｪﾗﾖｷ逸ｮ
-			SetEnvironmentVariable(envname, envvalue);		//ﾐｴﾈ・ｷｾｳｱ菽ｿ
+			SetEnvironmentVariable(envname, envvalue);		//ﾐｴﾈ・ｷｾｳｱ菽?
 		}
 	}
 
@@ -1591,7 +1591,7 @@ CFontSubstitutesInfo::lookup(LOGFONT& lf) const
 	k.m_bCharSet = true;
 	k.m_lf = lf;
 
-	TCHAR * buff;	//ｿ・ﾙｻﾃﾗﾖﾌ蠏ﾄﾕ賁ｵﾃ﨤ﾆ
+	TCHAR * buff;	//ｿ・ﾙｻﾃﾗﾖﾌ蠏ﾄﾕ賁ｵﾃ﨤?
 	LOGFONT mylf(lf);
 	if (!(buff = FontNameCache.Find((TCHAR*)lf.lfFaceName)))
 	{
