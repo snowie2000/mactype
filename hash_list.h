@@ -2,13 +2,9 @@
 #include "malloc.h"
 #include "string.h"
 #include "windows.h"
+#include <map>
 
-struct CMHashItem
-{
-	TCHAR* String;
-	TCHAR* Value;
-	CMHashItem* next;
-};
+typedef std::map<LPTSTR, LPTSTR> strmap;
 
 class CHashedStringList
 {
@@ -16,14 +12,17 @@ public:
 	void Add(TCHAR * String, TCHAR * Value);
 	void Delete(TCHAR * String);
 	TCHAR * Find(TCHAR * String);
-	CHashedStringList(int nSize, BOOL bCaseSensative = FALSE);
-	CHashedStringList();
-	~CHashedStringList();
+	CHashedStringList() : m_bCaseSense(false){}
+	CHashedStringList(BOOL bCaseSensative) : m_bCaseSense(bCaseSensative){}
+	~CHashedStringList(){
+		strmap::iterator it = stringmap.begin();
+		while (it != stringmap.end()) {
+			free(it->second);
+			++it;
+		}
+	}
 protected:
-	UINT32 SuperFastHash (const TCHAR * data, int len);
-	//TCHAR * FindParent(TCHAR * String);	//查找这一项的前一项
 private:
-	int m_Count, m_Len, m_Size;
-	CMHashItem* m_hashitem;
+	strmap stringmap;
 	BOOL m_bCaseSense;
 };

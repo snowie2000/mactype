@@ -45,7 +45,6 @@ typedef HRESULT (WINAPI* __DWriteCreateFactory)(
 CFontCache FontCache;
 CDCArray DCArray;
 wstring nullstring;
-CHashedStringList FontNameList(256, true);//snowie!!
 BOOL g_ccbRender = true;
 BOOL g_ccbCache = true;
 HFONT g_alterGUIFont = NULL;
