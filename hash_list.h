@@ -4,7 +4,7 @@
 #include "windows.h"
 #include <map>
 
-typedef std::map<LPTSTR, LPTSTR> strmap;
+typedef std::map<std::wstring, LPTSTR> strmap;
 
 class CHashedStringList
 {

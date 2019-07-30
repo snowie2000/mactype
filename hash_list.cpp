@@ -1,55 +1,33 @@
 #include "hash_list.h"
+#include <cwctype>
+#include <algorithm>
 
 void CHashedStringList::Add(TCHAR * String, TCHAR * Value)
 {
-	TCHAR * buff;
+	std::wstring buff = String;
 	if (!m_bCaseSense)
-	{
-		buff = _wcsdup(String);
-		_wcslwr(buff);
-	}
-	else
-		 buff = String;
+		std::transform(buff.begin(), buff.end(), buff.begin(), ::towlower);
 
 	strmap::iterator it = stringmap.find(buff);
 	if (it == stringmap.end()) {
 		stringmap[buff] = _wcsdup(Value);
 	}
-	else {
-		if (!m_bCaseSense)
-			free(buff);		//已经存在这一项了
-	}
 }
 
 void CHashedStringList::Delete(TCHAR * String)
 {
-	TCHAR * buff;
+	std::wstring buff = String;
 	if (!m_bCaseSense)
-	{
-		buff = _wcsdup(String);
-		_wcslwr(buff);
-	}
-	else
-		buff = String;
+		std::transform(buff.begin(), buff.end(), buff.begin(), ::towlower);
 	stringmap.erase(buff);
-	if (!m_bCaseSense)
-		free(buff);	
 }
 
 TCHAR * CHashedStringList::Find(TCHAR * String)
 {
-	TCHAR * buff;
+	std::wstring buff = String;
 	if (!m_bCaseSense)
-	{
-		buff = _wcsdup(String);
-		_wcslwr(buff);
-	}
-	else
-		buff = String;
-
+		std::transform(	buff.begin(), buff.end(),buff.begin(),::towlower);
 	strmap::iterator it = stringmap.find(buff);
-	if (!m_bCaseSense)
-		free(buff);
 	if (it != stringmap.end())
 		return it->second;
 	else
