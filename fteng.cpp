@@ -399,7 +399,8 @@ void FreeTypeFontInfo::Createlink()
 		if (!m_SimSunID)
 			IsSimSun = (_wcsicmp(fn,L"ËÎÌו")==0 || _wcsicmp(fn,L"SimSun")==0);
 		StringCchCopy(lf.lfFaceName, LF_FACESIZE, fn);
-		pSettings->CopyForceFont(lf,lf);
+		if (!_wcsicmp(fn, m_familyname.c_str()))	// allow font link to itself
+			pSettings->CopyForceFont(lf,lf);
 		FreeTypeFontInfo* pfitemp = g_pFTEngine->FindFont(lf.lfFaceName, /*m_weight*/0, /*m_italic*/false);
 		if (pfitemp && linkset.find(pfitemp->GetId())==linkset.end()) {
 			linkset.insert(pfitemp->GetId());

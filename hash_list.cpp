@@ -24,9 +24,11 @@ void CHashedStringList::Delete(TCHAR * String)
 
 TCHAR * CHashedStringList::Find(TCHAR * String)
 {
-	std::wstring buff = String;
+	TCHAR* b = _wcsdup(String);
 	if (!m_bCaseSense)
-		std::transform(	buff.begin(), buff.end(),buff.begin(),::towlower);
+		b = _wcslwr(b);
+	std::wstring buff = b;
+	free(b);
 	strmap::iterator it = stringmap.find(buff);
 	if (it != stringmap.end())
 		return it->second;

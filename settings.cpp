@@ -8,6 +8,29 @@
 #include <freetype/ftenv.h>
 #endif
 
+inline BOOL IsFolder(LPCTSTR pszPath) {
+	return pszPath && *pszPath && *(pszPath + wcslen(pszPath) - 1) == '\\';
+}
+
+wstring LowerCase(wstring str) {
+	transform(str.begin(), str.end(), str.begin(), ::tolower);
+	return str;
+}
+
+const wstring GetAppDir() {
+	static wstring AppDir;
+	if (AppDir.length()) {
+		return AppDir;
+	}
+	WCHAR name[MAX_PATH] = { 0 };
+
+	int nSize = GetModuleFileName(NULL, name, MAX_PATH + 1);
+	PathRemoveFileSpec(name);
+	AppDir = wstring(name) + L"\\"; // path should always end with a "\"
+	AppDir = LowerCase(AppDir);
+	return AppDir;
+}
+
 CGdippSettings* CGdippSettings::s_pInstance;
 CParseIni CGdippSettings::m_Config;
 CHashedStringList FontNameCache;
@@ -951,6 +974,13 @@ bool CGdippSettings::IsProcessUnload() const
 		return false;
 	ModuleHashMap::const_iterator it = m_arrUnloadModule.begin();
 	for(; it != m_arrUnloadModule.end(); ++it) {
+		if (IsFolder(it->c_str())) {
+			// if the user is trying to include a folder instead of a single executable.
+			if (GetAppDir() == LowerCase(*it)) {
+				return true;
+			}
+		}
+		else
 		if (GetModuleHandleW(it->c_str())) {
 			return true;
 		}
@@ -1005,6 +1035,13 @@ bool CGdippSettings::IsProcessExcluded() const
 		return false;
 	ModuleHashMap::const_iterator it = m_arrExcludeModule.begin();
 	for(; it != m_arrExcludeModule.end(); ++it) {
+		if (IsFolder(it->c_str())) {
+			// if the user is trying to exclude a folder instead of a single executable.
+			if (GetAppDir().find(LowerCase(*it)) == 0) {
+				return true;
+			}
+		}
+		else
 		if (GetModuleHandleW(it->c_str())) {
 			return true;
 		}
@@ -1022,6 +1059,13 @@ bool CGdippSettings::IsProcessIncluded() const
 		return true;
 	ModuleHashMap::const_iterator it = m_arrIncludeModule.begin();
 	for(; it != m_arrIncludeModule.end(); ++it) {
+		if (IsFolder(it->c_str())) {
+			// if the user is trying to include a folder instead of a single executable.
+			if (GetAppDir() == LowerCase(*it)) {
+				return true;
+			}
+		}
+		else
 		if (GetModuleHandleW(it->c_str())) {
 			return true;
 		}
