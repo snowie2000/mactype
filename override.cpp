@@ -1099,7 +1099,7 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 	if (!(fuOptions & ETO_GLYPH_INDEX) && !(fuOptions & ETO_IGNORELANGUAGE) && !lpDx && CID.myiscomplexscript(lpString,cbString))		//complex script
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance(); //获得一个配置文件实例
+	CGdippSettings* pSettings = CGdippSettings::GetInstance(); //获得一个配置文件实例
 
 /*
 
@@ -1249,6 +1249,11 @@ ETO_TRY();
 		ETO_THROW(ETOE_INVALIDHDC);
 	}	//20-50ms
 
+	// check pitch to make sure it's truetype or opentype
+	if ((otm->otmTextMetrics.tmPitchAndFamily & (TMPF_TRUETYPE | TMPF_VECTOR)) == 0) {	//opentype (collection) sets the vector bit, truetype sets the truetype bit
+		pSettings->AddFontExclude(strFamilyName.c_str());
+		ETO_THROW(ETOE_INVALIDHDC);	// set the font as an exclusion and exit
+	}
 //====================end================================
 
 	hCanvasDC = bmp.CreateDC(hdc);
