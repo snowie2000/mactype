@@ -55,73 +55,73 @@
     <ProjectGuid>{15C33FD9-0811-4981-B08F-E0BAD74A3028}</ProjectGuid>
     <RootNamespace>gdipp</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -173,7 +173,8 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName).Core</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK);D:\Archives\Documents\Visual Studio 2013\Projects\IniParser;D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include</IncludePath>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|Win32'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
@@ -181,7 +182,8 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName).Core</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK);D:\Archives\Documents\Visual Studio 2013\Projects\IniParser;D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include</IncludePath>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -189,7 +191,8 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName)64.Core</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Archives\Documents\Visual Studio 2013\Projects\IniParser;D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include</IncludePath>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -197,7 +200,8 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName)64.Core</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Archives\Documents\Visual Studio 2013\Projects\IniParser;D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include</IncludePath>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -205,6 +209,8 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName)64.Core</TargetName>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|ARM'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -212,6 +218,8 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName)64.Core</TargetName>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
@@ -219,7 +227,8 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName).Core</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK);D:\Archives\Documents\Visual Studio 2013\Projects\IniParser;D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include</IncludePath>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|Win32'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
@@ -227,7 +236,8 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName).Core</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK);D:\Archives\Documents\Visual Studio 2013\Projects\IniParser;D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include</IncludePath>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -235,7 +245,8 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName)64.Core</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Archives\Documents\Visual Studio 2013\Projects\IniParser;D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include</IncludePath>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -243,7 +254,8 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName)64.Core</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\Archives\Documents\Visual Studio 2013\Projects\IniParser;D:\Archives\Documents\Visual Studio 2008\Projects\freetype2\include</IncludePath>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -251,6 +263,8 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName)64.Core</TargetName>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|ARM'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -258,6 +272,8 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName)64.Core</TargetName>
+    <IncludePath>$(INI_PARSER_PATH);$(FREETYPE_PATH)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -282,7 +298,7 @@
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalOptions>/DEBUG</AdditionalOptions>
-      <DelayLoadDLLs>Easyhk32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook32.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|Win32'">
@@ -309,7 +325,7 @@
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalOptions>/DEBUG</AdditionalOptions>
-      <DelayLoadDLLs>Easyhk32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook32.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -338,7 +354,7 @@
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX64</TargetMachine>
       <AdditionalOptions>/DEBUG %(AdditionalOptions)</AdditionalOptions>
-      <DelayLoadDLLs>Easyhk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook64.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|x64'">
@@ -368,7 +384,7 @@
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX64</TargetMachine>
       <AdditionalOptions>/DEBUG %(AdditionalOptions)</AdditionalOptions>
-      <DelayLoadDLLs>Easyhk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook64.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -395,7 +411,7 @@
       <SubSystem>Windows</SubSystem>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <AdditionalOptions>/DEBUG %(AdditionalOptions)</AdditionalOptions>
-      <DelayLoadDLLs>Easyhk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook64.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Infinality|ARM'">
@@ -422,7 +438,7 @@
       <SubSystem>Windows</SubSystem>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <AdditionalOptions>/DEBUG %(AdditionalOptions)</AdditionalOptions>
-      <DelayLoadDLLs>Easyhk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook64.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -455,7 +471,7 @@
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX86</TargetMachine>
-      <DelayLoadDLLs>Easyhk32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook32.dll</DelayLoadDLLs>
       <AdditionalLibraryDirectories>$(SolutionDir)deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -488,7 +504,7 @@
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX86</TargetMachine>
-      <DelayLoadDLLs>Easyhk32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook32.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -521,7 +537,7 @@
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX64</TargetMachine>
-      <DelayLoadDLLs>Easyhk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook64.dll</DelayLoadDLLs>
       <AdditionalLibraryDirectories>$(SolutionDir)deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -555,7 +571,7 @@
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <TargetMachine>MachineX64</TargetMachine>
-      <DelayLoadDLLs>Easyhk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook64.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -585,7 +601,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <DelayLoadDLLs>Easyhk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook64.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Infinality|ARM'">
@@ -615,7 +631,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <DelayLoadDLLs>Easyhk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>easyhook64.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -1,62 +1,64 @@
-How to build
--------------
-
-Personally, I use Visual Studio 2013 (msvc) to build mactype and all its dependencies, however, I believe you can build them with other compiles.
-Here I will show you the steps I do to make the compilation.
+# How to build
 
  1. **Compiler / IDE**
-	
-    msvc is preferred, I have provided a solution of msvc2013 in the repo. If you are using msvc2013+, just open my solution and you are ready to go. For msvc version lower than 2013, you have to make your own project.
-	
- 2. **Dependencies**
-	 
-    Mactype depends on
-	 - Freetype ([link](https://www.freetype.org/download.html))
-	 - EasyHook ([link](http://easyhook.github.io/))
-	 - or Detours(obsolete, better not use)
-	 - iniParser (Get from my repo, orginal build is not fully functional)
-	 - wow64ext (Get from my repo, or from official repo, but you need to modify it yourself)
-	 - Windows sdk 10.0.14393.0 or later([link](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk))
 
-3. **Building dependencies**
-	- FreeType
-		
+    Visual Studio 2019 with v142 toolkit has been tested and is working. Toolkits down to v120 should be able to compile the code, but be aware that the `_xp` ones might refuse to use the Windows 10 SDK.
+
+ 2. **Dependencies**
+
+    Mactype depends on
+     - [Freetype](https://www.freetype.org/download.html)
+     - [EasyHook](http://easyhook.github.io/)
+     - or Detours (obsolete, better not use)
+     - [IniParser (fork)](https://github.com/snowie2000/IniParser)
+     - [wow64ext (fork)](https://github.com/snowie2000/rewolf-wow64ext)
+     - Windows SDK (10.0.14393.0 or later)
+
+ 3. **Building dependencies**
+
+    - FreeType
+
+        Apply `glyph_to_bitmapex.diff` before building.
+
         Always build multi-thread release.
 
-		Remember to enable options you want in ftoptions.h
-	
-		Compile freetype as Freetype.lib for x86 and freetype64.lib for x64
-	
-		Static library is preferred, you are free to build freetype as independent dlls with better interchangeability but you will lose some compatibility in return, for some programs are delivered with their own copies of freetype which will conflict with your file.
-	- iniParser
-	
-		Build as iniparser.lib and iniparser64.lib
-	
-	- wow64ext
-		
-		Build as wow64ext.lib. x64 library is not required. Dll library is also accepted (if you like).
-	
-	- EasyHook
-		
+        Remember to enable options you want in ftoptions.h
+
+        Compile freetype as freetype.lib for x86 and freetype64.lib for x64
+
+        Static library is preferred, you are free to build freetype as independent dlls with better interchangeability but you will lose some compatibility in return, for some programs are delivered with their own copies of freetype which will conflict with your file.
+
+        Set `FREETYPE_PATH` environment variable to root of freetype source.
+
+    - iniParser
+
+        Build as iniparser.lib and iniparser64.lib. Set `INI_PARSER_PATH` environment variable to root of IniParser project.
+
+    - wow64ext
+
+        Build as wow64ext.lib. x64 library is not required. Shared library also works if you prefer that.
+
+    - EasyHook
+
         Only EasyHookDll project is required.
 
-		Build it as easyhk32.lib and easyhk64.lib.
-	
-		Dll filename is not important but you'd better give it a special name to avoid dll confliction as I stated above.
-	- Windows SDK
-		
+        Build it as easyhook32.lib and easyhook64.lib, or get the binary distributions.
+
+        Dll filename is not important but you'd better give it a special name to avoid dll confliction as stated above. Do not forget to modify filename in `hook.cpp` of MacType.
+
+    - Windows SDK
+
         Actually it's not something you need to build, but the installation is tricky.
 
-		One word to rule them all: download **ALL COMPONENTS**  in the installation list! Unless you want to waste several hours looking for these mysterious dependencies it pops to you. Don't worry, you will have a second chance to choose which component you want to install after download.
-		
-4. **Build**
+        One word to rule them all: download **ALL COMPONENTS**  in the installation list! Unless you want to waste several hours looking for these mysterious dependencies it pops to you. Don't worry, you will have a second chance to choose which component you want to install after download.
 
-	Last but simplest step. Put all files you builds in the above steps to MacType folder, set up VC++ folders and hit F7.
-	Enjoy. 
+ 4. **Build**
 
-FAQ
--------
-Q: Where are the sources of loader and tunner in the repo?
+    Last but easiest step: Put all `.lib` files you built earlier into a `lib` folder in the root of MacType, click build and enjoy.
 
-A: I'm sorry, but they are still close-source right now. Since you have the mactype source and will surely have a good understanding of how mactype works, I believe it's not a big challenge to write a loader for it.
-If you wrote a great loader or something else wonderful, don't forget to send me link~
+## FAQ
+
+Q: Where are the sources of loader and tuner in the repo?
+
+A: I'm sorry, but they are still closed-source right now. Since you have the mactype source and will surely have a good understanding of how mactype works, I believe it's not a big challenge to write a loader for it.
+If you wrote a great loader or something else wonderful, please post an issue or a pull request. Hope we can make MacType better!

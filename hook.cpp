@@ -1,13 +1,13 @@
 // API hook
 //
-// GetProcAddress‚Å“¾‚½callæiŠÖ”–{‘Ìj‚ð’¼Ú‘‚«Š·‚¦A
-// Ž©•ª‚ÌƒtƒbƒNŠÖ”‚Éjmp‚³‚¹‚éB
+// GetProcAddressï¿½Å“ï¿½ï¿½ï¿½callï¿½ï¿½iï¿½Öï¿½ï¿½{ï¿½Ìjï¿½ð’¼Úï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½A
+// ï¿½ï¿½ï¿½ï¿½ï¿½Ìƒtï¿½bï¿½Nï¿½Öï¿½ï¿½ï¿½jmpï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 //
-// “à•”‚ÅŒ³‚ÌAPI‚ðŽg‚¤Žž‚ÍAƒR[ƒh‚ðˆê“x–ß‚µ‚Ä‚©‚çcallB
-// ‚·‚®‚ÉjmpƒR[ƒh‚É–ß‚·B
+// ï¿½ï¿½ï¿½ï¿½ï¿½ÅŒï¿½ï¿½ï¿½APIï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ÍAï¿½Rï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½xï¿½ß‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½callï¿½B
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½jmpï¿½Rï¿½[ï¿½hï¿½É–ß‚ï¿½ï¿½B
 //
-// ƒ}ƒ‹ƒ`ƒXƒŒƒbƒh‚Å ‘‚«Š·‚¦’†‚Écall‚³‚ê‚é‚Æ¢‚é‚Ì‚ÅA
-// CriticalSection‚Å”r‘¼§Œä‚µ‚Ä‚¨‚­B
+// ï¿½}ï¿½ï¿½ï¿½`ï¿½Xï¿½ï¿½ï¿½bï¿½hï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½callï¿½ï¿½ï¿½ï¿½ï¿½Æï¿½ï¿½ï¿½Ì‚ÅA
+// CriticalSectionï¿½Å”rï¿½ï¿½ï¿½ï¿½ï¿½ä‚µï¿½Ä‚ï¿½ï¿½ï¿½ï¿½B
 //
 
 #include "override.h"
@@ -43,7 +43,7 @@ HINSTANCE g_dllInstance;
 #include "detours.h"
 #pragma comment (lib, "detours.lib")
 #pragma comment (lib, "detoured.lib")
-// DATA_fooAORIG_foo ‚Ì‚Q‚Â‚ð‚Ü‚Æ‚ß‚Ä’è‹`‚·‚éƒ}ƒNƒ
+// DATA_fooï¿½AORIG_foo ï¿½Ì‚Qï¿½Â‚ï¿½ï¿½Ü‚Æ‚ß‚Ä’ï¿½`ï¿½ï¿½ï¿½ï¿½}ï¿½Nï¿½ï¿½
 #define HOOK_MANUALLY HOOK_DEFINE
 #define HOOK_DEFINE(rettype, name, argtype) \
 	rettype (WINAPI * ORIG_##name) argtype;
@@ -129,9 +129,9 @@ static void hook_term()
 #else
 #include "easyhook.h"
 #ifdef _M_IX86
-#pragma comment (lib, "easyhk32.lib")
+#pragma comment (lib, "easyhook32.lib")
 #else
-#pragma comment (lib, "easyhk64.lib")
+#pragma comment (lib, "easyhook64.lib")
 #endif
 
 #define HOOK_MANUALLY HOOK_DEFINE
@@ -143,7 +143,7 @@ static void hook_term()
 
 
 #define HOOK_DEFINE(rettype, name, argtype) \
-	HOOK_TRACE_INFO HOOK_##name = {0};	//½¨Á¢hook½á¹¹
+	HOOK_TRACE_INFO HOOK_##name = {0};	//ï¿½ï¿½ï¿½ï¿½hookï¿½á¹¹
 
 #include "hooklist.h"
 
@@ -243,7 +243,7 @@ HANDLE						g_hfDbgText;
 
 //#include "APITracer.hpp"
 
-//ƒx[ƒXƒAƒhƒŒƒX‚ð•Ï‚¦‚½•û‚ªƒ[ƒh‚ª‘‚­‚È‚é
+//ï¿½xï¿½[ï¿½Xï¿½Aï¿½hï¿½ï¿½ï¿½Xï¿½ï¿½Ï‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
 #if _DLL
 #pragma comment(linker, "/base:0x06540000")
 #endif
@@ -432,33 +432,33 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			while (*--p != L'\\');
 			*p = L'\0';
 #ifdef _WIN64
-			wcscat(dllPath, L"\\EasyHk64.dll");
+			wcscat(dllPath, L"\\easyhook64.dll");
 #else
-			wcscat(dllPath, L"\\EasyHk32.dll");
+			wcscat(dllPath, L"\\easyhook32.dll");
 #endif
 			HMODULE hEasyhk = LoadLibrary(dllPath);
 			delete[]dllPath;
 			if (!hEasyhk) 
 				return false;			
 		}
-		//‰Šú‰»‡˜
-		//DLL_PROCESS_DETACH‚Å‚Í‚±‚ê‚Ì‹t‡‚É‚·‚é
-		//1. CRTŠÖ”‚Ì‰Šú‰»
-		//2. ƒNƒŠƒeƒBƒJƒ‹ƒZƒNƒVƒ‡ƒ“‚Ì‰Šú‰»
-		//3. TLS‚Ì€”õ
-		//4. CGdippSettings‚ÌƒCƒ“ƒXƒ^ƒ“ƒX¶¬AINI“Ç‚Ýž‚Ý
-		//5. ExcludeModuleƒ`ƒFƒbƒN
-		// 6. FreeTypeƒ‰ƒCƒuƒ‰ƒŠ‚Ì‰Šú‰»
-		// 7. FreeTypeFontEngine‚ÌƒCƒ“ƒXƒ^ƒ“ƒX¶¬
-		// 8. API‚ðƒtƒbƒN
-		// 9. Manager‚ÌGetProcAddress‚ðƒtƒbƒN
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		//DLL_PROCESS_DETACHï¿½Å‚Í‚ï¿½ï¿½ï¿½Ì‹tï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½
+		//1. CRTï¿½Öï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
+		//2. ï¿½Nï¿½ï¿½ï¿½eï¿½Bï¿½Jï¿½ï¿½ï¿½Zï¿½Nï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
+		//3. TLSï¿½Ìï¿½ï¿½ï¿½
+		//4. CGdippSettingsï¿½ÌƒCï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½AINIï¿½Ç‚Ýï¿½ï¿½ï¿½
+		//5. ExcludeModuleï¿½`ï¿½Fï¿½bï¿½N
+		// 6. FreeTypeï¿½ï¿½ï¿½Cï¿½uï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
+		// 7. FreeTypeFontEngineï¿½ÌƒCï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½
+		// 8. APIï¿½ï¿½ï¿½tï¿½bï¿½N
+		// 9. Managerï¿½ï¿½GetProcAddressï¿½ï¿½ï¿½tï¿½bï¿½N
 
 		//1
 		_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
 		_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG | _CRTDBG_MODE_WNDW);
 		//_CrtSetBreakAlloc(100);
 
-		//Opera‚æŽ~‚Ü‚ê`
+		//Operaï¿½ï¿½~ï¿½Ü‚ï¿½`
 		//Assert(GetModuleHandleA("opera.exe") == NULL);
 		
 		setlocale(LC_ALL, "");
@@ -493,7 +493,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			IsUnload = IsProcessUnload();
 			bEnableDW = pSettings->DirectWrite();
 		}
-		if (!IsUnload) hook_initinternal();	//²»¼ÓÔØµÄÄ£¿é¾Í²»×öÈÎºÎÊÂÇé
+		if (!IsUnload) hook_initinternal();	//ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½Ä£ï¿½ï¿½Í²ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ï¿½ï¿½
 		//5
 		if (!IsProcessExcluded() && !IsUnload) {
 #ifndef _WIN64
@@ -531,7 +531,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			}*/
 //			InstallManagerHook();
 		}
-		//»ñµÃµ±Ç°¼ÓÔØÄ£Ê½
+		//ï¿½ï¿½Ãµï¿½Ç°ï¿½ï¿½ï¿½ï¿½Ä£Ê½
 
 		if (IsUnload)
 		{
@@ -542,11 +542,11 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			HANDLE mutex_CompMode = OpenMutex(MUTEX_ALL_ACCESS, false, _T("Global\\MacTypeCompMode"));
 			if (!mutex_CompMode)			
 				mutex_CompMode = OpenMutex(MUTEX_ALL_ACCESS, false, _T("MacTypeCompMode"));
-			BOOL HookMode = (mutex_offical || (mutex_gditray2 && mutex_CompMode)) || (!mutex_offical && !mutex_gditray2);	//ÊÇ·ñÔÚ¼æÈÝÄ£Ê½ÏÂ
+			BOOL HookMode = (mutex_offical || (mutex_gditray2 && mutex_CompMode)) || (!mutex_offical && !mutex_gditray2);	//ï¿½Ç·ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½
 			CloseHandle(mutex_CompMode);
 			CloseHandle(mutex_gditray2);
 			CloseHandle(mutex_offical);
-			if (!HookMode)	//·Ç¼æÈÝÄ£Ê½ÏÂ£¬¾Ü¾ø¼ÓÔØ
+			if (!HookMode)	//ï¿½Ç¼ï¿½ï¿½ï¿½Ä£Ê½ï¿½Â£ï¿½ï¿½Ü¾ï¿½ï¿½ï¿½ï¿½ï¿½
 				return false;
 		}
 
@@ -562,12 +562,12 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 		if (!bDllInited)
 			return true;
 		bDllInited = false;
-		if (InterlockedExchange(&g_bHookEnabled, FALSE) && lpReserved == NULL) {	//Èç¹ûÊÇ½ø³ÌÖÕÖ¹£¬Ôò²»ÐèÒªÊÍ·Å
+		if (InterlockedExchange(&g_bHookEnabled, FALSE) && lpReserved == NULL) {	//ï¿½ï¿½ï¿½ï¿½Ç½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½Í·ï¿½
 			hook_term();
 			//delete AACacheFull;
 			//delete AACache;
 // 			for (int i=0;i<CACHE_SIZE;i++)
-// 				delete g_AACache2[i];	//Çå³ý»º´æ
+// 				delete g_AACache2[i];	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			//free(g_charmapCache);
 		}
 #ifndef DEBUG
@@ -587,9 +587,9 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 		FontLFree();
 /*
 #ifndef _WIN64
-		__FUnloadDelayLoadedDLL2("easyhk32.dll");
+		__FUnloadDelayLoadedDLL2("easyhook32.dll");
 #else
-		__FUnloadDelayLoadedDLL2("easyhk64.dll");
+		__FUnloadDelayLoadedDLL2("easyhook64.dll");
 #endif*/
 
 		CGdippSettings::DestroyInstance();

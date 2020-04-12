@@ -3,6 +3,7 @@
 #include "string.h"
 #include "windows.h"
 #include <map>
+#include <string>
 
 typedef std::map<std::wstring, LPTSTR> strmap;
 

@@ -1,0 +1,126 @@
+ src/base/ftglyph.c | 112 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 112 insertions(+)
+
+diff --git a/src/base/ftglyph.c b/src/base/ftglyph.c
+index 27402ecf8..7637388a8 100644
+--- a/src/base/ftglyph.c
++++ b/src/base/ftglyph.c
+@@ -634,6 +634,118 @@
+   }
+ 
+ 
++FT_EXPORT_DEF(FT_Error)
++	FT_Glyph_To_BitmapEx(FT_Glyph*       the_glyph,
++		FT_Render_Mode  render_mode,
++		FT_Vector*      origin,
++		FT_Bool         destroy,
++		FT_Bool			loadcolor,
++		FT_UInt			glyphindex,
++		FT_Face			face)
++{
++	FT_GlyphSlotRec           dummy;
++	FT_GlyphSlot_InternalRec  dummy_internal;
++	FT_Error                  error = FT_Err_Ok;
++	FT_Glyph                  b, glyph;
++	FT_BitmapGlyph            bitmap = NULL;
++	const FT_Glyph_Class*     clazz;
++
++	FT_Library                library;
++
++
++	/* check argument */
++	if (!the_glyph)
++		goto Bad;
++	glyph = *the_glyph;
++	if (!glyph)
++		goto Bad;
++
++	clazz = glyph->clazz;
++	library = glyph->library;
++	if (!library || !clazz)
++		goto Bad;
++
++	/* when called with a bitmap glyph, do nothing and return successfully */
++	if (clazz == &ft_bitmap_glyph_class)
++		goto Exit;
++
++	if (!clazz->glyph_prepare)
++		goto Bad;
++
++	/* we render the glyph into a glyph bitmap using a `dummy' glyph slot */
++	/* then calling FT_Render_Glyph_Internal()                            */
++
++	FT_ZERO(&dummy);
++	FT_ZERO(&dummy_internal);
++	dummy.internal = &dummy_internal;
++	dummy.library = library;
++	dummy.format = clazz->glyph_format;
++	
++	if (loadcolor) {
++		dummy_internal.load_flags |= FT_LOAD_COLOR;
++		dummy.glyph_index = glyphindex;
++		dummy.face = face;
++	}
++
++	/* create result bitmap glyph */
++	error = ft_new_glyph(library, &ft_bitmap_glyph_class, &b);
++	if (error)
++		goto Exit;
++	bitmap = (FT_BitmapGlyph)b;
++
++#if 1
++	/* if `origin' is set, translate the glyph image */
++	if (origin)
++		FT_Glyph_Transform(glyph, 0, origin);
++#else
++	FT_UNUSED(origin);
++#endif
++
++	/* prepare dummy slot for rendering */
++	error = clazz->glyph_prepare(glyph, &dummy);
++	if (!error)
++		error = FT_Render_Glyph_Internal(glyph->library, &dummy, render_mode);
++
++#if 1
++	if (!destroy && origin)
++	{
++		FT_Vector  v;
++
++
++		v.x = -origin->x;
++		v.y = -origin->y;
++		FT_Glyph_Transform(glyph, 0, &v);
++	}
++#endif
++
++	if (error)
++		goto Exit;
++
++	/* in case of success, copy the bitmap to the glyph bitmap */
++	error = ft_bitmap_glyph_init((FT_Glyph)bitmap, &dummy);
++	if (error)
++		goto Exit;
++
++	/* copy advance */
++	bitmap->root.advance = glyph->advance;
++
++	if (destroy)
++		FT_Done_Glyph(glyph);
++
++	*the_glyph = FT_GLYPH(bitmap);
++
++Exit:
++	if (error && bitmap)
++		FT_Done_Glyph(FT_GLYPH(bitmap));
++
++	return error;
++
++Bad:
++	error = FT_THROW(Invalid_Argument);
++	goto Exit;
++}
++
++
+   /* documentation is in ftglyph.h */
+ 
+   FT_EXPORT_DEF( void )
