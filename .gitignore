@@ -1,6 +1,7 @@
 .vs/
 .vscode/
 deps/
+lib/
 Debug/
 Release/
 x64/
