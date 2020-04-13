@@ -24,7 +24,7 @@ void FontLFree(void);
 
 COLORREF GetPaletteColor(HDC hdc, UINT paletteindex);
 
-#define ROUND(x) ((x)>0? int(x+0.5):int(x-0.5))	//windows使用特殊的四舍五入策略
+#define ROUND(x) ((x)>0? int(x+0.5):int(x-0.5))	// a special round method used by windows
 class CDCTransformer {
 private:
 	float fXZoomFactor, fYZoomFactor;
@@ -56,7 +56,7 @@ public:
 	{
 		float temp = float(X)*m_xfm.eM11+m_xfm.eDx;
 		m_xfm.eDx = temp-(int)temp;
-		if (ROUND(m_xfm.eDx)<0)	//负数则偏移到正数上来
+		if (ROUND(m_xfm.eDx)<0)	// change negive offset to positive
 			m_xfm.eDx+=1;
 		temp = float(Y)*m_xfm.eM22+m_xfm.eDy;
 		m_xfm.eDy = temp-(int)temp;
@@ -126,10 +126,10 @@ public:
 		double fDPLastPos = 0, fDPCurPos = 0;
 		for (;szDx>0;--szDx)
 		{
-			LPCurPos += *lpDx++;						//这个字应该所处的逻辑位置
-			fDPCurPos = LPCurPos*fXZoomFactor;			//这个字对应的正确设备位置
-			*outlpDx = ROUND(fDPCurPos-fDPLastPos);		//应该占据的设备坐标值
-			fDPLastPos += *outlpDx++;					//这个字在显示完成后的结束坐标，以计算下一个字的坐标
+			LPCurPos += *lpDx++;						// the logical position the letter belongs to
+			fDPCurPos = LPCurPos*fXZoomFactor;			// the device position the letter belongs to
+			*outlpDx = ROUND(fDPCurPos-fDPLastPos);		// the device coord
+			fDPLastPos += *outlpDx++;					// the coord after this letter is painted. In order to calculate the pos of the next letter.
 		}
 	}
 	bool TransformMode() { return bZoomMode; }
@@ -146,12 +146,12 @@ public:
 	ControlIder()
 	{
 		unicode = new char[0xffff];
-		memset(unicode, 0, sizeof(char)*0xffff);	//默认为非控制字
+		memset(unicode, 0, sizeof(char)*0xffff);	// non-control char by default
 		//memset(unicode, 2, sizeof(char)*32);
 		for (int i=0;i<0x3000;i++)
 			unicode[i]=!!iswcntrl(i);
 		for (int i=0xa000;i<0xffff;i++)
-			unicode[i]=!!iswcntrl(i);			//中间部分为中文，不需要计算
+			unicode[i]=!!iswcntrl(i);			// Chinese
 		memset(&unicode[0xd800],CNTRL_UNICODE_PLANE,sizeof(char)*(0xdfff-0xd800+1));		//unicode plane
 		memset(&unicode[0x0590],CNTRL_COMPLEX_TEXT,sizeof(char)*(0x05FF-0x0590+1));		//hebrew
 		memset(&unicode[0x0600],CNTRL_COMPLEX_TEXT,sizeof(char)*(0x06FF-0x0600+1));		//arabic
@@ -161,7 +161,7 @@ public:
 //		unicode[0xa] = 0;
 // 		unicode[0xd] = 0;
 // 		unicode[0x9] = 0;
-		//设置部分特殊处理的控制字，这些控制字没有宽度，但是GetCharABCWidth对他们无法正确计算
+		// Set width for some special control chars. They have zero width, but GetCharABCWidth gives wrong results for them.
 	}
 	~ControlIder()
 	{
@@ -202,20 +202,6 @@ struct FREETYPE_PARAMS
 	{
 		ZeroMemory(this, sizeof(*this));
 	}
-
-	//FreeTypeGetTextExtentPoint梡 (僒僀僘寁嶼)
-/*
-	FREETYPE_PARAMS(UINT eto, HDC hdc, OUTLINETEXTMETRIC* lpotm = NULL)
-		: etoOptions(eto)
-		, ftOptions(FTO_SIZE_ONLY)
-		, charExtra(GetTextCharacterExtra(hdc))
-		, color(0)
-		, alpha(0)
-		, lplf(NULL)
-		, otm(lpotm)
-	{
-	}*/
-
 
 	//FreeTypeTextOut梡 (僒僀僘寁嶼亄暥帤昤夋)
 	FREETYPE_PARAMS(UINT eto, HDC hdc, LOGFONTW* p, OUTLINETEXTMETRIC* lpotm = NULL)
@@ -279,8 +265,8 @@ public:
 };
 
 
-//fteng.cpp变量
-//Snowie!!提到前面，为了给下面的结构查找face用
+//fteng.cpp variables
+// forward declaration
 extern FT_Library     freetype_library;
 extern FTC_Manager    cache_man;
 extern FTC_CMapCache  cmap_cache;
@@ -302,9 +288,9 @@ struct FreeTypeDrawInfo
 	const CFontSettings* pfs;
 	FreeTypeFontCache* pftCache;
 	FTC_FaceID* face_id_list;
-	HFONT* ggo_font_list;	//Snowie!!用于快速字体链接
+	HFONT* ggo_font_list;	// for faster GGO fontlinking
 	FTC_FaceID face_id_simsun;
-	FT_Face freetype_face_list[CFontLinkInfo::FONTMAX * 2 + 1];	//Snowie!!用于解决斜体问题
+	FT_Face freetype_face_list[CFontLinkInfo::FONTMAX * 2 + 1];	// in order to solve italic issues.
 	int face_id_list_num;
 	int* Dx;
 	int* Dy;
@@ -312,15 +298,15 @@ struct FreeTypeDrawInfo
 	//屇傃弌偟慜偵帺暘偱愝掕偡傞
 	HDC hdc;
 	int xBase;
-	int y;//坐标高度，根据ETO_PDY计算，如没有则为0
-	int x;//坐标宽度，根据win32宽度计算
-	int px;	//x of paint,真实文字宽度
+	int y;//coord height, calculated by ETO_PDY, 0 if not provided
+	int x;//coord width, calculated by win32 API
+	int px;	//x of paint, the real text width
 	int yBase;
 	int yTop;
-	//Snowie!!
-	int height; //原始高度
+
+	int height; //original width
 	int width;
-	//!!Snowie
+
 	const int* lpDx;
 	CBitmapCache* pCache;
 	FREETYPE_PARAMS* params;
@@ -336,7 +322,7 @@ struct FreeTypeDrawInfo
 		ZeroMemory(&scaler, sizeof(scaler));
 		ZeroMemory(&font_type, sizeof(font_type));
 		ZeroMemory(&face_id_list, sizeof face_id_list);
-		//初始化字体表
+		// init face list
 		ZeroMemory(&freetype_face_list, sizeof freetype_face_list);
 		lpDx   = dx;
 		pCache = ca;
@@ -369,7 +355,7 @@ struct FreeTypeDrawInfo
 	bool IsSizeOnly() const { return !!(params->ftOptions & FTO_SIZE_ONLY); }
 	CGGOKerning ggokerning;
 
-	FT_Face GetFace(int index)	//获得字体表项
+	FT_Face GetFace(int index)	// get face list
 	{
 		if (!freetype_face_list[index])
 		{
@@ -407,36 +393,9 @@ BOOL FreeTypeTextOut(
 	FT_Referenced_Glyph * Glyphs,
 	FT_DRAW_STATE* drState
 	);
-/*
-	BOOL FreeTypeGetTextExtentPoint(
-		const HDC hdc,
-		LPCWSTR lpString,
-		int cbString,
-		LPSIZE lpSize,
-		const FREETYPE_PARAMS* params
-		);
-	BOOL FreeTypeGetCharWidth(
-		const HDC hdc,
-		UINT iFirstChar,
-		UINT iLastChar,
-		LPINT lpBuffer
-		);*/
-	
-/*
-void FreeTypeSubstGlyph(
-	const HDC hdc,
-	const WORD vsindex,
-	const int baseChar,
-	int cChars, 
-	SCRIPT_ANALYSIS* psa, 
-	WORD* pwOutGlyphs, 
-	WORD* pwLogClust, 
-	SCRIPT_VISATTR* psva, 
-	int* pcGlyphs 
-	);*/
 
 
-BOOL FreeTypeGetGlyph(	//获得所有图形和需要的宽度
+BOOL FreeTypeGetGlyph(	// Get all the glyphs and widths needed.
 					  FreeTypeDrawInfo& FTInfo,
 					  LPCWSTR lpString,  
 					  int cbString,     
@@ -444,7 +403,6 @@ BOOL FreeTypeGetGlyph(	//获得所有图形和需要的宽度
 					  FT_Referenced_Glyph* Glyphs,
 					  FT_DRAW_STATE* drState
 					  );
-//Snowie
 void RefreshAlphaTable();
 void UpdateLcdFilter();
 

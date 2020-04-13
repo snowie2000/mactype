@@ -1208,7 +1208,7 @@ ETO_TRY();
 	SIZE	textSize;
 	SIZE	realSize = { 0 };
 
-//================判断是否为有效的DC=====================
+//================ Is valid DC? =====================
 	if (!IsValidDC(hdc)) {	
 		ETO_THROW(ETOE_INVALIDHDC);	// hdc is invalid
 	}
@@ -1226,17 +1226,8 @@ ETO_TRY();
 	LOGFONT	lf = { 0 };
 	wstring strFamilyName;
 	GetOutlineTextMetrics(hdc, nSize, otm);
-/*
-	if (!GetOutlineTextMetrics(hdc, nSize, otm))	//获得真实的字体信息
-	{
-		GetTextMetrics(hdc, &tm);	//获得备用信息
-		WCHAR buff[LF_FACESIZE];
-		ORIG_GetTextFace(hdc, LF_FACESIZE, buff);
-		strFamilyName = buff;
-	}
-	else*/
 
-		strFamilyName = (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName);	//获得TTF信息
+	strFamilyName = (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName);	//Get TTF font info
 
 	const bool bVertical = pSettings->FontLoader()==SETTING_FONTLOADER_FREETYPE?  strFamilyName.c_str()[0]==L'@' :false;
 
@@ -1245,7 +1236,7 @@ ETO_TRY();
 		ETO_THROW(ETOE_INVALIDHDC);	//Font size too small or too big.
 	}
 
-	if (pSettings->IsFontExcluded(strFamilyName.c_str())) {	//比较是否是排除掉的字体
+	if (pSettings->IsFontExcluded(strFamilyName.c_str())) {	// check if it's excluded
 		ETO_THROW(ETOE_INVALIDHDC);
 	}	//20-50ms
 
@@ -1261,7 +1252,7 @@ ETO_TRY();
 		ETO_THROW(ETOE_CREATEDC);
 	}	//0ms
 
-	align = GetTextAlign(hdc);	//获得对齐方式
+	align = GetTextAlign(hdc);	// Get align
 	//if (pTLInfo->InUniscribe() && !(fuOptions & ETO_IGNORELANGUAGE))
 	//	align &= ~TA_UPDATECP;
 	if(align & TA_UPDATECP) {
@@ -1274,15 +1265,15 @@ ETO_TRY();
 	}//0ms*/
 
 
-	hCurFont = GetCurrentFont(hdc);	//获得当前dc的字体，注意字体名称可能是错误的
-	if (!hCurFont) {		//获得失败
+	hCurFont = GetCurrentFont(hdc);	// get font name of current DC, warning: the font name is potaintially incorrect.
+	if (!hCurFont) {		// failed
 		ETO_THROW(ETOE_SETFONT);
 	}
 	TRACE(L"Draw text \"%s\", font=\"%s\", handle=%x\n", lpString, strFamilyName.c_str(), (int)hCurFont);
 	if (!ORIG_GetObjectW(hCurFont, sizeof(LOGFONT), &lf)) {
 		ETO_THROW(ETOE_SETFONT);
 	}//30ms
-	StringCchCopy(lf.lfFaceName, LF_FACESIZE, (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName));	//把正确的字体名称复制过去
+	StringCchCopy(lf.lfFaceName, LF_FACESIZE, (LPWSTR)((DWORD_PTR)otm+(DWORD_PTR)otm->otmpFamilyName));	// copy the correct font name from otm info to lf
 	if (lf.lfEscapement != 0) {
 		ETO_THROW(ETOE_ROTATEFONT);// rotated font
 	}
@@ -1294,7 +1285,7 @@ ETO_TRY();
 	}
 
 	if (lf.lfHeight >= 0) {
-		// 如果没有指定高度就使用tm中的高度
+		// use height from tm if not specified in lf
 		lf.lfHeight = -(tm.tmHeight-tm.tmInternalLeading);	//optimized
 	}
 
@@ -1312,7 +1303,7 @@ ETO_TRY();
 		tm.tmAveCharWidth = DCTrans->TransformXAB(tm.tmAveCharWidth);
 // 		if (!DCTrans->TransformMode() && !lf.lfWidth && DCTrans->MirrorX()) 
 // 			lf.lfWidth = tm.tmAveCharWidth; 
-		if (lpDx && cbString)	//firefox使用ETO_PDY的y坐标转换来生成纵向文字
+		if (lpDx && cbString)	//firefox uses coord Y of ETO_PDY to print vertical text
 		{
 			int szDx=fuOptions&ETO_PDY ? cbString*2:cbString;
 			outlpDx = new int[szDx];
@@ -1327,8 +1318,7 @@ ETO_TRY();
 	HBITMAP hbmpSrc = (HBITMAP)GetCurrentObject(hdc, OBJ_BITMAP);
 
 	if(hbmpSrc && ORIG_GetObjectW(hbmpSrc, sizeof(BITMAP), &bm) && bm.bmBitsPixel <= 16) {
-		//自动设置为单色渲染方式
-		ETO_THROW(ETOE_MONO);	//不渲染单色文字
+		ETO_THROW(ETOE_MONO);	// ignore monochrome font, since freetype has really bad support of it.
 		//params.ftOptions |= FTO_MONO;
 	}
 
@@ -1364,13 +1354,13 @@ ETO_TRY();
 	{
 		ETO_THROW(ETOE_FREETYPE);
 	}
-	if (FTInfo.xBase<0)	//如果有辅音符号，调整文字位置
+	if (FTInfo.xBase<0)	// Change start position if diacritics are found
 	{
-		width-=FTInfo.xBase;	//增加绘图宽度
-		FTInfo.x -= FTInfo.xBase;	//增加光标宽度
-		curPos.x+=FTInfo.xBase;	//移动起始光标
+		width-=FTInfo.xBase;	// increase width
+		FTInfo.x -= FTInfo.xBase;	// increase width for cursor
+		curPos.x+=FTInfo.xBase;	// change cursor position
 		for (int i=0;i<cbString;++i)
-			FTInfo.Dx[i]-=FTInfo.xBase;	//修改文字绘图基准位置
+			FTInfo.Dx[i]-=FTInfo.xBase;	// modify the start position of painting
 	}
 
 	/*if (bZoomedDC && DCTrans->MirrorX())	//左右反向，RGB和BGR要相反
