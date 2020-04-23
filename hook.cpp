@@ -129,9 +129,9 @@ static void hook_term()
 #else
 #include "easyhook.h"
 #ifdef _M_IX86
-#pragma comment (lib, "easyhook32.lib")
+#pragma comment (lib, "easyhk32.lib")
 #else
-#pragma comment (lib, "easyhook64.lib")
+#pragma comment (lib, "easyhk64.lib")
 #endif
 
 #define HOOK_MANUALLY HOOK_DEFINE
@@ -432,9 +432,9 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			while (*--p != L'\\');
 			*p = L'\0';
 #ifdef _WIN64
-			wcscat(dllPath, L"\\easyhook64.dll");
+			wcscat(dllPath, L"\\easyhk64.dll");
 #else
-			wcscat(dllPath, L"\\easyhook32.dll");
+			wcscat(dllPath, L"\\easyhk32.dll");
 #endif
 			HMODULE hEasyhk = LoadLibrary(dllPath);
 			delete[]dllPath;
