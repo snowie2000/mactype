@@ -1640,8 +1640,10 @@ CFontSubstitutesInfo::lookup(LOGFONT& lf) const
 	if (!(buff = FontNameCache.Find((TCHAR*)lf.lfFaceName)))
 	{
 		TCHAR localname[LF_FACESIZE+1];
-		if (GetFontLocalName(mylf.lfFaceName, localname))
+		if (GetFontLocalName(mylf.lfFaceName, localname)) {
 			FontNameCache.Add((TCHAR*)lf.lfFaceName, localname);
+			StringCchCopy(mylf.lfFaceName, LF_FACESIZE, localname);
+		}
 		else
 		{
 			TCHAR inName[LF_FACESIZE];
