@@ -1632,43 +1632,6 @@ BOOL WINAPI IMPL_MySetProcessMitigationPolicy(
 	return ORIG_MySetProcessMitigationPolicy(MitigationPolicy, lpBuffer, dwLength);
 }
 
-/*
-HRESULT WINAPI IMPL_ScriptItemize(
-  const WCHAR* pwcInChars, 
-  int cInChars, 
-  int cMaxItems, 
-  const SCRIPT_CONTROL* psControl, 
-  const SCRIPT_STATE* psState, 
-  SCRIPT_ITEM* pItems, 
-  int* pcItems 
-) {
-	//CThreadCounter __counter;
-	HRESULT hr = ORIG_ScriptItemize(pwcInChars, cInChars, cMaxItems, psControl, psState, pItems, pcItems);
-	if (FAILED(hr))
-		return hr;
-	Dbg_TraceScriptItemize(pwcInChars, cInChars);
-	//異体字セレクタで始まる実行単位(ラン)を探す
-	//最終実行単位の長さを示すための項目は*pcItemsの値に含まれないことに注意
-	for (int i = 1; i < *pcItems; ++i) {
-		//条件を満たさない実行単位はスキップ
-		const int iCharPos = pItems[i].iCharPos;
-		if (pItems[i + 1].iCharPos - iCharPos < 2)
-			continue; //異体字セレクタの表現には少なくともUnicodeコードポイント2つが必要
-		if (pwcInChars[iCharPos] != 0xDB40)
-			continue; //上位サロゲートの値が範囲外
-		if (pwcInChars[iCharPos + 1] - 0xDD00 >= 0xF0)
-			continue; //下位サロゲートの値が範囲外
-		//異体字セレクタを1つ前の実行単位に移動する
-		pItems[i].iCharPos += 2;
-		//長さが0になった場合は実行単位そのものを削除する
-		if (pItems[i + 1].iCharPos <= pItems[i].iCharPos) {
-			memmove(&pItems[i], &pItems[i + 1], (*pcItems - i) * sizeof SCRIPT_ITEM);
-			--*pcItems;
-			--i; //削除した分のつじつま合わせ
-		}
-	}
-	return hr;
-}*/
 
 //HFONT dummy=NULL;
 /*
@@ -1687,119 +1650,30 @@ int WINAPI IMPL_GdipCreateFontFamilyFromName(const WCHAR *name, void *fontCollec
 }*/
 
 
-/*
-HRESULT WINAPI IMPL_ScriptShape(
-  HDC hdc, 
-  SCRIPT_CACHE* psc, 
-  const WCHAR* pwcChars, 
-  int cChars, 
-  int cMaxGlyphs, 
-  SCRIPT_ANALYSIS* psa, 
-  WORD* pwOutGlyphs, 
-  WORD* pwLogClust, 
-  SCRIPT_VISATTR* psva, 
-  int* pcGlyphs 
+DWORD WINAPI IMPL_GetFontData(_In_ HDC     hdc,
+	_In_ DWORD   dwTable,
+	_In_ DWORD   dwOffset,
+	_Out_writes_bytes_to_opt_(cjBuffer, return) PVOID pvBuffer,
+	_In_ DWORD   cjBuffer
 ) {
-	//CThreadCounter __counter;
-	Dbg_TraceScriptShape(pwcChars, cChars, psa, NULL, 0);
-	//実行単位の末尾が異体字シーケンスでなければ何もしない
-	WORD vsindex;
-	if (cChars < 3 || cMaxGlyphs < 1 || pwcChars[cChars - 2] != 0xDB40 || (vsindex = pwcChars[cChars - 1] - 0xDD00) >= 0xF0)
-		return ORIG_ScriptShape(hdc, psc, pwcChars, cChars, cMaxGlyphs, psa, pwOutGlyphs, pwLogClust, psva, pcGlyphs);
-
-	if (!hdc)
-		return E_PENDING; //判定にはHDCが必要
-
-	//異体字セレクタを削ってシェーピングエンジンに渡す
-	HRESULT hr = ORIG_ScriptShape(hdc, psc, pwcChars, cChars - 2, cMaxGlyphs - 1, psa, pwOutGlyphs, pwLogClust, psva, pcGlyphs);
-	if (FAILED(hr) || psa->fNoGlyphIndex)
-		return hr;
-	Dbg_TraceScriptShape(pwcChars, cChars, psa, pwOutGlyphs, *pcGlyphs);
-
-	//最終グリフを置き換える
-	WORD high;
-	WORD low = pwcChars[cChars - 3] - 0xDC00;
-	int baseChar;
-	if (cChars >= 4 && (high = pwcChars[cChars - 4] - 0xD800) < 0x400 && low < 0x400)
-		baseChar = ((high << 10) | low) + 0x10000;
-	else
-		baseChar = pwcChars[cChars - 3];
-	if (*pcGlyphs > 0) {
-		FreeTypeSubstGlyph(hdc, vsindex, baseChar, cChars, psa, pwOutGlyphs, pwLogClust, psva, pcGlyphs);
+	DWORD ret = (DWORD)INVALID_HANDLE_VALUE;
+	ENUMLOGFONTEXDVW envlf = { 0 };
+	HFONT hCurFont = GetCurrentFont(hdc);
+	if (GetCachedFontLocale(hCurFont) && GetObjectW(hCurFont, sizeof(LOGFONT), &envlf.elfEnumLogfontEx.elfLogFont)) {// call hooked version of GetObject to retrieve font info that the app originally want to create
+		HDC memdc = CreateCompatibleDC(hdc);
+		HFONT hRealFont = ORIG_CreateFontIndirectExW(&envlf);	// create memorydc and a real font so that we can run GetFontData on it
+		if (hRealFont) {
+			HFONT hOldFont = SelectFont(memdc, hRealFont);
+			ret = ORIG_GetFontData(memdc, dwTable, dwOffset, pvBuffer, cjBuffer);	// get font data from the real font
+			SelectFont(memdc, hOldFont);
+			DeleteFont(hRealFont);
+		}
+		DeleteDC(memdc);
 	}
-	Dbg_TraceScriptShape(pwcChars, cChars, psa, pwOutGlyphs, *pcGlyphs);
-
-	return hr;
-}*/
-
-/*
-
-HRESULT WINAPI IMPL_ScriptTextOut(
-  const HDC hdc, 
-  SCRIPT_CACHE* psc, 
-  int x, 
-  int y, 
-  UINT fuOptions, 
-  const RECT* lprc, 
-  const SCRIPT_ANALYSIS* psa, 
-  const WCHAR* pwcReserved, 
-  int iReserved, 
-  const WORD* pwGlyphs, 
-  int cGlyphs, 
-  const int* piAdvance, 
-  const int* piJustify, 
-  const GOFFSET* pGoffset 
-) {
-	//CThreadCounter __counter;
-	CThreadLocalInfo* pTLInfo = g_TLInfo.GetPtr();
-	if (pTLInfo)
-		pTLInfo->InUniTextOut(true);
-
-	HRESULT hr = ORIG_ScriptTextOut(hdc, psc, x, y, fuOptions, lprc, psa, pwcReserved, iReserved,
-		pwGlyphs, cGlyphs, piAdvance, piJustify, pGoffset);
-
-	if (pTLInfo)
-		pTLInfo->InUniTextOut(false);
-
-	return hr;
+	if (ret == (DWORD)INVALID_HANDLE_VALUE)	// any of the above operations failed or the font is not substituted
+		ret = ORIG_GetFontData(hdc, dwTable, dwOffset, pvBuffer, cjBuffer);	 // fallback to original
+	return ret;
 }
-
-HRESULT WINAPI IMPL_ScriptStringOut(
-	__in  SCRIPT_STRING_ANALYSIS ssa,
-	__in  int iX,
-	__in  int iY,
-	__in  UINT uOptions,
-	__in  const RECT *prc,
-	__in  int iMinSel,
-	__in  int iMaxSel,
-	__in  BOOL fDisabled
-
-) {
-  //CThreadCounter __counter;
-  CThreadLocalInfo* pTLInfo = g_TLInfo.GetPtr();
-  if (pTLInfo)
-	  pTLInfo->InUniscribe(true);
-
-  HRESULT hr = ORIG_ScriptStringOut(ssa, iX, iY, uOptions, prc, iMinSel, iMaxSel, fDisabled);
-
-  if (pTLInfo)
-	  pTLInfo->InUniscribe(false);
-
-  return hr;
-}
-*/
-
-/*
-int WINAPI IMPL_GetTextFace(HDC hdc, int c, LPWSTR lpName)
-{
-	//CThreadCounter __counter;
-	BOOL bResult = ORIG_GetTextFace(hdc, c, lpName);
-	wstring fontcache=GetCachedFont(GetCurrentFont(hdc));
-	if (fontcache.size()){
-		StringCchCopy(lpName, c, fontcache.c_str());
-	}
-	return bResult;
-}*/
 
 
 

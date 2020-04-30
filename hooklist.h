@@ -51,6 +51,12 @@ HOOK_DEFINE(HGDIOBJ, GetStockObject, (__in int i))
 HOOK_DEFINE(BOOL, BeginPath, (HDC hdc))
 HOOK_DEFINE(BOOL, EndPath, (HDC hdc))
 HOOK_DEFINE(BOOL, AbortPath, (HDC hdc));
+HOOK_DEFINE(DWORD, GetFontData, (_In_ HDC     hdc,
+	_In_ DWORD   dwTable,
+	_In_ DWORD   dwOffset,
+	_Out_writes_bytes_to_opt_(cjBuffer, return) PVOID pvBuffer,
+	_In_ DWORD   cjBuffer
+	));
 
 /*
 
