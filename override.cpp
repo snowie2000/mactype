@@ -1657,6 +1657,9 @@ DWORD WINAPI IMPL_GetFontData(_In_ HDC     hdc,
 	_In_ DWORD   cjBuffer
 ) {
 	DWORD ret = (DWORD)INVALID_HANDLE_VALUE;
+	if (dwTable != 0x656d616e)
+		return ORIG_GetFontData(hdc, dwTable, dwOffset, pvBuffer, cjBuffer);
+
 	ENUMLOGFONTEXDVW envlf = { 0 };
 	HFONT hCurFont = GetCurrentFont(hdc);
 	if (GetCachedFontLocale(hCurFont) && GetObjectW(hCurFont, sizeof(LOGFONT), &envlf.elfEnumLogfontEx.elfLogFont)) {// call hooked version of GetObject to retrieve font info that the app originally want to create

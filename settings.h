@@ -206,8 +206,9 @@ public:
 	//bool TrySub(LPCTSTR lpFacename) {return m_mfontsub.find(lpFacename)!=m_mfontsub.end(); };
 };
 
-#define SETTING_FONTSUBSTITUTE_DISABLE (0)
-#define SETTING_FONTSUBSTITUTE_ALL (1)
+#define SETTING_FONTSUBSTITUTE_DISABLE	(0)
+#define SETTING_FONTSUBSTITUTE_SAFE		(1)
+#define SETTING_FONTSUBSTITUTE_ALL		(2)
 
 #define SETTING_WIDTHMODE_GDI32    (0)
 #define SETTING_WIDTHMODE_FREETYPE (1)

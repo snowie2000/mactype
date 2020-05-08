@@ -1348,7 +1348,7 @@ void CFontLinkInfo::init()
 
 	extern HFONT g_alterGUIFont;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	if (pSettings->FontSubstitutes()>=SETTING_FONTSUBSTITUTE_ALL && pSettings->CopyForceFont(truefont, syslf))	//ﾊｹﾓﾃﾍ・ｫﾌ貊ｻﾄ｣ﾊｽﾊｱ｣ｬﾌ貊ｻｵｵﾍｳﾗﾖﾌ・
+	if (pSettings->FontSubstitutes()>=SETTING_FONTSUBSTITUTE_SAFE && pSettings->CopyForceFont(truefont, syslf))	//ﾊｹﾓﾃﾍ・ｫﾌ貊ｻﾄ｣ﾊｽﾊｱ｣ｬﾌ貊ｻｵｵﾍｳﾗﾖﾌ・
 	{
 		WCHAR envname[30] = L"MT_SYSFONT";
 		WCHAR envvalue[30] = { 0 };
@@ -1607,11 +1607,10 @@ CFontSubstitutesInfo::initini(const CFontSubstitutesIniArray& iniarray)
 void
 CFontSubstitutesInfo::init(int nFontSubstitutes, const CFontSubstitutesIniArray& iniarray)
 {
-	if (nFontSubstitutes >= SETTING_FONTSUBSTITUTE_ALL) {
+	if (nFontSubstitutes >= SETTING_FONTSUBSTITUTE_SAFE) {
 		initini(iniarray);	// init substitution from ini array
 		initreg(); // add more substitutions from registry
 	}
-	//if (nFontSubstitutes >= SETTING_FONTSUBSTITUTE_ALL) 
 }
 
 void GetMacTypeInternalFontName(LOGFONT* lf, LPTSTR fn)
