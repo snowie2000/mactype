@@ -893,7 +893,7 @@ bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 
 	m_hOldFont = SelectFont(m_hdc, hf);
 	// フォントデータが得られそうかチェック
-	cbNameTable = ::GetFontData(m_hdc, TVP_TT_TABLE_name, 0, NULL, 0);
+	cbNameTable = ORIG_GetFontData(m_hdc, TVP_TT_TABLE_name, 0, NULL, 0);
 	if(cbNameTable == GDI_ERROR){
 		goto ERROR_Init;
 	}
@@ -908,19 +908,19 @@ bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 	}
 
 	//- name タグの内容をメモリに読み込む
-	if(GetFontData(m_hdc, TVP_TT_TABLE_name, 0, pNameFromGDI, cbNameTable) == GDI_ERROR){
+	if(ORIG_GetFontData(m_hdc, TVP_TT_TABLE_name, 0, pNameFromGDI, cbNameTable) == GDI_ERROR){
 		goto ERROR_Init;
 	}
 
 	// フォントサイズ取得処理
-	cbFontData = ::GetFontData(m_hdc, TVP_TT_TABLE_ttcf, 0, &buf, 1);
+	cbFontData = ORIG_GetFontData(m_hdc, TVP_TT_TABLE_ttcf, 0, &buf, 1);
 	if(cbFontData == 1){
 		// TTC ファイルだと思われる
-		cbFontData = ::GetFontData(m_hdc, TVP_TT_TABLE_ttcf, 0, NULL, 0);
+		cbFontData = ORIG_GetFontData(m_hdc, TVP_TT_TABLE_ttcf, 0, NULL, 0);
 		m_isTTC = true;
 	}
 	else{
-		cbFontData = ::GetFontData(m_hdc, 0, 0, NULL, 0);
+		cbFontData = ORIG_GetFontData(m_hdc, 0, 0, NULL, 0);
 	}
 	if(cbFontData == GDI_ERROR){
 		// エラー; GetFontData では扱えなかった
@@ -937,7 +937,7 @@ bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 		CloseHandle(hmap);
 
 		if (m_pMapping) {
-			::GetFontData(m_hdc, m_isTTC ? TVP_TT_TABLE_ttcf : 0, 0, m_pMapping, cbFontData);
+			ORIG_GetFontData(m_hdc, m_isTTC ? TVP_TT_TABLE_ttcf : 0, 0, m_pMapping, cbFontData);
 		}
 	}
 

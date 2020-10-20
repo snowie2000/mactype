@@ -1958,8 +1958,10 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			if (bVertical && IsVerticalChar(wch)) {
 				FTInfo.font_type.flags |= FT_LOAD_VERTICAL_LAYOUT;
 				if (bLcdMode) {
-					FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD;
-					FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD_V;
+					if (FTInfo.font_type.flags&FT_LOAD_TARGET_LCD == FT_LOAD_TARGET_LCD) {
+						FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD;
+						FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD_V;
+					}
 					render_mode = FT_RENDER_MODE_LCD_V;
 				}
 			}
@@ -1968,8 +1970,10 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 					swap(FTInfo.font_type.height, FTInfo.font_type.width);	//交换无法旋转的文字宽高
 				FTInfo.font_type.flags &= ~FT_LOAD_VERTICAL_LAYOUT;
 				if (bLcdMode) {
-					FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD_V;
-					FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD;
+					if (FTInfo.font_type.flags&FT_LOAD_TARGET_LCD_V == FT_LOAD_TARGET_LCD_V) {
+						FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD_V;
+						FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD;
+					}
 					render_mode = FT_RENDER_MODE_LCD;
 				}
 			}
@@ -2385,8 +2389,10 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 			if (bVertical && IsVerticalChar(wch)) {
 				FTInfo.font_type.flags |= FT_LOAD_VERTICAL_LAYOUT;
 				if (bLcdMode) {
-					FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD;
-					FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD_V;
+					if (FTInfo.font_type.flags&FT_LOAD_TARGET_LCD == FT_LOAD_TARGET_LCD) {
+						FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD;
+						FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD_V;
+					}
 					render_mode = FT_RENDER_MODE_LCD_V;
 				}
 			}
@@ -2395,8 +2401,10 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 					swap(FTInfo.font_type.height, FTInfo.font_type.width);	//交换无法旋转的文字宽高
 				FTInfo.font_type.flags &= ~FT_LOAD_VERTICAL_LAYOUT;
 				if (bLcdMode) {
-					FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD_V;
-					FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD;
+					if (FTInfo.font_type.flags&FT_LOAD_TARGET_LCD_V == FT_LOAD_TARGET_LCD_V) {
+						FTInfo.font_type.flags &= ~FT_LOAD_TARGET_LCD_V;
+						FTInfo.font_type.flags |= FT_LOAD_TARGET_LCD;
+					}
 					render_mode = FT_RENDER_MODE_LCD;
 				}
 			}
