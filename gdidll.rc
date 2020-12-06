@@ -1,5 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
+#pragma code_page(65001)
+
 #include "resource."
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -16,7 +18,6 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
 LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
-#pragma code_page(936)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -67,7 +68,6 @@ END
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
-#pragma code_page(936)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

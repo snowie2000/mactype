@@ -1,3 +1,4 @@
+#pragma code_page(65001)
 #ifdef RC_INVOKED
 #include <winresrc.h>
 #endif
@@ -54,7 +55,6 @@ IDC_EXEC	"error: 0x%08x\n実行できません."
 
 //えーご(適当)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
 
 STRINGTABLE DISCARDABLE
 {
