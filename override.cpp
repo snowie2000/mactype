@@ -62,7 +62,7 @@ HFONT GetCurrentFont(HDC hdc)
 	return hCurFont;
 }
 
-//ÅĞ¶ÏÊÇ·ñÊÇÓĞĞ§ÆÕÍ¨ÏÔÊ¾DC£¬ÓÃÓÚÌø¹ı×ÖÄ»
+//åˆ¤æ–­æ˜¯å¦æ˜¯æœ‰æ•ˆæ™®é€šæ˜¾ç¤ºDCï¼Œç”¨äºè·³è¿‡å­—å¹•
 BOOL IsValidDC(HDC hdc)	
 {
 	if (GetDeviceCaps(hdc, TECHNOLOGY) != DT_RASDISPLAY) {
@@ -136,7 +136,7 @@ int div_ceil(int a, int b)
 	return a / b;
 }
 
-template <typename _TCHAR>	//ĞŞ¸ÄÕâ¸öº¯Êı£¬Ê¹ËüÔÚÊ§°ÜµÄÊ±ºò·µ»Øfalse£¬ÓÉµ÷ÓÃÕß¸ºÔğµ÷ÓÃWindowsÔ­º¯Êı£¬ÊµÏÖÏß³Ì°²È«¡£
+template <typename _TCHAR>	//ä¿®æ”¹è¿™ä¸ªå‡½æ•°ï¼Œä½¿å®ƒåœ¨å¤±è´¥çš„æ—¶å€™è¿”å›falseï¼Œç”±è°ƒç”¨è€…è´Ÿè´£è°ƒç”¨WindowsåŸå‡½æ•°ï¼Œå®ç°çº¿ç¨‹å®‰å…¨ã€‚
 BOOL _GetTextExtentPoint32AorW(HDC hdc, _TCHAR* lpString, int cbString, LPSIZE lpSize)
 {
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
@@ -230,8 +230,8 @@ LONG WINAPI IMPL_LdrLoadDll(IN PWCHAR PathToFile OPTIONAL, IN ULONG Flags OPTION
 		wstring filename = wstring(ModuleFileName->Buffer);
 		int last_slash=filename.find_last_of('\\');
 		if (last_slash!=-1)
-			filename.erase(0,last_slash+1);	//É¾³ıÂ·¾¶
-		if (_wcsicmp(filename.c_str(), L"d2d1.dll")==0)	//ÕıÔÚÔØÈëd2d1.dll
+			filename.erase(0,last_slash+1);	//åˆ é™¤è·¯å¾„
+		if (_wcsicmp(filename.c_str(), L"d2d1.dll")==0)	//æ­£åœ¨è½½å…¥d2d1.dll
 		{
 			bD2D1Loaded = true;
 			LONG result = ORIG_LdrLoadDll(PathToFile, Flags, ModuleFileName, ModuleHandle);
@@ -411,15 +411,15 @@ LPCWSTR GetCachedFontLocale(HFONT lFont)
 
 void AddToCachedFont(HFONT lfont, LPWSTR lpFaceName, LPWSTR lpGDIName)
 {
-	if (!lfont) return;	//²»¿ÉÒÔÌí¼Ó¿Õ½Úµã
+	if (!lfont) return;	//ä¸å¯ä»¥æ·»åŠ ç©ºèŠ‚ç‚¹
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_CACHEDFONT);
-	if (GetCachedFont(lfont)) return;	//ÒÑ¾­´æÔÚµÄ×ÖÌå
+	if (GetCachedFont(lfont)) return;	//å·²ç»å­˜åœ¨çš„å­—ä½“
 	FontCache[lfont] = new CFontSubResult(lpFaceName, lpGDIName);
 }
 
 void DeleteCachedFont(HFONT lfont)
 {
-	if (!lfont) return;	//²»¿ÉÒÔÉ¾³ıÍ·½áµã
+	if (!lfont) return;	//ä¸å¯ä»¥åˆ é™¤å¤´ç»“ç‚¹
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_CACHEDFONT);
 	CFontCache::iterator it= FontCache.find(lfont);
 	if (it!=FontCache.end())
@@ -755,7 +755,7 @@ HFONT WINAPI IMPL_CreateFontIndirectExW(CONST ENUMLOGFONTEXDV *penumlfex)
 BOOL WINAPI IMPL_DeleteObject(HGDIOBJ hObject)
 {
 	//CThreadCounter __counter;
-	if (hObject == g_alterGUIFont)	//ÎÒµÄÏµÍ³×ÖÌå£¬²»¿ÉÒÔÊÍ·Åµô
+	if (hObject == g_alterGUIFont)	//æˆ‘çš„ç³»ç»Ÿå­—ä½“ï¼Œä¸å¯ä»¥é‡Šæ”¾æ‰
 		return true;
 	BOOL bResult = ORIG_DeleteObject(hObject);
 	if (bResult) DeleteCachedFont((HFONT)hObject);
@@ -763,7 +763,7 @@ BOOL WINAPI IMPL_DeleteObject(HGDIOBJ hObject)
 }
 
 
-HFONT WINAPI IMPL_CreateFontIndirectW(CONST LOGFONTW *lplf)	//ÖØĞÂÆôÓÃÕâ¸öhook£¬Ö»Îª¼æÈİËÑ¹·ÊäÈë·¨
+HFONT WINAPI IMPL_CreateFontIndirectW(CONST LOGFONTW *lplf)	//é‡æ–°å¯ç”¨è¿™ä¸ªhookï¼Œåªä¸ºå…¼å®¹æœç‹—è¾“å…¥æ³•
 {
 	ENUMLOGFONTEXDVW envlf = {0};
 	memcpy(&envlf.elfEnumLogfontEx.elfLogFont, lplf, sizeof(LOGFONTW));
@@ -1061,14 +1061,14 @@ extern ControlIder CID;
 // È¡´úWindowsµÄExtTextOutW
 BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, CONST RECT *lprc, LPCWSTR lpString, UINT cbString, CONST INT *SyslpDx)
 {
-	//CThreadCounter __counter;		//ÓÃÓÚ°²È«ÍË³öµÄ¼ÆÊıÆ÷
+	//CThreadCounter __counter;		//ç”¨äºå®‰å…¨é€€å‡ºçš„è®¡æ•°å™¨
 	INT* lpDx = const_cast<INT*>(SyslpDx);
 
 	if (!hdc || !lpString || !cbString || !g_ccbRender || cbString>8192) {		//no valid param or rendering is disabled from control center.
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	}
-	if (!(fuOptions & ETO_GLYPH_INDEX) && cbString==1 && *lpString==32)	//¿Õ¸ñ
-		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions | ETO_IGNORELANGUAGE, lprc, lpString, cbString, lpDx);	//¿Õ¸ñ¾Í²»ÓÃ´¦ÀíÁË¡£¡£¡£·´Õı¶¼Ò»Ñù
+	if (!(fuOptions & ETO_GLYPH_INDEX) && cbString==1 && *lpString==32)	//ç©ºæ ¼
+		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions | ETO_IGNORELANGUAGE, lprc, lpString, cbString, lpDx);	//ç©ºæ ¼å°±ä¸ç”¨å¤„ç†äº†ã€‚ã€‚ã€‚åæ­£éƒ½ä¸€æ ·
 
 	CThreadLocalInfo* pTLInfo = g_TLInfo.GetPtr();		
 	if(!pTLInfo) {
@@ -1099,14 +1099,14 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 	if (!(fuOptions & ETO_GLYPH_INDEX) && !(fuOptions & ETO_IGNORELANGUAGE) && !lpDx && CID.myiscomplexscript(lpString,cbString))		//complex script
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
-	CGdippSettings* pSettings = CGdippSettings::GetInstance(); //»ñµÃÒ»¸öÅäÖÃÎÄ¼şÊµÀı
+	CGdippSettings* pSettings = CGdippSettings::GetInstance(); //è·å¾—ä¸€ä¸ªé…ç½®æ–‡ä»¶å®ä¾‹
 
 /*
 
-#ifndef _DEBUG		//debugÄ£Ê½ÏÂ´Ë²ÎÊıÓĞÎÊÌâ
+#ifndef _DEBUG		//debugæ¨¡å¼ä¸‹æ­¤å‚æ•°æœ‰é—®é¢˜
 	if (pSettings->FontLoader()==SETTING_FONTLOADER_WIN32)
 	{
-		if (!(fuOptions & ETO_GLYPH_INDEX) 	//¸´ÔÓÎÄ¼ş£¬²»½øĞĞäÖÈ¾
+		if (!(fuOptions & ETO_GLYPH_INDEX) 	//å¤æ‚æ–‡ä»¶ï¼Œä¸è¿›è¡Œæ¸²æŸ“
 		&& !(fuOptions & ETO_IGNORELANGUAGE) && ScriptIsComplex(lpString, cbString, SIC_COMPLEX) == S_OK) {
 			return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 		}
@@ -1121,7 +1121,7 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 
 	
-	if (pTLInfo->InExtTextOut()) {	//ÊÇÒì³£Ö®ºóµÄ×Ô¶¯»¹Ô­Ö´ĞĞ
+	if (pTLInfo->InExtTextOut()) {	//æ˜¯å¼‚å¸¸ä¹‹åçš„è‡ªåŠ¨è¿˜åŸæ‰§è¡Œ
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	}
 
@@ -1132,9 +1132,9 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 	if (GetTransform)
 	{
 		GetTransform(hdc, GT_WORLD_TO_DEVICE, &xfm);
-		if (memcmp(&xfm, &stdXfm, sizeof(XFORM)-sizeof(FLOAT)*2)) //(xfm.eM11!=1.0 || xfm.eM22!=1.0)	//Èç¹û´æÔÚ×ø±ê×ª»»
+		if (memcmp(&xfm, &stdXfm, sizeof(XFORM)-sizeof(FLOAT)*2)) //(xfm.eM11!=1.0 || xfm.eM22!=1.0)	//å¦‚æœå­˜åœ¨åæ ‡è½¬æ¢
 		{
-			bool bZoomInOut = (xfm.eM12==0 && xfm.eM21==0 && xfm.eM11>0 && xfm.eM22>0);	//Ö»ÊÇËõ·Å,ÇÒÊÇÕıÊıËõ·Å
+			bool bZoomInOut = (xfm.eM12==0 && xfm.eM21==0 && xfm.eM11>0 && xfm.eM22>0);	//åªæ˜¯ç¼©æ”¾,ä¸”æ˜¯æ­£æ•°ç¼©æ”¾
 			if (!bZoomInOut)
 				return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);	//·ÅÆúäÖÈ¾
 			else
@@ -1194,7 +1194,7 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 	OUTLINETEXTMETRIC* otm = NULL;
 
 ETO_TRY();
-	//ÉèÖÃ±êÖ¾£¬
+	//è®¾ç½®æ ‡å¿—ï¼Œ
 	pTLInfo->InExtTextOut(true);
 
 	POINT	curPos = { nXStart, nYStart };	//¼ÇÂ¼¿ªÊ¼µÄÎ»ÖÃ

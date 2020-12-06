@@ -32,7 +32,7 @@
 	extern rettype (WINAPI * ORIG_##name) argtype; \
 	extern rettype WINAPI IMPL_##name argtype;
 #include "hooklist.h"
-#undef HOOK_DEFINE	//ÎªÁËÈ·±£´ËÎÄ¼þÒ²ÄÜÖ±½ÓÊ¹ÓÃÕýÈ·µÄº¯Êý£¬ÐèÒªÉêÃ÷¡£
+#undef HOOK_DEFINE	//ä¸ºäº†ç¡®ä¿æ­¤æ–‡ä»¶ä¹Ÿèƒ½ç›´æŽ¥ä½¿ç”¨æ­£ç¡®çš„å‡½æ•°ï¼Œéœ€è¦ç”³æ˜Žã€‚
 #undef HOOK_MANUALLY
 
 /*
@@ -151,7 +151,7 @@ class CFontLinkInfo
 {
 public:
 	enum {
-		INFOMAX = 180,	//Ô´ÎÄ¼þ=15
+		INFOMAX = 180,	//æºæ–‡ä»¶=15
 		FONTMAX = 31,
 	};
 private:
@@ -278,7 +278,7 @@ private:
 	int  m_nLcdFilter;
 	int  m_nShadow[4];
 	int  m_nFontSubstitutes;
-	int	 m_bFontLink;	//¸ÄÎª¿ÉÒÔÊ¹ÓÃ¶àÖÖ²ÎÊý
+	int	 m_bFontLink;	//æ”¹ä¸ºå¯ä»¥ä½¿ç”¨å¤šç§å‚æ•°
 	int  m_nWidthMode;
 	int  m_nFontLoader;
 	int	 m_nScreenDpi;	// screen dpi
@@ -306,7 +306,7 @@ private:
 	int	 m_dwOSMajorVer;
 	int	 m_dwOSMinorVer;
 
-	// ¥¢¥ó¥Á¥¨¥¤¥ê¥¢¥¹Õ{ÕûÓÃ¥Æ©`¥Ö¥ë
+	// ã‚¢ãƒ³ãƒã‚¨ã‚¤ãƒªã‚¢ã‚¹èª¿æ•´ç”¨ãƒ†ãƒ¼ãƒ–ãƒ«
 	int  m_nTuneTable[256];
 	// LCDÓÃ
 	int  m_nTuneTableR[256];
@@ -330,10 +330,10 @@ private:
 	LOGFONT m_lfForceFont;
 	TCHAR m_szForceChangeFont[LF_FACESIZE];
 
-	//INI¥Õ¥¡¥¤¥ëÃû
+	//INIãƒ•ã‚¡ã‚¤ãƒ«å
 	TCHAR m_szFileName[MAX_PATH];
 
-	//INI¤«¤é¤ÎÕi¤ßÞz¤ß„IÀí
+	//INIã‹ã‚‰ã®èª­ã¿è¾¼ã¿å‡¦ç†
 	bool LoadAppSettings(LPCTSTR lpszFile);
 	void GetOSVersion();
 	float FastGetProfileFloat(LPCTSTR lpszSection, LPCTSTR lpszKey, float fDefault);
@@ -468,7 +468,7 @@ public:
 // OS version comparsion for magic code
 	bool IsWindows8() const { return m_dwOSMajorVer == 6 && m_dwOSMinorVer == 2; }
 	bool IsWindows81() const { return m_dwOSMajorVer == 6 && m_dwOSMinorVer == 3; }
-	// ¥Õ¥©¥ó¥ÈÃû¤è¤ß¤È¤ê
+	// ãƒ•ã‚©ãƒ³ãƒˆåã‚ˆã¿ã¨ã‚Š
 	LPCTSTR GetForceFontName() const
 	{
 		_ASSERTE(m_bDelayedInit);
@@ -478,7 +478,7 @@ public:
 
 	bool CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const;
 
-	//¤½¤ìÒÔÍâ
+	//ãã‚Œä»¥å¤–
 	bool IsWinXPorLater() const { return m_bIsWinXPorLater; }
 	bool IsInclude() const { return m_bIsInclude; }
 //	bool IsHDBench() const { return m_bIsHDBench; }
@@ -498,7 +498,7 @@ public:
 	bool IsProcessUnload() const;
 	bool IsExeUnload(LPCTSTR lpApp) const;
 	bool IsExeInclude(LPCTSTR lpApp) const;
-	void AddFontExclude(LPCWSTR lpFaceName);	//µãÕó×ÖÌåÖ±½Ó×Ô¶¯Ìí¼Óµ½´ËÁÐ±í
+	void AddFontExclude(LPCWSTR lpFaceName);	//ç‚¹é˜µå­—ä½“ç›´æŽ¥è‡ªåŠ¨æ·»åŠ åˆ°æ­¤åˆ—è¡¨
 	bool IsProcessExcluded() const;
 	bool IsProcessIncluded() const;
 	const CFontSettings& FindIndividual(LPCTSTR lpFaceName) const;
@@ -673,14 +673,14 @@ public:
 			break;
 		case ATTR_LcdFilterWeight:
 			if (!nValue)
-				pSettings->m_bUseCustomLcdFilter = false;	//´«NULL¹ýÀ´¾ÍÊÇ¹Ø±Õ×Ô¶¨Òå¹ýÂËÆ÷
+				pSettings->m_bUseCustomLcdFilter = false;	//ä¼ NULLè¿‡æ¥å°±æ˜¯å…³é—­è‡ªå®šä¹‰è¿‡æ»¤å™¨
 			else
 			{
-				pSettings->m_bUseCustomLcdFilter = true;	//·ñÔò´ò¿ª¹ýÂËÆ÷
-				if (!IsBadReadPtr((void*)nValue, sizeof(pSettings->m_arrLcdFilterWeights)))	//Èç¹ûÖ¸ÕëÓÐÐ§
-					memcpy(pSettings->m_arrLcdFilterWeights, (void*)nValue, sizeof(pSettings->m_arrLcdFilterWeights));	//¸´ÖÆÊý¾Ý
+				pSettings->m_bUseCustomLcdFilter = true;	//å¦åˆ™æ‰“å¼€è¿‡æ»¤å™¨
+				if (!IsBadReadPtr((void*)nValue, sizeof(pSettings->m_arrLcdFilterWeights)))	//å¦‚æžœæŒ‡é’ˆæœ‰æ•ˆ
+					memcpy(pSettings->m_arrLcdFilterWeights, (void*)nValue, sizeof(pSettings->m_arrLcdFilterWeights));	//å¤åˆ¶æ•°æ®
 			}
-			UpdateLcdFilter();	//Ë¢ÐÂ¹ýÂËÆ÷
+			UpdateLcdFilter();	//åˆ·æ–°è¿‡æ»¤å™¨
 			break;
 		case ATTR_HintSmallFont:
 			pSettings->m_bHintSmallFont = !!nValue;
@@ -689,7 +689,7 @@ public:
 			pSettings->m_nBitmapHeight = nValue;
 			break;
 		case ATTR_ShadowBuffer:
-			if (nValue && !IsBadReadPtr((void*)nValue, sizeof(pSettings->m_nShadow)))	//Ö¸ÕëÓÐÐ§
+			if (nValue && !IsBadReadPtr((void*)nValue, sizeof(pSettings->m_nShadow)))	//æŒ‡é’ˆæœ‰æ•ˆ
 			{
 				LPCTSTR szShadow = (LPCTSTR)nValue;
 				CStringTokenizer token;
@@ -849,7 +849,7 @@ public:
 				argc = token.Parse(value);
 			}
 			TCHAR buff[LF_FACESIZE+1];				
-			GetFontLocalName(p, buff); //×ª»»×ÖÌåÃû
+			GetFontLocalName(p, buff); //è½¬æ¢å­—ä½“å
 
 			CFontIndividual fi(buff);
 			const CFontSettings& fsCommon = pSettings->m_FontSettings;

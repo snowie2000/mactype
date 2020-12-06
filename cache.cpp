@@ -1,6 +1,6 @@
 #include "override.h"
 
-//CreateDIB¼ÆÊı£¬½«ÔÚ»æÖÆÏÂÁĞ´ÎÊıºó¸üĞÂDIBÇø
+//CreateDIBè®¡æ•°ï¼Œå°†åœ¨ç»˜åˆ¶ä¸‹åˆ—æ¬¡æ•°åæ›´æ–°DIBåŒº
 #define BITMAP_REDUCE_COUNTER	256//Ä¬ÈÏ1024
 
 
@@ -157,7 +157,7 @@ L1:
 		dec ebx
 		jnz L1
 	}
-#else*/	//¶ÔÓÚ64Î»ÏµÍ³£¬Ê¹ÓÃCÓïÑÔ
+#else*/	//å¯¹äº64ä½ç³»ç»Ÿï¼Œä½¿ç”¨Cè¯­è¨€
 	for (int yy=Y1; yy<Y2; yy++) {
 		for (int xx=X1; xx<X2; xx++) {
 			*( (DWORD*)m_lpPixels + (yy * xSize + xx) ) = rgb;

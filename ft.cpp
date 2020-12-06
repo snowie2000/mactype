@@ -4,19 +4,19 @@
 */
 /* 2006-10-27(by 555)
 * http://hp.vector.co.jp/authors/VA028002/freetype.html (higambana(İÑÒ°ÓÑ¼o))
-* ¤ò²Î¿¼¤Ë¤·¤Æ¤ä¤êÖ±¤·
+* ã‚’å‚è€ƒã«ã—ã¦ã‚„ã‚Šç›´ã—
 */
 /* 2006-10-29(by 555)
-* 693ÊÏ(¤Èºô¤Ö¤³¤È¤Ë¤¹¤ë)¤Î¾«Á¦µÄ¤Ê»î„Ó¤Ë¤è¤Ã¤Æ³öÀ´ÉÏ¤¬¤Ã¤¿¥¦¥Ï¥¦¥Ï¥½©`¥¹¤È
-* ÉÏÓ›¥µ¥¤¥È¤Î‰ä¸üµã¤òÔª¤Ë¤ß¤ß¤Ã¤Á¤¤ĞŞÕı¡£(¥Ù©`¥¹gdi0164)
+* 693æ°(ã¨å‘¼ã¶ã“ã¨ã«ã™ã‚‹)ã®ç²¾åŠ›çš„ãªæ´»å‹•ã«ã‚ˆã£ã¦å‡ºæ¥ä¸ŠãŒã£ãŸã‚¦ãƒã‚¦ãƒã‚½ãƒ¼ã‚¹ã¨
+* ä¸Šè¨˜ã‚µã‚¤ãƒˆã®å¤‰æ›´ç‚¹ã‚’å…ƒã«ã¿ã¿ã£ã¡ã„ä¿®æ­£ã€‚(ãƒ™ãƒ¼ã‚¹gdi0164)
 */
 /* (by 555)
-* ¤µ¤é¤Ë¾€Òı¤­¤â¥¦¥Ï¥¦¥Ï¤Ë¤·¤Æ¤â¤é¤Ã¤¿gdi0168¤òÔª¤Ë
-* ¥¤¥¿¥ê¥Ã¥¯¤È¥Ü©`¥ë¥É¤ò×·¼Ó¡£
+* ã•ã‚‰ã«ç·šå¼•ãã‚‚ã‚¦ãƒã‚¦ãƒã«ã—ã¦ã‚‚ã‚‰ã£ãŸgdi0168ã‚’å…ƒã«
+* ã‚¤ã‚¿ãƒªãƒƒã‚¯ã¨ãƒœãƒ¼ãƒ«ãƒ‰ã‚’è¿½åŠ ã€‚
 */
 /* (by sy567)
-* Ì«×Ö¤Î¥¢¥ë¥´¥ê¥º¥à¤ò‰ä¸ü¡£
-* ¥¬¥ó¥ŞÑaÕı¤òŒg×°¤·¤Æ¤ß¤ë¡£
+* å¤ªå­—ã®ã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ ã‚’å¤‰æ›´ã€‚
+* ã‚¬ãƒ³ãƒè£œæ­£ã‚’å®Ÿè£…ã—ã¦ã¿ã‚‹ã€‚
 */
 #include "override.h"
 #include "ft.h"
@@ -64,7 +64,7 @@ ControlIder CID;
 #endif
 
 
-//¸üĞÂ
+//æ›´æ–°
 #define RGBA(r,g,b,a)          ((COLORREF)(((BYTE)(r)|((WORD)((BYTE)(g))<<8))|(((DWORD)(BYTE)(b))<<16)|(((DWORD)(BYTE)(a))<<24)))
 //!!Snowie
 
@@ -176,7 +176,7 @@ static CAlphaBlend s_AlphaBlendTable;
 
 void CAlphaBlend::gettunetbl(int paramalpha, BOOL lcd, BOOL dark, const int * &tblR, const int * &tblG, const int * &tblB) const
 {
-	if (paramalpha == 1) {	//»ñÈ¡ÎÄ×Ö»ìºÏ±í
+	if (paramalpha == 1) {	//è·å–æ–‡å­—æ··åˆè¡¨
 		if (lcd) {
 			tblR = tunetblR.data();
 			tblG = tunetblG.data();
@@ -186,7 +186,7 @@ void CAlphaBlend::gettunetbl(int paramalpha, BOOL lcd, BOOL dark, const int * &t
 			tblR = tblG = tblB = tunetbl.data();
 		}
 	}
-	else {	//»ñÈ¡ÒõÓ°»ìºÏ±í
+	else {	//è·å–é˜´å½±æ··åˆè¡¨
 		if (dark)
 		{
 			if (lcd) {
@@ -289,12 +289,12 @@ void CAlphaBlend::init()
 		tunetblS[i] = Bound(0, alphatbl[Bound(table[i] * paramalpha / 100, 0, 255)], CAlphaBlend::BASE);
 		tunetblRS[i] = Bound(0, alphatbl[Bound(tableR[i] * paramalpha / 100, 0, 255)], CAlphaBlend::BASE);
 		tunetblGS[i] = Bound(0, alphatbl[Bound(tableG[i] * paramalpha / 100, 0, 255)], CAlphaBlend::BASE);
-		tunetblBS[i] = Bound(0, alphatbl[Bound(tableB[i] * paramalpha / 100, 0, 255)], CAlphaBlend::BASE);	//Ç³É«»ìºÏ±í
+		tunetblBS[i] = Bound(0, alphatbl[Bound(tableB[i] * paramalpha / 100, 0, 255)], CAlphaBlend::BASE);	//æµ…è‰²æ··åˆè¡¨
 
 		tunetblLS[i] = Bound(0, alphatbl[Bound(table[i] * lightparamalpha / 100, 0, 255)], CAlphaBlend::BASE);
 		tunetblLRS[i] = Bound(0, alphatbl[Bound(tableR[i] * lightparamalpha / 100, 0, 255)], CAlphaBlend::BASE);
 		tunetblLGS[i] = Bound(0, alphatbl[Bound(tableG[i] * lightparamalpha / 100, 0, 255)], CAlphaBlend::BASE);
-		tunetblLBS[i] = Bound(0, alphatbl[Bound(tableB[i] * lightparamalpha / 100, 0, 255)], CAlphaBlend::BASE);	//ÉîÉ«»ìºÏ±í
+		tunetblLBS[i] = Bound(0, alphatbl[Bound(tableB[i] * lightparamalpha / 100, 0, 255)], CAlphaBlend::BASE);	//æ·±è‰²æ··åˆè¡¨
 	}
 }
 
@@ -1326,7 +1326,7 @@ BOOL FreeTypePrepare(FreeTypeDrawInfo& FTInfo)
 		return FALSE;
 	}
 
-	FTInfo.params->lplf->lfWeight = FTInfo.params->otm->otmTextMetrics.tmWeight;	//¸üĞÂµ½±ê×¼weight
+	FTInfo.params->lplf->lfWeight = FTInfo.params->otm->otmTextMetrics.tmWeight;	//æ›´æ–°åˆ°æ ‡å‡†weight
 	pfs = &pfi->GetFontSettings();
 
 	cmap_index = -1;
@@ -1464,7 +1464,7 @@ BOOL FreeTypePrepare(FreeTypeDrawInfo& FTInfo)
 		break;
 	}
 
-	//Èç¹ûº¬ÓĞÄÚÖÃhintingÔòÆôÓÃdefaultÄ£Ê½£¬·ñÔòÊ¹ÓÃautohintÄ£Ê½£¬ÒÔ±£Ö¤Ğ§¹û
+	//å¦‚æœå«æœ‰å†…ç½®hintingåˆ™å¯ç”¨defaultæ¨¡å¼ï¼Œå¦åˆ™ä½¿ç”¨autohintæ¨¡å¼ï¼Œä»¥ä¿è¯æ•ˆæœ
 	// ƒAƒ“ƒ`ƒGƒCƒŠƒAƒX
 	if (FTInfo.IsMono()) {
 		font_type.flags |= FT_LOAD_TARGET_MONO;
@@ -1500,7 +1500,7 @@ BOOL FreeTypePrepare(FreeTypeDrawInfo& FTInfo)
 	if (pSettings->HintSmallFont() /*&& font_type.flags & FT_LOAD_TARGET_LIGHT*/ && font_type.height != -1 && font_type.height<12)  //Í¨ÓÃÉèÖÃ²»Ê¹ÓÃhinting£¬µ«ÊÇ´ò¿ªÁËĞ¡×ÖÌåhinting¿ª¹Ø
 	{
 		/*
-		if (!(freetype_face->face_flags & FT_FACE_FLAG_TRICKY))	//Èç¹û²»ÊÇtricky×ÖÌå
+		if (!(freetype_face->face_flags & FT_FACE_FLAG_TRICKY))	//å¦‚æœä¸æ˜¯trickyå­—ä½“
 		font_type.flags = font_type.flags & (~FT_LOAD_NO_HINTING) | (pfi->FontHasHinting() ? FT_LOAD_NO_AUTOHINT : FT_LOAD_FORCE_AUTOHINT);
 		else*/
 
@@ -1636,7 +1636,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 	BOOL bWindowsLink = pSettings->FontLink() == 2;
 	//!!Snowie
 
-	/*const*/ FT_Face freetype_face = FTInfo.freetype_face;	//È¥µô³£Á¿ÊôĞÔ£¬ÏÂÃæÒª¸ÄËû
+	/*const*/ FT_Face freetype_face = FTInfo.freetype_face;	//å»æ‰å¸¸é‡å±æ€§ï¼Œä¸‹é¢è¦æ”¹ä»–
 	const FT_Int cmap_index = FTInfo.cmap_index;
 	const FT_Bool useKerning = FTInfo.useKerning;
 	FT_Render_Mode render_mode = FTInfo.render_mode;
@@ -1685,14 +1685,14 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			ZeroMemory(lpfontlink[i], sizeof(WORD)*cbString);	//³õÊ¼»¯ÎªÎŞÁ´½Ó
 		}
 		//
-		hOldFont = (HFONT)GetCurrentObject(FTInfo.hdc, OBJ_FONT);	//¼ÓÔØµÚÒ»¸ö×ÖÌå
+		hOldFont = (HFONT)GetCurrentObject(FTInfo.hdc, OBJ_FONT);	//åŠ è½½ç¬¬ä¸€ä¸ªå­—ä½“
 	}
 	//fontlink
 
 	int* Dx = FTInfo.Dx;
 	int* Dy = FTInfo.Dy;
 	if (!bAllowDefaultLink && FTInfo.face_id_list_num > 1)
-		FTInfo.face_id_list_num--;	//Èç¹ûÊÇsymbolÒ³ÄÇ¾Í²»Á´½Óµ½ËÎÌå
+		FTInfo.face_id_list_num--;	//å¦‚æœæ˜¯symbolé¡µé‚£å°±ä¸é“¾æ¥åˆ°å®‹ä½“
 
 	bool bUnicodePlane = false;
 	for (int i = 0; lpString < lpEnd; ++lpString, ++gi, ++GlyphArray, ++drState, ++AAList, /*ggdi32++,*/ i++) {
@@ -1752,7 +1752,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 				f_glyph = !!wch;
 				glyph_index = wch;
 				*AAList = AAMode;
-				GetCharWidthI(FTInfo.hdc, wch, 1, (LPWORD)&wch, &gdi32x);	//indexµÄÎÄ×Ö±ØĞë¼ÆËã¿í¶È
+				GetCharWidthI(FTInfo.hdc, wch, 1, (LPWORD)&wch, &gdi32x);	//indexçš„æ–‡å­—å¿…é¡»è®¡ç®—å®½åº¦
 				if (FTInfo.font_type.height <= pSettings->BitmapHeight() && pfi->EmbeddedBmpExist(FTInfo.font_type.height))
 				{
 					f_glyph = false;	//Ê¹ÓÃµãÕó£¬²»»æÍ¼
@@ -1763,11 +1763,11 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 				if (wch && !CID.myiswcntrl(lpString[0])) {	// need to draw a non-control character				
 					for (int j = 0; j < FTInfo.face_id_list_num; ++j) {
 						freetype_face = NULL;	// reinitialize it in case no fontlinking is available.
-						if (bWindowsLink)	//Ê¹ÓÃWindowsº¯Êı½øĞĞfontlink
+						if (bWindowsLink)	//ä½¿ç”¨Windowså‡½æ•°è¿›è¡Œfontlink
 						{
 							if (!lpfontlink[j][i])	//»¹Ã»³õÊ¼»¯¸Ã×ÖÌåµÄfontlink
 							{
-								SelectFont(FTInfo.hdc, FTInfo.ggo_font_list[j]);	//¼ÓÔØggo×ÖÌå
+								SelectFont(FTInfo.hdc, FTInfo.ggo_font_list[j]);	//åŠ è½½ggoå­—ä½“
 								GetGlyphIndices(FTInfo.hdc, lpString, cbString - i, &lpfontlink[j][i], GGI_MARK_NONEXISTING_GLYPHS);	//½øĞĞfontlink
 								SelectFont(FTInfo.hdc, hOldFont);
 							}
@@ -1785,8 +1785,8 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 							GetCharWidth32W(FTInfo.hdc, wch, wch, &gdi32x);	//ÓĞĞ§ÎÄ×Ö£¬¼ÆËã¿í¶È
 							f_glyph = true;
 							FTInfo.font_type.face_id = FTInfo.face_id_list[j];
-							freetype_face = FTInfo.GetFace(j);	//Í¬Ê±¸üĞÂ¶ÔÓ¦faceidµÄÊµ¼Êface
-																//½ÓÏÂÀ´¸üĞÂ¶ÔÓ¦µÄfontsetting
+							freetype_face = FTInfo.GetFace(j);	//åŒæ—¶æ›´æ–°å¯¹åº”faceidçš„å®é™…face
+																//æ¥ä¸‹æ¥æ›´æ–°å¯¹åº”çš„fontsetting
 							FTInfo.font_type.flags = FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH;
 							// ƒqƒ“ƒeƒBƒ“ƒO
 							//extern CFontSetCache g_fsetcache;
@@ -1795,7 +1795,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 							{
 								switch (FTInfo.font_type.height)
 								{
-								case 11: {FTInfo.font_type.height = 12; FTInfo.font_type.width++; break; }	//¶ÔËÎÌå½øĞĞÌØÊâ´¦Àí
+								case 11: {FTInfo.font_type.height = 12; FTInfo.font_type.width++; break; }	//å¯¹å®‹ä½“è¿›è¡Œç‰¹æ®Šå¤„ç†
 								case 13: {FTInfo.font_type.height = 15; FTInfo.font_type.width += 2; break; }
 								}
 							}
@@ -1851,7 +1851,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 								AAMode = *AAList/*pfs->GetAntiAliasMode()*/;
 								bLcdMode = render_mode == FT_RENDER_MODE_LCD;
 								bLightLcdMode = (AAMode == 4) || (AAMode == 5);
-								//¸üĞÂÍê³É
+								//æ›´æ–°å®Œæˆ
 							}
 							if (FTInfo.font_type.height <= pSettings->BitmapHeight() && pfi->EmbeddedBmpExist(FTInfo.font_type.height))
 							{
@@ -1906,7 +1906,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 
 					if (isc == CNTRL_COMPLEX_TEXT)	//¿ØÖÆ×Ö
 					{
-						cx = dxWidth;	//·ş´ÓwindowsµÄ¿í¶Èµ÷¶È
+						cx = dxWidth;	//æœä»windowsçš„å®½åº¦è°ƒåº¦
 										//if (!dxWidth)
 										//	CID.setcntrlAttribute(wch, CNTRL_ZERO_WIDTH);
 					}
@@ -1923,7 +1923,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 						GetCharABCWidthsI(FTInfo.hdc, wch, 1, NULL, &abc);
 						else
 						GetCharABCWidths(FTInfo.hdc, wch, wch, &abc);*/
-						//FTInfo.px = FTInfo.x+Max(clpdx.get(cx), abc.abcA+(int)abc.abcB+abc.abcC);	//ÎŞĞ§ÎÄ×ÖµÄÇé¿öÏÂ£¬»æÍ¼¿í¶È=Êó±êÎ»ÖÃ
+						//FTInfo.px = FTInfo.x+Max(clpdx.get(cx), abc.abcA+(int)abc.abcB+abc.abcC);	//æ— æ•ˆæ–‡å­—çš„æƒ…å†µä¸‹ï¼Œç»˜å›¾å®½åº¦=é¼ æ ‡ä½ç½®
 						FTInfo.px = FTInfo.x + cx;
 						FTInfo.x += dxWidth;//Max(clpdx.get(cx), cx);/*(int)abc.abcB+abc.abcC*///Max(clpdx.get(cx), abc.abcB? abc.abcA:0);
 											//}
@@ -1954,7 +1954,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			}
 
 
-			// ¿kºá
+			// ç¸¦æ¨ª
 			if (bVertical && IsVerticalChar(wch)) {
 				FTInfo.font_type.flags |= FT_LOAD_VERTICAL_LAYOUT;
 				if (bLcdMode) {
@@ -1967,7 +1967,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			}
 			else {
 				if (bVertical)
-					swap(FTInfo.font_type.height, FTInfo.font_type.width);	//½»»»ÎŞ·¨Ğı×ªµÄÎÄ×Ö¿í¸ß
+					swap(FTInfo.font_type.height, FTInfo.font_type.width);	//äº¤æ¢æ— æ³•æ—‹è½¬çš„æ–‡å­—å®½é«˜
 				FTInfo.font_type.flags &= ~FT_LOAD_VERTICAL_LAYOUT;
 				if (bLcdMode) {
 					if (FTInfo.font_type.flags&FT_LOAD_TARGET_LCD_V == FT_LOAD_TARGET_LCD_V) {
@@ -1982,8 +1982,8 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 
 				bool bRequiredownsize;
 
-				bIsIndivBold = freetype_face->style_flags & FT_STYLE_FLAG_BOLD;	//ÊÇ¶ÀÁ¢´ÖÌå
-				bIsBold = (IsFontBold(lf) && !bIsIndivBold);	//ÊÇ·Â´ÖÌå
+				bIsIndivBold = freetype_face->style_flags & FT_STYLE_FLAG_BOLD;	//æ˜¯ç‹¬ç«‹ç²—ä½“
+				bIsBold = (IsFontBold(lf) && !bIsIndivBold);	//æ˜¯ä»¿ç²—ä½“
 				bRequiredownsize = bIsBold && /*(pSettings->BolderMode()==2 || (*/pSettings->BolderMode() != 1 /*&& FTInfo.height>FT_BOLD_LOW))*/;
 				if (bRequiredownsize)
 				{
@@ -2092,7 +2092,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 			}
 			else {
 				if (FTInfo.x + left < FTInfo.xBase)
-					FTInfo.xBase = FTInfo.x + left;	//Èç¹ûÓĞ×Ö·ûÊÇ¸ºÊıÆğÊ¼Î»ÖÃµÄ£¨ºÏ³É·ûºÅ£©£¬ µ÷ÕûÎÄ×ÖµÄÆğÊ¼Î»ÖÃ
+					FTInfo.xBase = FTInfo.x + left;	//å¦‚æœæœ‰å­—ç¬¦æ˜¯è´Ÿæ•°èµ·å§‹ä½ç½®çš„ï¼ˆåˆæˆç¬¦å·ï¼‰ï¼Œ è°ƒæ•´æ–‡å­—çš„èµ·å§‹ä½ç½®
 			}
 
 			if (lpString < lpEnd - 1) {
@@ -2103,7 +2103,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 				int bx = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.width;
 				if (render_mode == FT_RENDER_MODE_LCD && FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.pixel_mode != FT_PIXEL_MODE_BGRA) bx /= 3;
 				bx += left;
-				FTInfo.px = FTInfo.x + Max(Max(dx, bx), cx);	//ÓĞÎÄ×ÖµÄÇé¿öÏÂ,»æÍ¼¿í¶È=ft¼ÆËãµÄ¿í¶È£¬Êó±êÎ»ÖÃ=win¿í¶È
+				FTInfo.px = FTInfo.x + Max(Max(dx, bx), cx);	//æœ‰æ–‡å­—çš„æƒ…å†µä¸‹,ç»˜å›¾å®½åº¦=ftè®¡ç®—çš„å®½åº¦ï¼Œé¼ æ ‡ä½ç½®=winå®½åº¦
 				FTInfo.x += dx;//Max(dx, gdi32x);//Max(Max(dx, bx), cx);
 			}
 
@@ -2124,7 +2124,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 
 	cont:
 		*Dx = FTInfo.x;		//DxµÄÎ»ÖÃÊÇÏÂÒ»¸ö×Ö·û¿ªÊ¼µÄ»ù×¼Î»ÖÃ£¬²¢²»ÊÇÏÂÒ»¸ö×Ö·û¿ªÊ¼»­µÄÎ»ÖÃ
-		*Dy = FTInfo.y;		//DyµÄÎ»ÖÃÊÇÏÂÒ»¸ö×Ö·ûµÄy×ø±ê
+		*Dy = FTInfo.y;		//Dyçš„ä½ç½®æ˜¯ä¸‹ä¸€ä¸ªå­—ç¬¦çš„yåæ ‡
 		++Dx;
 		++Dy;
 	}
@@ -2152,7 +2152,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 	BOOL bWindowsLink = pSettings->FontLink() == 2;
 	//!!Snowie
 
-	/*const*/ FT_Face freetype_face = FTInfo.freetype_face;	//È¥µô³£Á¿ÊôĞÔ£¬ÏÂÃæÒª¸ÄËû
+	/*const*/ FT_Face freetype_face = FTInfo.freetype_face;	//å»æ‰å¸¸é‡å±æ€§ï¼Œä¸‹é¢è¦æ”¹ä»–
 	const FT_Int cmap_index = FTInfo.cmap_index;
 	const FT_Bool useKerning = FTInfo.useKerning;
 	FT_Render_Mode render_mode = FTInfo.render_mode;
@@ -2209,7 +2209,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 			ZeroMemory(lpfontlink[i], sizeof(WORD)*cbString);	//³õÊ¼»¯ÎªÎŞÁ´½Ó
 		}
 		//
-		hOldFont = (HFONT)GetCurrentObject(FTInfo.hdc, OBJ_FONT);	//¼ÓÔØµÚÒ»¸ö×ÖÌå
+		hOldFont = (HFONT)GetCurrentObject(FTInfo.hdc, OBJ_FONT);	//åŠ è½½ç¬¬ä¸€ä¸ªå­—ä½“
 	}
 	//fontlink
 
@@ -2241,7 +2241,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 	}
 	}*/
 
-	if (!bGlyphIndex)  	//½ö¶Ôwin32Çé¿ö½øĞĞÓÅ»¯£¬ftÇé¿öÁíÒé
+	if (!bGlyphIndex)  	//ä»…å¯¹win32æƒ…å†µè¿›è¡Œä¼˜åŒ–ï¼Œftæƒ…å†µå¦è®®
 		if (GetGlyphIndices(FTInfo.hdc, lpString, cbString, gi, GGI_MARK_NONEXISTING_GLYPHS) != cbString)
 		{
 			nRet = false;
@@ -2251,7 +2251,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 	int* Dx = FTInfo.Dx;
 	int* Dy = FTInfo.Dy;
 	if (!bAllowDefaultLink && FTInfo.face_id_list_num > 1)
-		FTInfo.face_id_list_num--;	//Èç¹ûÊÇsymbolÒ³ÄÇ¾Í²»Á´½Óµ½ËÎÌå
+		FTInfo.face_id_list_num--;	//å¦‚æœæ˜¯symbolé¡µé‚£å°±ä¸é“¾æ¥åˆ°å®‹ä½“
 
 	for (int i = 0; lpString < lpEnd; ++lpString, gi++, GlyphArray++, drState++, ++AAList,/*ggdi32++,*/ i++) {
 		WCHAR wch = *lpString;
@@ -2300,7 +2300,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 				*AAList = AAMode;
 				glyph_index = wch;
 				ggoformat |= GGO_GLYPH_INDEX;
-				GetCharWidthI(FTInfo.hdc, wch, 1, (LPWORD)&wch, &gdi32x);	//indexµÄÎÄ×Ö±ØĞë¼ÆËã¿í¶È
+				GetCharWidthI(FTInfo.hdc, wch, 1, (LPWORD)&wch, &gdi32x);	//indexçš„æ–‡å­—å¿…é¡»è®¡ç®—å®½åº¦
 			}
 			else
 			{
@@ -2328,7 +2328,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 			}
 
 
-			if (!f_glyph) {	//glyphindexµÄÎÄ×ÖÉÏÃæÒÑ¾­¼ÆËã¹ıÁË
+			if (!f_glyph) {	//glyphindexçš„æ–‡å­—ä¸Šé¢å·²ç»è®¡ç®—è¿‡äº†
 #ifdef _DEBUG
 				GdiSetBatchLimit(0);
 #endif
@@ -2365,7 +2365,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 							GetCharABCWidthsI(FTInfo.hdc, wch, 1, NULL, &abc);
 							else
 							GetCharABCWidths(FTInfo.hdc, wch, wch, &abc);*/
-							//FTInfo.px = FTInfo.x+Max(clpdx.get(cx), abc.abcA+(int)abc.abcB+abc.abcC);	//ÎŞĞ§ÎÄ×ÖµÄÇé¿öÏÂ£¬»æÍ¼¿í¶È=Êó±êÎ»ÖÃ
+							//FTInfo.px = FTInfo.x+Max(clpdx.get(cx), abc.abcA+(int)abc.abcB+abc.abcC);	//æ— æ•ˆæ–‡å­—çš„æƒ…å†µä¸‹ï¼Œç»˜å›¾å®½åº¦=é¼ æ ‡ä½ç½®
 							FTInfo.px = FTInfo.x + cx;
 							FTInfo.x += clpdx.get(cx);
 						}
@@ -2398,7 +2398,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 			}
 			else {
 				if (bVertical)
-					swap(FTInfo.font_type.height, FTInfo.font_type.width);	//½»»»ÎŞ·¨Ğı×ªµÄÎÄ×Ö¿í¸ß
+					swap(FTInfo.font_type.height, FTInfo.font_type.width);	//äº¤æ¢æ— æ³•æ—‹è½¬çš„æ–‡å­—å®½é«˜
 				FTInfo.font_type.flags &= ~FT_LOAD_VERTICAL_LAYOUT;
 				if (bLcdMode) {
 					if (FTInfo.font_type.flags&FT_LOAD_TARGET_LCD_V == FT_LOAD_TARGET_LCD_V) {
@@ -2492,7 +2492,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 			int dx = clpdx.get(bWidthGDI32 ? gdi32x : cx);	//»ñµÃ¿í¶È
 			int left = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->left;
 			if (FTInfo.x + left< FTInfo.xBase)
-				FTInfo.xBase = FTInfo.x + left;	//Èç¹ûÓĞ×Ö·ûÊÇ¸ºÊıÆğÊ¼Î»ÖÃµÄ£¨ºÏ³É·ûºÅ£©£¬ µ÷ÕûÎÄ×ÖµÄÆğÊ¼Î»ÖÃ
+				FTInfo.xBase = FTInfo.x + left;	//å¦‚æœæœ‰å­—ç¬¦æ˜¯è´Ÿæ•°èµ·å§‹ä½ç½®çš„ï¼ˆåˆæˆç¬¦å·ï¼‰ï¼Œ è°ƒæ•´æ–‡å­—çš„èµ·å§‹ä½ç½®
 
 			if (lpString < lpEnd - 1) {
 				FTInfo.x += dx;
@@ -2502,7 +2502,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 				int bx = FT_BitmapGlyph((*glyph_bitmap)->ft_glyph)->bitmap.width;
 				if (render_mode == FT_RENDER_MODE_LCD) bx /= 3;
 				bx += left;
-				FTInfo.px = FTInfo.x + Max(Max(dx, bx), cx);	//ÓĞÎÄ×ÖµÄÇé¿öÏÂ,»æÍ¼¿í¶È=ft¼ÆËãµÄ¿í¶È£¬Êó±êÎ»ÖÃ=win¿í¶È
+				FTInfo.px = FTInfo.x + Max(Max(dx, bx), cx);	//æœ‰æ–‡å­—çš„æƒ…å†µä¸‹,ç»˜å›¾å®½åº¦=ftè®¡ç®—çš„å®½åº¦ï¼Œé¼ æ ‡ä½ç½®=winå®½åº¦
 				FTInfo.x += dx;//Max(dx, gdi32x);//Max(Max(dx, bx), cx);
 			}
 
@@ -2573,7 +2573,7 @@ BOOL CALLBACK TextOutCallback(FreeTypeGlyphInfo& FTGInfo)
 
 	if (!FTGInfo.FTGlyph->bitmap.buffer) {
 		//if (FTInfo->params->alpha == 1) {
-		// 		if (!(FTInfo->GetETO() & ETO_GLYPH_INDEX) && wch==32)	//¿Õ¸ñ
+		// 		if (!(FTInfo->GetETO() & ETO_GLYPH_INDEX) && wch==32)	//ç©ºæ ¼
 		// 			ORIG_ExtTextOutW(FTInfo->hdc, FTInfo->x, FTInfo->yTop, FTInfo->GetETO() & ETO_IGNORELANGUAGE, NULL, &wch, 1, NULL);
 		// 		else
 		ORIG_ExtTextOutW(FTInfo->hdc, FTInfo->x, FTInfo->yTop, FTInfo->GetETO(), NULL, &FTGInfo.wch, 1, NULL);
@@ -2624,10 +2624,10 @@ int IsColorDark(DWORD Color, double Gamma)
 	//return (GetRValue(Color)*0.299 + GetGValue(Color)*0.587 + GetBValue(Color)*0.114);	//Ô­Ê¼Ëã·¨
 	//===============================================================
 	//²ÉÓÃPhotoshop sRGBµÄRGB->LabËã·¨½øĞĞ»»Ëã£¬LÎªÉ«²ÊÊÓ¾õÁÁ¶È
-	//¸ĞĞ» Î÷°²Àí¹¤´óÑ§ ¼ÖÍñÀö µÄ·ÖÎö
+	//æ„Ÿè°¢ è¥¿å®‰ç†å·¥å¤§å­¦ è´¾å©‰ä¸½ çš„åˆ†æ
 	//===============================================================
-	static double s_multipler = 116 / pow(100, (double)1.0 / 3.0);	//Ô¤¼ÆËã³£Êı,Ç¿ÖÆÊ¹ÓÃdouble°æ±¾
-	double* RGBTable = s_AlphaBlendTable.GetRGBTable();	//»ñµÃÏÔÊ¾Æ÷×ª»»±í
+	static double s_multipler = 116 / pow(100, (double)1.0 / 3.0);	//é¢„è®¡ç®—å¸¸æ•°,å¼ºåˆ¶ä½¿ç”¨doubleç‰ˆæœ¬
+	double* RGBTable = s_AlphaBlendTable.GetRGBTable();	//è·å¾—æ˜¾ç¤ºå™¨è½¬æ¢è¡¨
 	double ret = pow(23.9746*RGBTable[GetRValue(Color)] + 73.0653*RGBTable[GetGValue(Color)] + 6.13799*RGBTable[GetBValue(Color)], 1.0 / 3.0)*s_multipler - 16;
 	return max(int(ret + 0.499), 0);
 
@@ -2718,7 +2718,7 @@ BOOL FreeTypeTextOut(
 	const TEXTMETRIC& tm = FTInfo.params->otm->otmTextMetrics;
 	FTInfo.yBase = tm.tmAscent;
 
-	//===============¼ÆËãÑÕÉ«»º´æ======================
+	//===============è®¡ç®—é¢œè‰²ç¼“å­˜======================
 
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 	int lightdiff, darkdiff, bDarkColor = 0, ShadowColor = 0;
@@ -2766,7 +2766,7 @@ BOOL FreeTypeTextOut(
 		break;
 	}
 
-	//¼ÆËãÏÂ»®Ïß»òÉ¾³ıÏßµÄĞÅÏ¢
+	//è®¡ç®—ä¸‹åˆ’çº¿æˆ–åˆ é™¤çº¿çš„ä¿¡æ¯
 	int decorationInfo_height;
 	int decorationInfo_thickness;
 	OUTLINETEXTMETRIC &decorationInfo_otm = *FTInfo.params->otm;
@@ -2803,7 +2803,7 @@ BOOL FreeTypeTextOut(
 		}
 	}
 
-	//===============¼ÆËãÍê³É==========================
+	//===============è®¡ç®—å®Œæˆ==========================
 
 	FreeTypeGlyphInfo FTGInfo = { &FTInfo, 0, 0, 0, solid, shadow, pSettings->InvertColor() };
 	for (int i = 0; i<cbString; ++i, ++lpString)

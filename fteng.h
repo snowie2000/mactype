@@ -314,7 +314,7 @@ private:
 	wstring	m_fullname, m_familyname;
 	typedef map<UINT, FreeTypeFontCache*>	CacheArray;
 	CacheArray m_cache;
-	//¿ìËÙÁ´½Ó
+	//å¿«é€Ÿé“¾æ¥
 	FTC_FaceID face_id_link[CFontLinkInfo::FONTMAX * 2 + 1];
 	HFONT ggo_link[CFontLinkInfo::FONTMAX * 2 + 1];
 	bool m_linkinited;
@@ -397,7 +397,7 @@ public:
 			if (nSize==0)
 				m_fullname = L"";
 			else
-			//if (m_fullname.size()==0)	//¹¹Ôìº¯ÊıÖĞ²»Ìá¹©£¬×Ô¼º»ñÈ¡
+			//if (m_fullname.size()==0)	//æ„é€ å‡½æ•°ä¸­ä¸æä¾›ï¼Œè‡ªå·±è·å–
 			{
 				LPOUTLINETEXTMETRIC otm = (LPOUTLINETEXTMETRIC)malloc(nSize);
 				memset(otm, 0, nSize);
@@ -410,7 +410,7 @@ public:
 
 				TCHAR buff[LF_FACESIZE+1];				
 				GetFontLocalName(localname, buff);
-				m_nFontFamily = otm->otmTextMetrics.tmPitchAndFamily & 0xF0;	//»ñÈ¡×ÖÌå¼Ò×å£¬¼Ò×å¶ÔÓ¦Ê¹ÓÃÊ²Ã´Ä¬ÈÏÁ´½Ó×ÖÌå
+				m_nFontFamily = otm->otmTextMetrics.tmPitchAndFamily & 0xF0;	//è·å–å­—ä½“å®¶æ—ï¼Œå®¶æ—å¯¹åº”ä½¿ç”¨ä»€ä¹ˆé»˜è®¤é“¾æ¥å­—ä½“
 				m_familyname = (wstring)buff;
 				m_set = pSettings->FindIndividual(m_familyname.c_str());
 				m_ftWeight = CalcBoldWeight(/*weight*/700);
@@ -422,7 +422,7 @@ public:
 			SelectFont(hdc, old);
 			DeleteDC(hdc);
 		
-			//Íê³É
+			//å®Œæˆ
 //		g_EngineCreateFont = false;
 		face_id_link[0]=(FTC_FaceID)NULL;
 		ggo_link[0] = NULL;
@@ -472,7 +472,7 @@ public:
 	void UpdateFontSetting()
 	{
 		m_ftWeight = CalcBoldWeight(700/*m_weight*/);
-		//Çå³ı×ÖÌåÁ´½Ó
+		//æ¸…é™¤å­—ä½“é“¾æ¥
 		face_id_link[0]=NULL;
 		ggo_link[0]=NULL;
 		m_linknum = 0;
@@ -617,7 +617,7 @@ public:
 	}
 	void ReloadAll()
 	{
-		//ÖØĞÂÔØÈëÈ«²¿×ÖÌå£¬¼´Çå¿ÕËùÓĞ×ÖÌå»º´æ
+		//é‡æ–°è½½å…¥å…¨éƒ¨å­—ä½“ï¼Œå³æ¸…ç©ºæ‰€æœ‰å­—ä½“ç¼“å­˜
 		COwnedCriticalSectionLock __olock(2);
 		CCriticalSectionLock __lock;
 		CGdippSettings* pSettings = CGdippSettings::GetInstance();
@@ -629,9 +629,9 @@ public:
 			if (p)
 			{
 				/*
-								if (p->GetFullName()!=iter->first)	//ÊÇÌæ»»×ÖÌå
+								if (p->GetFullName()!=iter->first)	//æ˜¯æ›¿æ¢å­—ä½“
 																{
-																	p->Release();	//ÊÍ·Åµô¶àÖØÒıÓÃ
+																	p->Release();	//é‡Šæ”¾æ‰å¤šé‡å¼•ç”¨
 																	m_mfullMap.erase(iter++);
 																	continue;
 																}*/

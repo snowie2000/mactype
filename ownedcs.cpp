@@ -31,15 +31,15 @@ void WINAPI EnterOwnedCritialSection(POWNED_CRITIAL_SECTION cs, WORD Owner)
 	}
 	else
 	{
-		if (InterlockedIncrementInt(cs->nRequests)>0)  //µÈ´ı»ñÈ¡ËùÓĞÈ¨
+		if (InterlockedIncrementInt(cs->nRequests)>0)  //ç­‰å¾…è·å–æ‰€æœ‰æƒ
 		{
 			LeaveCriticalSection(&cs->threadLock);
 			WaitForSingleObject(cs->hEvent, INFINITE);
 		}
 		else
 			LeaveCriticalSection(&cs->threadLock);
-		InterlockedExchangeInt(cs->nOwner, Owner);//¸ü¸ÄËùÓĞÕß
-		InterlockedExchangeInt(cs->nRecursiveCount, 1);//Ôö¼ÓÕ¼ÓÃ¼ÆÊı
+		InterlockedExchangeInt(cs->nOwner, Owner);//æ›´æ”¹æ‰€æœ‰è€…
+		InterlockedExchangeInt(cs->nRecursiveCount, 1);//å¢åŠ å ç”¨è®¡æ•°
 	}
 }
 

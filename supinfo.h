@@ -157,7 +157,7 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 // 	DWORD aa=0;
 // 	if (GetFileSize(logfile, NULL)==0)
 // 		WriteFile(logfile, "\xff\xfe", 2, &aa, NULL);
-	LPTSTR vlpApp = (LPTSTR)lpApp;	//±ä³É¿ÉÒÔ²Ù×÷µÄ²ÎÊı
+	LPTSTR vlpApp = (LPTSTR)lpApp;	//å˜æˆå¯ä»¥æ“ä½œçš„å‚æ•°
 	if (lpApp)
 	{
 		do 
@@ -172,7 +172,7 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 // 			WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 			WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 			DWORD fa = GetFileAttributes(ret.c_str()); 
-			if (fa!=INVALID_FILE_ATTRIBUTES && fa!=FILE_ATTRIBUTE_DIRECTORY)	//ÎÄ¼şÊÇ·ñ´æÔÚ
+			if (fa!=INVALID_FILE_ATTRIBUTES && fa!=FILE_ATTRIBUTE_DIRECTORY)	//æ–‡ä»¶æ˜¯å¦å­˜åœ¨
 			{		
 				int p = ret.find_last_of(_T("\\"));
 				if (p!=-1)
@@ -210,13 +210,13 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 		int p=0;
 		if ((*lpCmd)==_T('\"'))
 		{
-			ret.erase(0,1);	//É¾³ıµÚÒ»¸öÒıºÅ
-			p=ret.find_first_of(_T("\""));	//²éÕÒÏÂÒ»¸öÒıºÅ
+			ret.erase(0,1);	//åˆ é™¤ç¬¬ä¸€ä¸ªå¼•å·
+			p=ret.find_first_of(_T("\""));	//æŸ¥æ‰¾ä¸‹ä¸€ä¸ªå¼•å·
 		}
 		else
 			p=ret.find_first_of(_T(" "));
 		if (p>0)
-			ret.resize(p);	//»ñµÃCmdÀïÃæµÄÎÄ¼şÃû
+			ret.resize(p);	//è·å¾—Cmdé‡Œé¢çš„æ–‡ä»¶å
 // 		WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 		WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 		p = ret.find_last_of(_T("\\"));

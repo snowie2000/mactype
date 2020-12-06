@@ -142,7 +142,7 @@ EXTERN_C void SafeUnload()
 {
 	static BOOL bInited = false;
 	if (bInited)
-		return;	//·ÀÖØÈë
+		return;	//é˜²é‡å…¥
 	bInited = true;
 	while (CThreadCounter::Count())
 		Sleep(0);
@@ -252,7 +252,7 @@ FARPROC K32GetProcAddress(LPCSTR lpProcName)
 	//kernel32‚Ìƒx[ƒXƒAƒhƒŒƒXæ“¾
 	WCHAR sysdir[MAX_PATH];
 	GetWindowsDirectory(sysdir, MAX_PATH);
-	if (GetModuleHandle(_T("kernelbase.dll")))	//²é¿´×Ô¼ºÊÇ·ñ¼ÓÔØÁËKernelbase.dllÎÄ¼ş£¬´æÔÚÔòËµÃ÷ÊÇwin7ÏµÍ³
+	if (GetModuleHandle(_T("kernelbase.dll")))	//æŸ¥çœ‹è‡ªå·±æ˜¯å¦åŠ è½½äº†Kernelbase.dllæ–‡ä»¶ï¼Œå­˜åœ¨åˆ™è¯´æ˜æ˜¯win7ç³»ç»Ÿ
 		wcscat(sysdir, L"\\SysWow64\\kernelbase.dll");
 	else
 		wcscat(sysdir, L"\\SysWow64\\kernel32.dll");	//²»´æÔÚ¾ÍÊÇvista
@@ -260,8 +260,8 @@ FARPROC K32GetProcAddress(LPCSTR lpProcName)
 	if (hFile == INVALID_HANDLE_VALUE)
 		return NULL;
 	DWORD dwSize = GetFileSize(hFile, NULL);
-	BYTE* pMem = new BYTE[dwSize];	//·ÖÅäÄÚ´æ
-	ReadFile(hFile, pMem, dwSize, &dwSize, NULL);//¶ÁÈ¡ÎÄ¼ş
+	BYTE* pMem = new BYTE[dwSize];	//åˆ†é…å†…å­˜
+	ReadFile(hFile, pMem, dwSize, &dwSize, NULL);//è¯»å–æ–‡ä»¶
 	CloseHandle(hFile);
 
 	CMemLoadDll MemDll;
@@ -680,7 +680,7 @@ VOID SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo)
 	}
 }
 
-// »ñÈ¡²Ù×÷ÏµÍ³Î»Êı
+// è·å–æ“ä½œç³»ç»Ÿä½æ•°
 int GetSystemBits()
 {
 	SYSTEM_INFO si;

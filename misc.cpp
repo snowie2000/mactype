@@ -2,7 +2,7 @@
 #include "settings.h"
 CRITICAL_SECTION CCriticalSectionLock::m_cs[20];
 OWNED_CRITIAL_SECTION COwnedCriticalSectionLock::m_cs[2];
-LONG CThreadCounter::interlock;	//snowie!! C++»¹ĞèÒª¶îÍâÉêÃ÷£¬º¹
+LONG CThreadCounter::interlock;	//snowie!! C++è¿˜éœ€è¦é¢å¤–ç”³æ˜ï¼Œæ±—
 TCHAR CGdippSettings::m_szexeName[MAX_PATH+1] = {0};
 
 #ifdef _UNICODE

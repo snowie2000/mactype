@@ -429,7 +429,7 @@ bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 			PathRemoveFileSpec(szDir);
 			PathCombine(szAlternative, szDir, szAlternative);
 		}
-		StringCchCopy(szMainFile, MAX_PATH, lpszFile);	//°ÑÔ­Ê¼ÎÄ¼şÃû±£´æÏÂÀ´
+		StringCchCopy(szMainFile, MAX_PATH, lpszFile);	//æŠŠåŸå§‹æ–‡ä»¶åä¿å­˜ä¸‹æ¥
 		StringCchCopy(m_szFileName, MAX_PATH, szAlternative);	
 		lpszFile = m_szFileName;
 		m_Config.Clear();
@@ -642,7 +642,7 @@ SKIP:
 	// [ExcludeSub]²»½øĞĞ×ÖÌåÌæ»»µÄÄ£¿E
 	AddListFromSection(L"ExcludeSub", lpszFile, m_arrUnFontSubModule);
 	//AddListFromSection(L"ExcludeSub", szMainFile, m_arrUnFontSubModule);
-	//Èç¹ûÊÇÅÅ³ıµÄÄ£¿é£¬Ôò¹Ø±Õ×ÖÌåÌæ»»
+	//å¦‚æœæ˜¯æ’é™¤çš„æ¨¡å—ï¼Œåˆ™å…³é—­å­—ä½“æ›¿æ¢
 	if (m_nFontSubstitutes)
 	{
 		ModuleHashMap::const_iterator it=m_arrUnFontSubModule.begin();
@@ -736,7 +736,7 @@ bool CGdippSettings::AddLcdFilterFromSection(LPCTSTR lpszKey, LPCTSTR lpszFile, 
 	for (int i = 0; i < 5; i++) {
 		LPCTSTR arg = token.GetArgument(i);
 		if (!arg)
-			return false;	//²ÎÊıÉÙÓÚ5¸öÔòÊÓÎª²»Ê¹ÓÃ´Ë²ÎÊı
+			return false;	//å‚æ•°å°‘äº5ä¸ªåˆ™è§†ä¸ºä¸ä½¿ç”¨æ­¤å‚æ•°
 		arr[i] = _StrToInt(arg, arr[i]);
 	}
 
@@ -998,7 +998,7 @@ bool CGdippSettings::IsExeUnload(LPCTSTR lpApp) const	//¼EéÊÇ·ñÔÚºÚÃûµ¥ÁĞ±úà?
 		return false;
 	ModuleHashMap::const_iterator it = m_arrUnloadModule.begin();
 	for(; it != m_arrUnloadModule.end(); ++it) {
-		if (!lstrcmpi(lpApp, it->c_str())) {	//Æ¥ÅäÅÅ³ıÏE
+		if (!lstrcmpi(lpApp, it->c_str())) {	//åŒ¹é…æ’é™¤èŸ»E
 			return true;
 		}
 	}
@@ -1015,7 +1015,7 @@ bool CGdippSettings::IsExeInclude(LPCTSTR lpApp) const	//¼EéÊÇ·ñÔÚ°×Ãûµ¥ÁĞ±úà?
 		return false;
 	ModuleHashMap::const_iterator it = m_arrIncludeModule.begin();
 	for(; it != m_arrIncludeModule.end(); ++it) {
-		if (!lstrcmpi(lpApp, it->c_str())) {	//Æ¥ÅäÅÅ³ıÏE
+		if (!lstrcmpi(lpApp, it->c_str())) {	//åŒ¹é…æ’é™¤èŸ»E
 			return true;
 		}
 	}
@@ -1293,7 +1293,7 @@ void CFontLinkInfo::init()
 					if (rc == ERROR_NO_MORE_ITEMS) break;
 					if (rc != ERROR_SUCCESS) break;
 					if (regtype != REG_SZ) continue;
-					if (lstrcmpi(value2, linep) != 0) continue;		//Ñ°ÕÒ×ÖÌåÁ´½ÓÖĞ×ÖÌåÎÄ¼ş¶ÔÓ¦µÄ×ÖÌåÃE
+					if (lstrcmpi(value2, linep) != 0) continue;		//å¯»æ‰¾å­—ä½“é“¾æ¥ä¸­å­—ä½“æ–‡ä»¶å¯¹åº”çš„å­—ä½“è„•E
 
 					StringCchCopyW(buf, sizeof(buf)/sizeof(buf[0]), name);
 					if (buf[wcslen(buf) - 1] == L')') {				//È¥µôÀ¨ºÅ
@@ -1330,7 +1330,7 @@ void CFontLinkInfo::init()
 			{
 				//¶Ô×ÖÌåÁ´½Ó±úóöÄæÏò´¦ÀE
 				LPWSTR swapbuff[32];
-				memcpy(swapbuff, info[row], 32*sizeof(LPWSTR));	//Õû¸ö±úÔ´ÖÆ¹ıÀ´
+				memcpy(swapbuff, info[row], 32*sizeof(LPWSTR));	//æ•´ä¸ªæŸ„æºåˆ¶è¿‡æ¥
 				for (int i=1; i<col; i++)
 					info[row][i]=swapbuff[col-i];	//ÄæĞò×ÖÌåÁ´½Ó±E
 			}*/

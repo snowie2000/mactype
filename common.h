@@ -497,7 +497,7 @@ public:
 #endif
 
 
-//String to int等系列函数的定义
+//String to int绛夌郴鍒楀嚱鏁扮殑瀹氫箟
 /*
 int _StrToInt(LPCTSTR pStr, int nDefault)
 {

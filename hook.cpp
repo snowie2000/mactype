@@ -567,7 +567,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			//delete AACacheFull;
 			//delete AACache;
 // 			for (int i=0;i<CACHE_SIZE;i++)
-// 				delete g_AACache2[i];	//Çå³ý»º´E
+// 				delete g_AACache2[i];	//æ¸…é™¤ç¼“ç£¥E
 			//free(g_charmapCache);
 		}
 #ifndef DEBUG
