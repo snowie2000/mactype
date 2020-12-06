@@ -12,7 +12,7 @@ CMemLoadDll::~CMemLoadDll()
  {
   //ASSERT(pImageBase != NULL);
   //ASSERT(pDllMain   != NULL);
-  //�ѹ���׼��ж��dll
+  //脱钩，准备卸载dll
   if (m_bInitDllMain)
 	 pDllMain((HINSTANCE)pImageBase,DLL_PROCESS_DETACH,0);
   VirtualFree((LPVOID)pImageBase, 0, MEM_RELEASE);
@@ -20,7 +20,7 @@ CMemLoadDll::~CMemLoadDll()
 }
 
 //MemLoadLibrary函数从内存缓冲区数据中加载一个dll到当前进程的地址空间，缺省位置0x10000000
-//����ֵ�� �ɹ�����TRUE , ʧ�ܷ���FALSE
+//返回值： 成功返回TRUE , 失败返回FALSE
 //lpFileData: 存放dll文件数据的缓冲区
 //DataLength: 缓冲区中数据的总长度
 BOOL CMemLoadDll::MemLoadLibrary(void* lpFileData, int DataLength, bool bInitDllMain, bool bFreeOnRavFail)
@@ -28,7 +28,7 @@ BOOL CMemLoadDll::MemLoadLibrary(void* lpFileData, int DataLength, bool bInitDll
  this->m_bInitDllMain = bInitDllMain;
  if(pImageBase != NULL)
  {
-  return FALSE;  //�Ѿ�����һ��dll����û���ͷţ����ܼ����µ�dll
+  return FALSE;  //已经加载一个dll，还没有释放，不能加载新的dll
  }
  //检查数据有效性，并初始化
  if(!CheckDataValide(lpFileData, DataLength))return FALSE;
@@ -43,7 +43,7 @@ BOOL CMemLoadDll::MemLoadLibrary(void* lpFileData, int DataLength, bool bInitDll
  else
  {
   CopyDllDatas(pMemoryAddress, lpFileData); //复制dll数据，并对齐每个段
-  //�ض�λ��Ϣ
+  //重定位信息
   /*if(pNTHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress >0
    && pNTHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size>0)
   {
@@ -56,7 +56,7 @@ BOOL CMemLoadDll::MemLoadLibrary(void* lpFileData, int DataLength, bool bInitDll
    return FALSE;
   }*/
   //修改页属性。应该根据每个页的属性单独设置其对应内存页的属性。这里简化一下。
-  //ͳһ���ó�һ������PAGE_EXECUTE_READWRITE
+  //统一设置成一个属性PAGE_EXECUTE_READWRITE
   unsigned long old;
   VirtualProtect(pMemoryAddress, ImageSize, PAGE_EXECUTE_READWRITE,&old);
  }
@@ -66,7 +66,7 @@ BOOL CMemLoadDll::MemLoadLibrary(void* lpFileData, int DataLength, bool bInitDll
  //接下来要调用一下dll的入口函数，做初始化工作。
  pDllMain = (ProcDllMain)(pNTHeader->OptionalHeader.AddressOfEntryPoint +(DWORD_PTR) pMemoryAddress);
  BOOL InitResult = !bInitDllMain || pDllMain((HINSTANCE)pMemoryAddress,DLL_PROCESS_ATTACH,0);
- if(!InitResult) //��ʼ��ʧ��
+ if(!InitResult) //初始化失败
  {
   pDllMain((HINSTANCE)pMemoryAddress,DLL_PROCESS_DETACH,0);
   VirtualFree(pMemoryAddress,0,MEM_RELEASE);
@@ -136,10 +136,10 @@ FARPROC  CMemLoadDll::MemGetProcAddress(LPCSTR lpProcName)
 }
 
 
-// �ض���PE�õ��ĵ�ַ
+// 重定向PE用到的地址
 void CMemLoadDll::DoRelocation( void *NewBase)
 {
- /* �ض�λ���Ľṹ��
+ /* 重定位表的结构：
  // DWORD sectionAddress, DWORD size (包括本节需要重定位的数据)
  // 例如 1000节需要修正5个重定位数据的话，重定位表的数据是
  // 00 10 00 00   14 00 00 00      xxxx xxxx xxxx xxxx xxxx 0000
@@ -166,7 +166,7 @@ void CMemLoadDll::DoRelocation( void *NewBase)
     // 举例：
     // pLoc->VirtualAddress = 0x1000;
     // pLocData[i] = 0x313E; 表示本节偏移地址0x13E处需要修正
-    // ��� pAddress = ����ַ + 0x113E
+    // 因此 pAddress = 基地址 + 0x113E
     // 里面的内容是 A1 ( 0c d4 02 10)  汇编代码是： mov eax , [1002d40c]
     // 需要修正1002d40c这个地址
     DWORD * pAddress = (DWORD *)((DWORD_PTR)NewBase + pLoc->VirtualAddress + (pLocData[i] & 0x0FFF));
@@ -187,7 +187,7 @@ BOOL CMemLoadDll::FillRavAddress(void *pImageBase)
     // DWORD   OriginalFirstThunk;         // 0表示结束，否则指向未绑定的IAT结构数组
     // DWORD   TimeDateStamp;
     // DWORD   ForwarderChain;             // -1 if no forwarders
-    // DWORD   Name;                       // ����dll������
+    // DWORD   Name;                       // 给出dll的名字
     // DWORD   FirstThunk;                 // 指向IAT结构数组的地址(绑定后，这些IAT里面就是实际的函数地址)
  unsigned long Offset = pNTHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress ;
  if(Offset == 0) return TRUE; //No Import Table
@@ -196,7 +196,7 @@ BOOL CMemLoadDll::FillRavAddress(void *pImageBase)
  {
   PIMAGE_THUNK_DATA32 pRealIAT = (PIMAGE_THUNK_DATA32)((DWORD_PTR)pImageBase + pID->FirstThunk);
   PIMAGE_THUNK_DATA32 pOriginalIAT = (PIMAGE_THUNK_DATA32)((DWORD_PTR)pImageBase + pID->OriginalFirstThunk);
-  //��ȡdll������
+  //获取dll的名字
   WCHAR buf[256]; //dll name;
   BYTE* pName = (BYTE*)((DWORD_PTR)pImageBase + pID->Name);
   int i;
@@ -210,7 +210,7 @@ BOOL CMemLoadDll::FillRavAddress(void *pImageBase)
   HMODULE hDll = GetModuleHandle(buf);
   if(hDll == NULL)return FALSE; //NOT FOUND DLL
   //获取DLL中每个导出函数的地址，填入IAT
-  //ÿ��IAT�ṹ�� ��
+  //每个IAT结构是 ：
   // union { PBYTE  ForwarderString;
         //   PDWORD Function;
         //   DWORD Ordinal;
@@ -235,7 +235,7 @@ BOOL CMemLoadDll::FillRavAddress(void *pImageBase)
 //    else
      lpFunction = GetProcAddress(hDll, (char *)pByName->Name);
    }
-   if(lpFunction != NULL)   //�ҵ��ˣ�
+   if(lpFunction != NULL)   //找到了！
    {
     pRealIAT[i].u1.Function = (DWORD) lpFunction;
    }
@@ -249,7 +249,7 @@ BOOL CMemLoadDll::FillRavAddress(void *pImageBase)
 }
 
 //CheckDataValide函数用于检查缓冲区中的数据是否有效的dll文件
-//����ֵ�� ��һ����ִ�е�dll�򷵻�TRUE�����򷵻�FALSE��
+//返回值： 是一个可执行的dll则返回TRUE，否则返回FALSE。
 //lpFileData: 存放dll数据的内存缓冲区
 //DataLength: dll文件的长度
 BOOL CMemLoadDll::CheckDataValide(void* lpFileData, int DataLength)
@@ -262,7 +262,7 @@ BOOL CMemLoadDll::CheckDataValide(void* lpFileData, int DataLength)
 
  //检查长度
  if((DWORD)DataLength < (pDosHeader->e_lfanew + sizeof(IMAGE_NT_HEADERS32)) ) return FALSE;
- //ȡ��peͷ
+ //取得pe头
  pNTHeader = (PIMAGE_NT_HEADERS32)( (DWORD_PTR)lpFileData + (DWORD_PTR)pDosHeader->e_lfanew); // PEͷ
  //检查pe头的合法性
  if(pNTHeader->Signature != IMAGE_NT_SIGNATURE) return FALSE;  //0x00004550 : PE00
@@ -273,7 +273,7 @@ BOOL CMemLoadDll::CheckDataValide(void* lpFileData, int DataLength)
  if(pNTHeader->FileHeader.SizeOfOptionalHeader != sizeof(IMAGE_OPTIONAL_HEADER32)) return FALSE;
 
  
- //ȡ�ýڱ����α���
+ //取得节表（段表）
  pSectionHeader = (PIMAGE_SECTION_HEADER)((DWORD_PTR)pNTHeader + sizeof(IMAGE_NT_HEADERS32));
  //验证每个节表的空间
  for(int i=0; i< pNTHeader->FileHeader.NumberOfSections; i++)
@@ -297,10 +297,10 @@ int CMemLoadDll::CalcTotalImageSize()
 
  // 计算所有头的尺寸。包括dos, coff, pe头 和 段表的大小
  Size = GetAlignedSize(pNTHeader->OptionalHeader.SizeOfHeaders, nAlign);
- // �������нڵĴ�С
+ // 计算所有节的大小
  for(int i=0; i < pNTHeader->FileHeader.NumberOfSections; ++i)
  {
-  //�õ��ýڵĴ�С
+  //得到该节的大小
   int CodeSize = pSectionHeader[i].Misc.VirtualSize ;
   int LoadSize = pSectionHeader[i].SizeOfRawData;
   int MaxSize = (LoadSize > CodeSize)?(LoadSize):(CodeSize);
@@ -320,14 +320,14 @@ void CMemLoadDll::CopyDllDatas(void* pDest, void* pSrc)
  int  HeaderSize = pNTHeader->OptionalHeader.SizeOfHeaders;
  int  SectionSize = pNTHeader->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER);
  int  MoveSize = HeaderSize + SectionSize;
- //����ͷ�Ͷ���Ϣ
+ //复制头和段信息
  memmove(pDest, pSrc, MoveSize);
 
- //����ÿ����
+ //复制每个节
  for(int i=0; i < pNTHeader->FileHeader.NumberOfSections; ++i)
  {
   if(pSectionHeader[i].VirtualAddress == 0 || pSectionHeader[i].SizeOfRawData == 0)continue;
-  // ��λ�ý����ڴ��е�λ��
+  // 定位该节在内存中的位置
   void *pSectionAddress = (void *)((DWORD_PTR)pDest + pSectionHeader[i].VirtualAddress);
   // 复制段数据到虚拟内存
   memmove((void *)pSectionAddress,
@@ -336,11 +336,11 @@ void CMemLoadDll::CopyDllDatas(void* pDest, void* pSrc)
  }
 
  //修正指针，指向新分配的内存
- //�µ�dosͷ
+ //新的dos头
  pDosHeader = (PIMAGE_DOS_HEADER)pDest;
- //�µ�peͷ��ַ
+ //新的pe头地址
  pNTHeader = (PIMAGE_NT_HEADERS32)((DWORD_PTR)pDest + (DWORD_PTR)(pDosHeader->e_lfanew));
- //�µĽڱ���ַ
+ //新的节表地址
  pSectionHeader = (PIMAGE_SECTION_HEADER)((DWORD_PTR)pNTHeader + sizeof(IMAGE_NT_HEADERS32));
  return ;
 }

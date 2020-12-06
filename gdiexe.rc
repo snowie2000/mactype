@@ -25,7 +25,7 @@ FILETYPE		VFT_APP
 			VALUE "FileDescription",	"GDI++ Font Rasterizer Driver"
 			VALUE "FileVersion",		VER_STRING
 			VALUE "InternalName",		"gdi++"
-			VALUE "LegalCopyright",		"(C) Ÿ0x0D/0x20I, 460. All rights reserved."
+			VALUE "LegalCopyright",		"(C) ä»§0x0D/0x20I, 460. All rights reserved."
 			VALUE "OriginalFilename",	"gdi++.exe"
 			VALUE "ProductVersion",		VER_STRING
 			VALUE "URL",				"http://drwatson.nobody.jp/gdi++/"
@@ -44,15 +44,15 @@ FILETYPE		VFT_APP
 "<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0""><dependency><dependentAssembly><assemblyIdentity type=""win32"" name=""Microsoft.Windows.Common-Controls"" version=""6.0.0.0"" processorArchitecture=""X86"" publicKeyToken=""6595b64144ccf1df"" language=""*"" /></dependentAssembly></dependency></assembly>"
 }
 
-//‚¶‚á‚Ï‚É[‚¸
+//ã˜ã‚ƒã±ã«ãƒ¼ãš
 STRINGTABLE DISCARDABLE
 {
-IDS_USAGE	"gdi++.exe <file> argument ...\n\nEXE, ‚Ü‚½‚ÍƒVƒ‡[ƒgƒJƒbƒg‚È‚Ç‚ðƒhƒƒbƒv‚µ‚Ä‚­‚¾‚³‚¢."
-IDS_DLL		"error: 0x%08x\nDLL‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ."
-IDC_EXEC	"error: 0x%08x\nŽÀs‚Å‚«‚Ü‚¹‚ñ."
+IDS_USAGE	"gdi++.exe <file> argument ...\n\nEXE, ã¾ãŸã¯ã‚·ãƒ§ãƒ¼ãƒˆã‚«ãƒƒãƒˆãªã©ã‚’ãƒ‰ãƒ­ãƒƒãƒ—ã—ã¦ãã ã•ã„."
+IDS_DLL		"error: 0x%08x\nDLLãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“."
+IDC_EXEC	"error: 0x%08x\nå®Ÿè¡Œã§ãã¾ã›ã‚“."
 }
 
-//‚¦[‚²(“K“–)
+//ãˆãƒ¼ã”(é©å½“)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 

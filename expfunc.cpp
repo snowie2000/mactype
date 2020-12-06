@@ -13,7 +13,7 @@
 #include <VersionHelpers.h>
 #include "crc32.h"
 
-// win2kˆÈ~
+// win2kä»¥é™
 //#pragma comment(linker, "/subsystem:windows,5.0")
 #ifndef _WIN64
 #ifdef DEBUG
@@ -25,7 +25,7 @@
 
 EXTERN_C LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
 {
-	//‰½‚à‚µ‚È‚¢
+	//ä½•ã‚‚ã—ãªã„
 	return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
@@ -207,17 +207,17 @@ std::wstring MakeUniqueFontName(const std::wstring strFullName, const std::wstri
 #include <shlwapi.h>
 #include "dll.h"
 
-//kernel32ê—pGetProcAddressƒ‚ƒhƒL
+//kernel32å°‚ç”¨GetProcAddressãƒ¢ãƒ‰ã‚­
 FARPROC K32GetProcAddress(LPCSTR lpProcName)
 {
 #ifndef _WIN64
-	//˜”“n‚µ‚É‚Í‘Î‰‚µ‚È‚¢
+	//åºæ•°æ¸¡ã—ã«ã¯å¯¾å¿œã—ãªã„
 	Assert(!IS_INTRESOURCE(lpProcName));
 
-	//kernel32‚Ìƒx[ƒXƒAƒhƒŒƒXæ“¾
+	//kernel32ã®ãƒ™ãƒ¼ã‚¹ã‚¢ãƒ‰ãƒ¬ã‚¹å–å¾—
 	LPBYTE pBase = (LPBYTE)GetModuleHandleA("kernel32.dll");
 
-	//‚±‚Ì•Ó‚Í100%¬Œ÷‚·‚é‚Í‚¸‚È‚Ì‚ÅƒGƒ‰[ƒ`ƒFƒbƒN‚µ‚È‚¢
+	//ã“ã®è¾ºã¯100%æˆåŠŸã™ã‚‹ã¯ãšãªã®ã§ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯ã—ãªã„
 	PIMAGE_DOS_HEADER pdosh = (PIMAGE_DOS_HEADER)pBase;
 	Assert(pdosh->e_magic == IMAGE_DOS_SIGNATURE);
 	PIMAGE_NT_HEADERS pnth = (PIMAGE_NT_HEADERS)(pBase + pdosh->e_lfanew);
@@ -249,13 +249,13 @@ FARPROC K32GetProcAddress(LPCSTR lpProcName)
 #else
 	Assert(!IS_INTRESOURCE(lpProcName));
 
-	//kernel32‚Ìƒx[ƒXƒAƒhƒŒƒXæ“¾
+	//kernel32ã®ãƒ™ãƒ¼ã‚¹ã‚¢ãƒ‰ãƒ¬ã‚¹å–å¾—
 	WCHAR sysdir[MAX_PATH];
 	GetWindowsDirectory(sysdir, MAX_PATH);
 	if (GetModuleHandle(_T("kernelbase.dll")))	//æŸ¥çœ‹è‡ªå·±æ˜¯å¦åŠ è½½äº†Kernelbase.dllæ–‡ä»¶ï¼Œå­˜åœ¨åˆ™è¯´æ˜æ˜¯win7ç³»ç»Ÿ
 		wcscat(sysdir, L"\\SysWow64\\kernelbase.dll");
 	else
-		wcscat(sysdir, L"\\SysWow64\\kernel32.dll");	//²»´æÔÚ¾ÍÊÇvista
+		wcscat(sysdir, L"\\SysWow64\\kernel32.dll");	//ä¸å­˜åœ¨å°±æ˜¯vista
 	HANDLE hFile = CreateFile(sysdir, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 		return NULL;
@@ -267,7 +267,7 @@ FARPROC K32GetProcAddress(LPCSTR lpProcName)
 	CMemLoadDll MemDll;
 	MemDll.MemLoadLibrary(pMem, dwSize, false, false);
 	delete[] pMem;
-	return FARPROC((DWORD_PTR)MemDll.MemGetProcAddress(lpProcName)-MemDll.GetImageBase());	//·µ»ØÆ«ÒÆÖµ
+	return FARPROC((DWORD_PTR)MemDll.MemGetProcAddress(lpProcName)-MemDll.GetImageBase());	//è¿”å›åç§»å€¼
 
 #endif
 }
@@ -283,7 +283,7 @@ class opcode_data {
 private:
 	BYTE	code[0x100];
 
-	//’: dllpath‚ğWORD‹«ŠE‚É‚µ‚È‚¢‚Æê‡‚É‚æ‚Á‚Ä‚Í³í‚É“®ì‚µ‚È‚¢
+	//æ³¨: dllpathã‚’WORDå¢ƒç•Œã«ã—ãªã„ã¨å ´åˆã«ã‚ˆã£ã¦ã¯æ­£å¸¸ã«å‹•ä½œã—ãªã„
 	WCHAR	dllpath[MAX_PATH];
 	UNICODE_STRING64 uniDllPath;
 	DWORD64 hDumyDllHandle;
@@ -291,12 +291,12 @@ private:
 public:
 	opcode_data()
 	{
-		//int 03h‚Å–„‚ß‚é
+		//int 03hã§åŸ‹ã‚ã‚‹
 		FillMemory(this, sizeof(*this), 0xcc);
 	}
-	bool initWow64(LPDWORD remoteaddr, LONG orgEIP)	//Wow64³õÊ¼»¯
+	bool initWow64(LPDWORD remoteaddr, LONG orgEIP)	//Wow64åˆå§‹åŒ–
 	{
-		//WORD‹«ŠEƒ`ƒFƒbƒN
+		//WORDå¢ƒç•Œãƒã‚§ãƒƒã‚¯
 		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
 
 		register BYTE* p = code;
@@ -306,8 +306,8 @@ public:
 #define emit_dw(w)	emit_(WORD, w)
 #define emit_dd(d)	emit_(DWORD, d)
 
-		//‚È‚º‚©GetProcAddress‚ÅLoadLibraryW‚ÌƒAƒhƒŒƒX‚ª³‚µ‚­æ‚ê‚È‚¢‚±‚Æ‚ª‚ ‚é‚Ì‚Å
-		//kernel32‚Ìƒwƒbƒ_‚©‚ç©‘O‚Åæ“¾‚·‚é
+		//ãªãœã‹GetProcAddressã§LoadLibraryWã®ã‚¢ãƒ‰ãƒ¬ã‚¹ãŒæ­£ã—ãå–ã‚Œãªã„ã“ã¨ãŒã‚ã‚‹ã®ã§
+		//kernel32ã®ãƒ˜ãƒƒãƒ€ã‹ã‚‰è‡ªå‰ã§å–å¾—ã™ã‚‹
 		FARPROC pfn = K32GetProcAddress("LoadLibraryExW");
 		if(!pfn)
 			return false;
@@ -319,8 +319,8 @@ public:
 			mov eax,[eax+0x0c]
 			mov esi,[eax+0x1c]
 			lodsd
-			move ax,[eax+$08]//Õâ¸öÊ±ºòeaxÖĞ±£´æµÄ¾ÍÊÇk32µÄ»ùÖ·ÁË
-			ÔÚwin7»ñµÃµÄÊÇKernelBase.dllµÄµØÖ·
+			move ax,[eax+$08]//è¿™ä¸ªæ—¶å€™eaxä¸­ä¿å­˜çš„å°±æ˜¯k32çš„åŸºå€äº†
+			åœ¨win7è·å¾—çš„æ˜¯KernelBase.dllçš„åœ°å€
 		*/
 		emit_db(0x64); 
 		emit_db(0xA1); 
@@ -351,16 +351,16 @@ public:
 		emit_db(0xE9);		//jmp original_EIP
 		emit_dd(orgEIP - (LONG)remoteaddr - (p - code) - sizeof(LONG));
 
-		// gdi++.dll‚ÌƒpƒX
+		// gdi++.dllã®ãƒ‘ã‚¹
 		int nSize = GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
 		if (nSize) {
 			ChangeFileName(dllpath, nSize, L"MTBootStrap.dll");
 		}
 		return !!nSize;
 	}
-	bool init32(LPDWORD remoteaddr, LONG orgEIP)	//32Î»³ÌĞò³õÊ¼»¯
+	bool init32(LPDWORD remoteaddr, LONG orgEIP)	//32ä½ç¨‹åºåˆå§‹åŒ–
 	{
-		//WORD‹«ŠEƒ`ƒFƒbƒN
+		//WORDå¢ƒç•Œãƒã‚§ãƒƒã‚¯
 		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
 
 		register BYTE* p = code;
@@ -370,8 +370,8 @@ public:
 #define emit_dw(w)	emit_(WORD, w)
 #define emit_dd(d)	emit_(DWORD, d)
 
-		//‚È‚º‚©GetProcAddress‚ÅLoadLibraryW‚ÌƒAƒhƒŒƒX‚ª³‚µ‚­æ‚ê‚È‚¢‚±‚Æ‚ª‚ ‚é‚Ì‚Å
-		//kernel32‚Ìƒwƒbƒ_‚©‚ç©‘O‚Åæ“¾‚·‚é
+		//ãªãœã‹GetProcAddressã§LoadLibraryWã®ã‚¢ãƒ‰ãƒ¬ã‚¹ãŒæ­£ã—ãå–ã‚Œãªã„ã“ã¨ãŒã‚ã‚‹ã®ã§
+		//kernel32ã®ãƒ˜ãƒƒãƒ€ã‹ã‚‰è‡ªå‰ã§å–å¾—ã™ã‚‹
 		FARPROC pfn = K32GetProcAddress("LoadLibraryW");
 		if(!pfn)
 			return false;
@@ -399,7 +399,7 @@ emit_dw(0xD0FF);	//call eax
 		emit_db(0xE9);		//jmp original_EIP
 		emit_dd(orgEIP - (LONG)remoteaddr - (p - code) - sizeof(LONG));
 
-		// gdi++.dll‚ÌƒpƒX
+		// gdi++.dllã®ãƒ‘ã‚¹
 		int nSize = GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
 		if (nSize) {
 			ChangeFileName(dllpath, nSize, L"MTBootStrap.dll");
@@ -418,8 +418,8 @@ emit_dw(0xD0FF);	//call eax
 #define emit_dd(d)	emit_(DWORD, d)
 #define emit_ddp(dp) emit_(DWORD64, dp)
 
-		//‚È‚º‚©GetProcAddress‚ÅLoadLibraryW‚ÌƒAƒhƒŒƒX‚ª³‚µ‚­æ‚ê‚È‚¢‚±‚Æ‚ª‚ ‚é‚Ì‚Å
-		//kernel32‚Ìƒwƒbƒ_‚©‚ç©‘O‚Åæ“¾‚·‚é
+		//ãªãœã‹GetProcAddressã§LoadLibraryWã®ã‚¢ãƒ‰ãƒ¬ã‚¹ãŒæ­£ã—ãå–ã‚Œãªã„ã“ã¨ãŒã‚ã‚‹ã®ã§
+		//kernel32ã®ãƒ˜ãƒƒãƒ€ã‹ã‚‰è‡ªå‰ã§å–å¾—ã™ã‚‹
 		WCHAR x64Addr[30] = { 0 };
 		if (!GetEnvironmentVariable(L"MACTYPE_X64ADDR", x64Addr, 29)) return false;
 		DWORD64 pfn = wcstoull(x64Addr, NULL, 10);
@@ -454,7 +454,7 @@ emit_dw(0xD0FF);	//call eax
 		emit_db(0xFF);		//jmp rdi
 		emit_db(0xE6);
 
-		// gdi++.dll‚ÌƒpƒX
+		// gdi++.dllã®ãƒ‘ã‚¹
 
 		int nSize = GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
 		if (nSize) {
@@ -562,14 +562,14 @@ emit_dw(0xD0FF);	//call eax
 		emit_db(0xFF);		//jmp rdi
 		emit_db(0xE6);
 
-		// gdi++.dll‚ÌƒpƒX
+		// gdi++.dllã®ãƒ‘ã‚¹
 
 		return !!nSize;
 	}
 
 	bool init(DWORD_PTR* remoteaddr, DWORD_PTR orgEIP)
 	{
-		//WORD‹«ŠEƒ`ƒFƒbƒN
+		//WORDå¢ƒç•Œãƒã‚§ãƒƒã‚¯
 		C_ASSERT((offsetof(opcode_data, dllpath) & 1) == 0);
 
 		register BYTE* p = code;
@@ -581,8 +581,8 @@ emit_dw(0xD0FF);	//call eax
 #define emit_dd(d)	emit_(DWORD, d)
 #define emit_ddp(dp) emit_(DWORD_PTR, dp)
 
-		//‚È‚º‚©GetProcAddress‚ÅLoadLibraryW‚ÌƒAƒhƒŒƒX‚ª³‚µ‚­æ‚ê‚È‚¢‚±‚Æ‚ª‚ ‚é‚Ì‚Å
-		//kernel32‚Ìƒwƒbƒ_‚©‚ç©‘O‚Åæ“¾‚·‚é
+		//ãªãœã‹GetProcAddressã§LoadLibraryWã®ã‚¢ãƒ‰ãƒ¬ã‚¹ãŒæ­£ã—ãå–ã‚Œãªã„ã“ã¨ãŒã‚ã‚‹ã®ã§
+		//kernel32ã®ãƒ˜ãƒƒãƒ€ã‹ã‚‰è‡ªå‰ã§å–å¾—ã™ã‚‹
 		FARPROC pfn = GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryW");
 		//if(!pfn)
 		//	return false;
@@ -653,7 +653,7 @@ emit_dw(0xD0FF);	//call eax
 		emit_db(0xFF);		//jmp rdi
 		emit_db(0xE6);
 
-		// gdi++.dll‚ÌƒpƒX
+		// gdi++.dllã®ãƒ‘ã‚¹
 		int nSize = GetModuleFileNameW(GetDLLInstance(), dllpath, MAX_PATH);
 		if (nSize) {
 			ChangeFileName(dllpath, nSize, L"MTBootStrap64.dll");
@@ -664,7 +664,7 @@ emit_dw(0xD0FF);	//call eax
 };
 #include <poppack.h>
 
-// °²È«µÄÈ¡µÃÕæÊµÏµÍ³ĞÅÏ¢
+// å®‰å…¨çš„å–å¾—çœŸå®ç³»ç»Ÿä¿¡æ¯
 VOID SafeGetNativeSystemInfo(__out LPSYSTEM_INFO lpSystemInfo)
 {
 	if (NULL == lpSystemInfo)    return;
@@ -696,7 +696,7 @@ int GetSystemBits()
 static bool bIsOS64 = GetSystemBits() == 64;	// check if running in a x64 system.
 
 #ifdef _M_IX86
-// ~‚ß‚Ä‚¢‚éƒvƒƒZƒX‚ÉLoadLibrary‚·‚éƒR[ƒh‚ğ’“ü
+// æ­¢ã‚ã¦ã„ã‚‹ãƒ—ãƒ­ã‚»ã‚¹ã«LoadLibraryã™ã‚‹ã‚³ãƒ¼ãƒ‰ã‚’æ³¨å…¥
 EXTERN_C BOOL WINAPI GdippInjectDLL(const PROCESS_INFORMATION* ppi)
 {
 	BOOL bIsX64Proc = false;
@@ -771,7 +771,7 @@ EXTERN_C BOOL WINAPI GdippInjectDLL(const PROCESS_INFORMATION* ppi)
 	{
 		WOW64_CONTEXT ctx = { 0 };
 		ctx.ContextFlags = CONTEXT_CONTROL;
-		//CREATE_SUSPENDED‚È‚Ì‚ÅŠî–{“I‚É¬Œ÷‚·‚é‚Í‚¸
+		//CREATE_SUSPENDEDãªã®ã§åŸºæœ¬çš„ã«æˆåŠŸã™ã‚‹ã¯ãš
 		if(!Wow64GetThreadContext(ppi->hThread, &ctx))
 			return false;
 
@@ -796,7 +796,7 @@ EXTERN_C BOOL WINAPI GdippInjectDLL(const PROCESS_INFORMATION* ppi)
 	{
 		CONTEXT ctx = { 0 };
 		ctx.ContextFlags = CONTEXT_CONTROL;
-		//CREATE_SUSPENDED‚È‚Ì‚ÅŠî–{“I‚É¬Œ÷‚·‚é‚Í‚¸
+		//CREATE_SUSPENDEDãªã®ã§åŸºæœ¬çš„ã«æˆåŠŸã™ã‚‹ã¯ãš
 		if(!GetThreadContext(ppi->hThread, &ctx))
 			return false;
 

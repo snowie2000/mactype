@@ -1,4 +1,4 @@
-// override.cpp - �L���C��TextOut
+// override.cpp - キレイなTextOut
 // 2006/09/27
 
 #include "override.h"
@@ -56,7 +56,7 @@ HFONT GetCurrentFont(HDC hdc)
 {
 	HFONT hCurFont = (HFONT)GetCurrentObject(hdc, OBJ_FONT);
 	if (!hCurFont) {
-		// NULL�̏ꍇ��System��ݒ肵�Ă���
+		// NULLの場合はSystemを設定しておく
 		hCurFont = (HFONT)GetStockObject(SYSTEM_FONT);
 	}
 	return hCurFont;
@@ -128,7 +128,7 @@ BOOL IsExeUnload(LPCTSTR lpApp)
 	return FALSE;
 }
 
-//�؂�グ���Z
+//切り上げ除算
 int div_ceil(int a, int b)
 {
 	if(a % b)
@@ -794,8 +794,8 @@ BOOL WINAPI IMPL_DrawStateA(HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPA
 	return ORIG_DrawStateA(hdc, hbr, lpOutputFunc, lData, wData, x, y, cx, cy, uFlags);
 }
 
-//�D�F�`���DrawText�֓�����
-//DrawText�͓�����ExtTextOut���Ă����̂Ŗ��Ȃ�
+//灰色描画をDrawTextへ投げる
+//DrawTextは内部でExtTextOutしてくれるので問題なし
 BOOL WINAPI IMPL_DrawStateW(HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPARAM lData, WPARAM wData, int x, int y, int cx, int cy, UINT uFlags)
 {
 	//CThreadCounter __counter;
@@ -804,16 +804,16 @@ BOOL WINAPI IMPL_DrawStateW(HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPA
 		case DST_TEXT:
 		case DST_PREFIXTEXT:
 			{
-			//wData==0�̎��ɕ����������v�Z
-			//����API�ƈ����-1�̎��ł͂Ȃ�
+			//wData==0の時に文字数自動計算
+			//他のAPIと違って-1の時ではない
 			if(wData == 0) {
 				wData = wcslen((LPCWSTR)lData);
 			}
 			RECT rect = { x, y, x + 10000, y + 10000 };
-			//�ǂ����3DHighLight�̏��1px���炵��3DShadow���d�˂Ă�炵��
+			//どうやら3DHighLightの上に1pxずらして3DShadowを重ねてるらしい
 			int oldbm = SetBkMode(hdc, TRANSPARENT);
 			COLORREF oldfg = SetTextColor(hdc, GetSysColor(COLOR_3DHIGHLIGHT));
-			//DrawState��DrawText�ł�prefix�̃t���O���t(API�̐݌v�_������)
+			//DrawStateとDrawTextではprefixのフラグが逆(APIの設計ダメすぎ)
 			const UINT uDTFlags = DT_SINGLELINE | DT_NOCLIP | (uFlags & DST_PREFIXTEXT ? 0 : DT_NOPREFIX);
 
 			OffsetRect(&rect, 1, 1);
@@ -879,7 +879,7 @@ void AnsiDxToUnicodeDx(LPCSTR lpStringA, int cbString, const int* lpDxA, int* lp
 	}
 }
 
-// ANSI->Unicode�ɕϊ�����ExtTextOutW�ɓ�����ExtTextOutA
+// ANSI->Unicodeに変換してExtTextOutWに投げるExtTextOutA
 
 BOOL WINAPI IMPL_ExtTextOutA(HDC hdc, int nXStart, int nYStart, UINT fuOptions, CONST RECT *lprc, LPCSTR lpString, UINT cbString, CONST INT *lpDx)
 {
@@ -890,11 +890,11 @@ BOOL WINAPI IMPL_ExtTextOutA(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 	//However, if the ANSI version of ExtTextOut is called with ETO_GLYPH_INDEX,
 	//the function returns TRUE even though the function does nothing.
-	//�Ƃ肠�����I���W�i���ɔ�΂�
+	//とりあえずオリジナルに飛ばす
 	if (fuOptions & ETO_GLYPH_INDEX)
 		return ORIG_ExtTextOutA(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 
-	//HDBENCH�`�[�g
+	//HDBENCHチート
 //	if (lpString && cbString == 7 && pSettings->IsHDBench() && (memcmp(lpString, "HDBENCH", 7) == 0 || memcmp(lpString, "       ", 7) == 0))
 //		return ORIG_ExtTextOutA(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 
@@ -939,7 +939,7 @@ BOOL WINAPI IMPL_ExtTextOutA(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 	lpszUnicode = _StrDupExAtoW(lpString, cbString, szStack, CCH_MAX_STACK, &bufferLength, nACP);
 	if(!lpszUnicode) {
-		//�������s��: �ꉞ�I���W�i���ɓ����Ƃ�
+		//メモリ不足: 一応オリジナルに投げとく
 		return ORIG_ExtTextOutA(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	}
 
@@ -992,7 +992,7 @@ typedef enum {
 	ETOE_GENERAL		= 19,
 } ExtTextOut_ErrorCode;
 
-//��O���h�L
+//例外モドキ
 #define ETO_TRY()		ExtTextOut_ErrorCode error = ETOE_OK; {
 #define ETO_THROW(code)	error = (code); goto _EXCEPTION_THRU
 #define ETO_CATCH()		} _EXCEPTION_THRU:
@@ -1058,7 +1058,7 @@ public:
 };
 
 extern ControlIder CID;
-// ȡ��Windows��ExtTextOutW
+// 取代Windows的ExtTextOutW
 BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, CONST RECT *lprc, LPCWSTR lpString, UINT cbString, CONST INT *SyslpDx)
 {
 	//CThreadCounter __counter;		//用于安全退出的计数器
@@ -1136,7 +1136,7 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 		{
 			bool bZoomInOut = (xfm.eM12==0 && xfm.eM21==0 && xfm.eM11>0 && xfm.eM22>0);	//只是缩放,且是正数缩放
 			if (!bZoomInOut)
-				return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);	//������Ⱦ
+				return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);	//放弃渲染
 			else
 			{
 				bZoomedDC = true;
@@ -1177,7 +1177,7 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 	if (!size.cx)
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);*/
 
-	COwnedCriticalSectionLock __lock2(1, COwnedCriticalSectionLock::OCS_DC);	//��ȡ����Ȩ����ֹ��ͻ
+	COwnedCriticalSectionLock __lock2(1, COwnedCriticalSectionLock::OCS_DC);	//获取所有权，防止冲突
 	CBitmapCache& cache	= pTLInfo->BitmapCache();
 	CETOBitmap bmp(cache);
 
@@ -1197,7 +1197,7 @@ ETO_TRY();
 	//设置标志，
 	pTLInfo->InExtTextOut(true);
 
-	POINT	curPos = { nXStart, nYStart };	//��¼��ʼ��λ��
+	POINT	curPos = { nXStart, nYStart };	//记录开始的位置
 	POINT	destPos;
 	SIZE	drawSize;
 
@@ -1217,7 +1217,7 @@ ETO_TRY();
 	if (!nSize) {
 		//nSize = sizeof(OUTLINETEXTMETRIC);
 		ETO_THROW(ETOE_INVALIDHDC);
-	}	//��ʱ50-100ms
+	}	//耗时50-100ms
 
 	otm = (OUTLINETEXTMETRIC*)malloc(nSize);
 	memset(otm, 0, nSize);
@@ -1363,7 +1363,7 @@ ETO_TRY();
 			FTInfo.Dx[i]-=FTInfo.xBase;	// modify the start position of painting
 	}
 
-	/*if (bZoomedDC && DCTrans->MirrorX())	//���ҷ���RGB��BGRҪ�෴
+	/*if (bZoomedDC && DCTrans->MirrorX())	//左右反向，RGB和BGR要相反
 		for (int i=0; i<cbString; ++i)
 		{
 			switch (FTInfo.AAModes[i])
@@ -1382,7 +1382,7 @@ ETO_TRY();
 				break;
 			}
 		}*/
-	//POINT destSize;	//LP�µĴ�С����ʼλ��
+	//POINT destSize;	//LP下的大小和起始位置
 	/*
 	if (bZoomedDC)
 		{
@@ -1455,7 +1455,7 @@ ETO_TRY();
 	if(drawSize.cx < 1 || drawSize.cy < 1) {
 		ETO_THROW(ETOE_NOAREA); //throw no area
 	}
-	//drawSize.cx += tm.tmMaxCharWidth;	//����һ������������
+	//drawSize.cx += tm.tmMaxCharWidth;	//加上一个最大字体宽度
 
 	//bitmap
 
@@ -1475,7 +1475,7 @@ ETO_TRY();
 		}
 		else
 			IntersectRect(&rcClip, &rcBlt, lprc);
-		xorg = rcClip.left-destPos.x; //����ƫ��
+		xorg = rcClip.left-destPos.x; //计算偏移
 		yorg = rcClip.top-destPos.y;
 		destPos.x = rcClip.left;
 		destPos.y = rcClip.top;
@@ -1488,7 +1488,7 @@ ETO_TRY();
 		//clear bitmap
 
 		if(fillrect || GetBkMode(hdc) == OPAQUE) {
-			COLORREF  bgcolor = GetBkColor(hdc); //�����Ƃ������w�i�F��
+			COLORREF  bgcolor = GetBkColor(hdc); //両方とも同じ背景色に
 			//if ((bgcolor>>24)%2 || (bgcolor>>28)%2)
 			//	bgcolor = 0;
 			if ((bgcolor>>24)%2 || (bgcolor>>28)%2)

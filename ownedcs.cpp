@@ -50,7 +50,7 @@ void WINAPI LeaveOwnedCritialSection(POWNED_CRITIAL_SECTION cs, WORD Owner)
 	{
 		if (InterlockedDecrementInt(cs->nRecursiveCount)<=0)
 		{
-			InterlockedExchangeInt(cs->nOwner, -1);//归还所有权
+			InterlockedExchangeInt(cs->nOwner, -1);//褰掕繕鎵�鏈夋潈
 			if (InterlockedDecrementInt(cs->nRequests)>=0)
 				SetEvent(cs->hEvent);
 		}

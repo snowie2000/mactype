@@ -9,7 +9,7 @@ typedef struct {
 //	BYTE reserved[256];
 } GDIPP_CREATE_MAGIC;
 
-//QÆ
+//å‚ç…§
 //http://www.catch22.net/tuts/undoc01.asp
 
 #ifdef _GDIPP_EXE
@@ -42,7 +42,7 @@ EXTERN_C LPWSTR WINAPI GdippEnvironment(DWORD& dwCreationFlags, LPVOID lpEnviron
 
 
 
-//qƒvƒƒZƒX‚É‚à©“®‚Ågdi++“K—p
+//å­ãƒ—ãƒ­ã‚»ã‚¹ã«ã‚‚è‡ªå‹•ã§gdi++é©ç”¨
 template <typename _TCHAR, typename _STARTUPINFO, class _Function>
 BOOL _CreateProcessAorW(const _TCHAR* lpApp, _TCHAR* lpCmd, LPSECURITY_ATTRIBUTES pa, LPSECURITY_ATTRIBUTES ta, BOOL bInherit, DWORD dwFlags, LPVOID lpEnv, const _TCHAR* lpDir, _STARTUPINFO* psi, LPPROCESS_INFORMATION ppi, _Function fn)
 {
@@ -165,7 +165,7 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 // 			WriteFile(logfile, L"lpApp=", 12, &aa, NULL);
 // 			WriteFile(logfile, lpApp, _tcslen(lpApp)*2, &aa, NULL);
 // 			WriteFile(logfile, _T("\n"), 2, &aa, NULL);
-			vlpApp = _tcsstr(vlpApp+1, _T(" "));	//»ñµÃµÚÒ»¸ö¿Õ¸ñËùÔÚµÄÎ»ÖÃ
+			vlpApp = _tcsstr(vlpApp+1, _T(" "));	//è·å¾—ç¬¬ä¸€ä¸ªç©ºæ ¼æ‰€åœ¨çš„ä½ç½®
 			ret.assign(lpApp);
 			if (vlpApp)
 				ret.resize(vlpApp-lpApp);
@@ -176,7 +176,7 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 			{		
 				int p = ret.find_last_of(_T("\\"));
 				if (p!=-1)
-					ret.erase(0, p+1);	//Èç¹ûÓĞÂ·¾¶¾ÍÉ¾µôÂ·¾¶
+					ret.erase(0, p+1);	//å¦‚æœæœ‰è·¯å¾„å°±åˆ æ‰è·¯å¾„
 // 				WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 				WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 // 				WriteFile(logfile, _T("==========\n"), 24, &aa, NULL);
@@ -185,13 +185,13 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 			}
 			else
 			{
-				ret+=_T(".exe");	//¼ÓÉÏ.exeÀ©Õ¹ÃûÔÙÊÔ
+				ret+=_T(".exe");	//åŠ ä¸Š.exeæ‰©å±•åå†è¯•
 				DWORD fa = GetFileAttributes(ret.c_str()); 
 				if (fa!=INVALID_FILE_ATTRIBUTES && fa!=FILE_ATTRIBUTE_DIRECTORY)
 				{		
 					int p = ret.find_last_of(_T("\\"));
 					if (p!=-1)
-						ret.erase(0, p+1);	//Èç¹ûÓĞÂ·¾¶¾ÍÉ¾µôÂ·¾¶
+						ret.erase(0, p+1);	//å¦‚æœæœ‰è·¯å¾„å°±åˆ æ‰è·¯å¾„
 // 					WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 					WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 // 					WriteFile(logfile, _T("==========\n"), 24, &aa, NULL);
@@ -221,7 +221,7 @@ static wstring GetExeName(LPCTSTR lpApp, LPTSTR lpCmd)
 // 		WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 		p = ret.find_last_of(_T("\\"));
 		if (p>0)
-			ret.erase(0, p+1);	//Èç¹ûÓĞÂ·¾¶¾ÍÉ¾µôÂ·¾¶
+			ret.erase(0, p+1);	//å¦‚æœæœ‰è·¯å¾„å°±åˆ æ‰è·¯å¾„
 // 		WriteFile(logfile, ret.c_str(), ret.length()*2, &aa, NULL);
 // 		WriteFile(logfile, _T("\n"), 2, &aa, NULL);
 // 		WriteFile(logfile, _T("==========\n"), 24, &aa, NULL);

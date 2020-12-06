@@ -10,7 +10,7 @@ TCHAR CGdippSettings::m_szexeName[MAX_PATH+1] = {0};
 #define CharPrev(s, c)	((c) - 1)
 #endif
 
-//手抜きのパス操作関数群
+//謇区栢縺阪�ｮ繝代せ謫堺ｽ憺未謨ｰ鄒､
 BOOL WINAPI PathIsRelative(LPCTSTR pszPath)
 {
 	if (!pszPath || !*pszPath) {
@@ -24,7 +24,7 @@ BOOL WINAPI PathIsRelative(LPCTSTR pszPath)
 		return FALSE;
 	}
 	if (ch1 == _T('\\') || (ch1 && ch2 == _T(':'))) {
-		//絶対パス
+		//邨ｶ蟇ｾ繝代せ
 		return FALSE;
 	}
 	return TRUE;
@@ -125,7 +125,7 @@ LPTSTR WINAPI PathCombine(LPTSTR pszDest, LPCTSTR pszDir, LPCTSTR pszFile)
 		return NULL;
 	}
 
-	//かなり手抜き
+	//縺九↑繧頑焔謚懊″
 	TCHAR szCurDir[MAX_PATH], szDir[MAX_PATH+1];
 	GetCurrentDirectory(MAX_PATH, szCurDir);
 	_tcsncpy(szDir, pszDir, MAX_PATH - 1);
