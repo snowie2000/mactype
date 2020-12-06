@@ -1,4 +1,4 @@
-﻿#include "directwrite.h"
+#include "directwrite.h"
 #include "settings.h"
 #include "dynCodeHelper.h"
 
