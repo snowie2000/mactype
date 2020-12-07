@@ -91,7 +91,7 @@ FORCEINLINE HINSTANCE GetDLLInstance()
 	return g_hinstDLL;
 }
 
-//”r‘¼§Œä
+//æ’ä»–åˆ¶å¾¡
 class CCriticalSectionLock
 {
 #define MAX_CRITICAL_COUNT 20
@@ -148,11 +148,11 @@ static void _Trace(LPCTSTR pszFormat, ...)
 	CCriticalSectionLock __lock;
 	va_list argptr;
 	va_start(argptr, pszFormat);
-	//w(v)sprintf‚Í1024•¶šˆÈã•Ô‚µ‚Ä‚±‚È‚¢
+	//w(v)sprintfã¯1024æ–‡å­—ä»¥ä¸Šè¿”ã—ã¦ã“ãªã„
 	TCHAR szBuffer[10240];
 	wvsprintf(szBuffer, pszFormat, argptr);
 
-	//ƒfƒoƒbƒK‚ğƒAƒ^ƒbƒ`‚µ‚Ä‚é‚ÍƒfƒoƒbƒK‚ÉƒƒbƒZ[ƒW‚ğo‚·
+	//ãƒ‡ãƒãƒƒã‚¬ã‚’ã‚¢ã‚¿ãƒƒãƒã—ã¦ã‚‹æ™‚ã¯ãƒ‡ãƒãƒƒã‚¬ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å‡ºã™
 	//if (IsDebuggerPresent()) {
 	OutputDebugString(szBuffer);
 	return;
@@ -188,7 +188,7 @@ static void _Trace(LPCTSTR pszFormat, ...)
 }
 #else	//!_DEBUG
 #define TRACE	NOP_FUNCTION
-//«PSDK 2003R2‚Ìwinnt.h
+//â†“PSDK 2003R2ã®winnt.h
 //#ifndef NOP_FUNCTION
 //#if (_MSC_VER >= 1210)
 //#define NOP_FUNCTION __noop
@@ -198,8 +198,8 @@ static void _Trace(LPCTSTR pszFormat, ...)
 //#endif
 #endif	//_DEBUG
 
-//TRACEƒ}ƒNƒ
-//g—p—á: TRACE(_T("cx: %d\n"), cx);
+//TRACEãƒã‚¯ãƒ­
+//ä½¿ç”¨ä¾‹: TRACE(_T("cx: %d\n"), cx);
 #ifdef USE_TRACE
 #define TRACE2	_Trace2
 #define TRACE2_STR	_Trace2_Str
@@ -212,7 +212,7 @@ static void _Trace2(LPCTSTR pszFormat, ...)
 	CCriticalSectionLock __lock;
 	va_list argptr;
 	va_start(argptr, pszFormat);
-	//w(v)sprintf‚Í1024•¶šˆÈã•Ô‚µ‚Ä‚±‚È‚¢
+	//w(v)sprintfã¯1024æ–‡å­—ä»¥ä¸Šè¿”ã—ã¦ã“ãªã„
 	TCHAR szBuffer[1024];
 	wvsprintf(szBuffer, pszFormat, argptr);
 	OutputDebugString(szBuffer);
@@ -332,7 +332,7 @@ public:
 	}
 };
 
-// g—pŒã‚Ífree‚ÅŠJ•ú‚·‚é–
+// ä½¿ç”¨å¾Œã¯freeã§é–‹æ”¾ã™ã‚‹äº‹
 LPWSTR _StrDupExAtoW(LPCSTR pszMB, int cchMB, LPWSTR pszStack, int cchStack, int* pcchWC, int nACP = CP_ACP);
 static inline LPWSTR _StrDupAtoW(LPCSTR pszMB, int cchMB = -1, int* pcchWC = NULL)
 {
@@ -358,8 +358,8 @@ template<typename T> FORCEINLINE T Bound(T x, T m, T M) { return (x < m) ? m : (
 template<typename T> FORCEINLINE int Sgn(T x, T y) { return (x > y) ? 1 : ((x < y) ? -1 : 0); }
 
 
-//Œ^ƒ`ƒFƒbƒN‹@”\‚Â‚«DeleteXXX/SelectXXX
-//SelectObject/DeleteObject‚Íg—p‚Å‚«‚È‚­‚È‚é
+//å‹ãƒã‚§ãƒƒã‚¯æ©Ÿèƒ½ã¤ãDeleteXXX/SelectXXX
+//SelectObject/DeleteObjectã¯ä½¿ç”¨ã§ããªããªã‚‹
 
 #ifdef _DEBUG
 #undef DeletePen
@@ -448,8 +448,8 @@ DEFINE_SELECT_FUNCTION(HBITMAP,	Bitmap)
 #endif	//_DEBUG
 
 
-//TRACEƒ}ƒNƒ
-//g—p—á: TRACE(_T("cx: %d\n"), cx);
+//TRACEãƒã‚¯ãƒ­
+//ä½¿ç”¨ä¾‹: TRACE(_T("cx: %d\n"), cx);
 #ifndef _WIN64
 #ifdef _DEBUG
 FORCEINLINE static __int64 GetClockCount()
@@ -463,12 +463,12 @@ FORCEINLINE static __int64 GetClockCount()
 	return cycles.QuadPart;
 }
 
-//g—p—á
+//ä½¿ç”¨ä¾‹
 //{
 //   CDebugElapsedCounter _cntr("hogehoge");
-//     : (“K“–‚Èˆ—)
+//     : (é©å½“ãªå‡¦ç†)
 //}
-//o—Í—á: "hogehoge: 10000 clocks"
+//å‡ºåŠ›ä¾‹: "hogehoge: 10000 clocks"
 class CDebugElapsedCounter
 {
 private:
@@ -497,7 +497,7 @@ public:
 #endif
 
 
-//String to intµÈÏµÁĞº¯ÊıµÄ¶¨Òå
+//String to intç­‰ç³»åˆ—å‡½æ•°çš„å®šä¹‰
 /*
 int _StrToInt(LPCTSTR pStr, int nDefault)
 {
@@ -577,7 +577,7 @@ int _httoi(const TCHAR *value)
 	return result;
 }
 
-//atof‚ÉƒfƒtƒHƒ‹ƒg’l‚ğ•Ô‚¹‚é‚æ‚¤‚É‚µ‚½‚æ‚¤‚È•¨
+//atofã«ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã‚’è¿”ã›ã‚‹ã‚ˆã†ã«ã—ãŸã‚ˆã†ãªç‰©
 float _StrToFloat(LPCTSTR pStr, float fDefault)
 {
 #define isspace(ch)		(ch == _T('\t') || ch == _T(' '))

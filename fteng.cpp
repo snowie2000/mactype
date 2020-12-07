@@ -13,9 +13,9 @@
 #define GC_TRACE				TRACE
 #define FREETYPE_GC_COUNTER		128
 #else
-#define FREETYPE_REQCOUNTMAX	2048//Ä¬ÈÏ4096,Ã¿»º´æ¸ÃÊıÁ¿µÄÎÄ×Ö½«Ë¢ĞÂ»º´æ½µµÍÄÚ´æÕ¼ÓÃ
+#define FREETYPE_REQCOUNTMAX	2048//é»˜è®¤4096,æ¯ç¼“å­˜è¯¥æ•°é‡çš„æ–‡å­—å°†åˆ·æ–°ç¼“å­˜é™ä½å†…å­˜å ç”¨
 #define GC_TRACE				NOP_FUNCTION
-#define FREETYPE_GC_COUNTER		1024//Ë¢ĞÂ»º´æºó±£ÁôÎÄ×ÖÊıÁ¿
+#define FREETYPE_GC_COUNTER		1024//åˆ·æ–°ç¼“å­˜åä¿ç•™æ–‡å­—æ•°é‡
 #endif
 
 FreeTypeFontEngine* g_pFTEngine;
@@ -35,7 +35,7 @@ int CALLBACK EnumFontCallBack(const LOGFONT *lplf, const TEXTMETRIC *lptm, DWORD
 
 
 
-bool GetFontLocalName(TCHAR* pszFontName, __out TCHAR* pszNameOut)	//»ñµÃ×ÖÌåµÄ±¾µØ»¯Ãû³Æ,·µ»ØÖµÎª×ÖÌåÊÇ·ñ´æÔÚ
+bool GetFontLocalName(TCHAR* pszFontName, __out TCHAR* pszNameOut)	//è·å¾—å­—ä½“çš„æœ¬åœ°åŒ–åç§°,è¿”å›å€¼ä¸ºå­—ä½“æ˜¯å¦å­˜åœ¨
 {
 	LOGFONT lf = {0};
 	TCHAR* ret;
@@ -56,7 +56,7 @@ bool GetFontLocalName(TCHAR* pszFontName, __out TCHAR* pszNameOut)	//»ñµÃ×ÖÌåµÄ±
 	return lf.lfQuality == 0x2d;
 }
 
-LOGFONTW* GetFontNameFromFile(LPCWSTR Filename)	//»ñµÃÒ»¸ö×ÖÌåÎÄ¼şÄÚ°üº¬µÄËùÓĞ×ÖÌåÃû³Æs
+LOGFONTW* GetFontNameFromFile(LPCWSTR Filename)	//è·å¾—ä¸€ä¸ªå­—ä½“æ–‡ä»¶å†…åŒ…å«çš„æ‰€æœ‰å­—ä½“åç§°s
 {
 	LOGFONTW* logfonts = NULL;
 	DWORD bufsize=0;
@@ -126,7 +126,7 @@ void CompactMap(T& pp, int count, int reduce)
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_FONTCACHE);
 	int reducecount = pp.size() - reduce;
 	T::iterator it= pp.begin();
-	for (int i=0;i<reducecount;i++) //É¾³ı³¬¹ıFREETYPE_GC_COUNTERÖ®ºóµÄ»º´æ
+	for (int i=0;i<reducecount;i++) //åˆ é™¤è¶…è¿‡FREETYPE_GC_COUNTERä¹‹åçš„ç¼“å­˜
 	{
 		//it->second->Erase();
 		delete it->second;
@@ -145,9 +145,9 @@ void Compact(T** pp, int count, int reduce)
 	}
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_FONTCACHE);
 	TRACE(_T("Compact(0x%p, %d, %d)\n"), pp, count, reduce);
-	//GCƒ‚ƒhƒL
-	//T::m_mrucounter‚Ì~‡‚É•À‚Ô‚Ì‚Å
-	//reduce‚ğ’´‚¦‚é•”•ª‚ğíœ‚·‚é
+	//GCãƒ¢ãƒ‰ã‚­
+	//T::m_mrucounterã®é™é †ã«ä¸¦ã¶ã®ã§
+	//reduceã‚’è¶…ãˆã‚‹éƒ¨åˆ†ã‚’å‰Šé™¤ã™ã‚‹
 
 	T** ppTemp = (T**)malloc(sizeof(T*) * count);
 	if (!ppTemp) {
@@ -282,7 +282,7 @@ void FreeTypeFontCache::AddCharData(WCHAR wch, UINT glyphindex, int width, int g
 	if (glyphindex & 0xffff0000 /*|| !g_ccbCache*/) {
 		return;
 	}
-	if (AddIncrement() >= FREETYPE_REQCOUNTMAX) {	//ÏÈÑ¹Ëõ£¬±ÜÃâÑ¹Ëõºó¶ªÊ§µÄÎÊÌâ
+	if (AddIncrement() >= FREETYPE_REQCOUNTMAX) {	//å…ˆå‹ç¼©ï¼Œé¿å…å‹ç¼©åä¸¢å¤±çš„é—®é¢˜
 		Compact();
 	}
 
@@ -295,7 +295,7 @@ void FreeTypeFontCache::AddCharData(WCHAR wch, UINT glyphindex, int width, int g
 	}
 #else
 	GlyphCache::iterator it=m_GlyphCache.find(wch);
-	if (it!=m_GlyphCache.end())	//ÕÒµ½ÁË¾ÉÊı¾İ
+	if (it!=m_GlyphCache.end())	//æ‰¾åˆ°äº†æ—§æ•°æ®
 	{
 		FreeTypeCharData* ppChar  = it->second;
 		if (ppChar) {
@@ -341,7 +341,7 @@ void FreeTypeFontCache::AddGlyphData(UINT glyphindex, int width, int gdiWidth, F
 	}
 #else
 	GlyphCache::iterator it=m_GlyphCache.find(-(int)glyphindex);
-	if (it!=m_GlyphCache.end())	//ÕÒµ½ÁË¾ÉÊı¾İ
+	if (it!=m_GlyphCache.end())	//æ‰¾åˆ°äº†æ—§æ•°æ®
 	{
 		FreeTypeCharData* ppChar  = it->second;
 		if (ppChar) {
@@ -354,7 +354,7 @@ void FreeTypeFontCache::AddGlyphData(UINT glyphindex, int width, int gdiWidth, F
 	}
 #endif
 
-	//’Ç‰Á(glyph‚Ì‚İ)
+	//è¿½åŠ (glyphã®ã¿)
 	FreeTypeCharData* p = new FreeTypeCharData(NULL, /*ppGlyph*/NULL, 0, glyphindex, width, MruIncrement(), gdiWidth, AAMode);
 	if (p == NULL) {
 		return;
@@ -383,21 +383,21 @@ void FreeTypeFontInfo::Compact()
 void FreeTypeFontInfo::Createlink()
 {
 	CFontFaceNamesEnumerator fn(m_hash.c_str(), m_nFontFamily);
-	std::set<int> linkset;	//Á´½Ó×ÖÌå¼¯ºÏ£¬·ÀÖ¹ÖØ¸´Á´½Ó£¬½µµÍĞ§ÂÊ
+	std::set<int> linkset;	//é“¾æ¥å­—ä½“é›†åˆï¼Œé˜²æ­¢é‡å¤é“¾æ¥ï¼Œé™ä½æ•ˆç‡
 	linkset.insert(m_id);
 	face_id_link[m_linknum] = (FTC_FaceID)m_id;
-	ggo_link[m_linknum++] = m_ggoFont;	//µÚÒ»¸öÁ´½ÓÒ»¶¨ÊÇ×Ô¼º£¬²»ĞèÒª»ñÈ¡
+	ggo_link[m_linknum++] = m_ggoFont;	//ç¬¬ä¸€ä¸ªé“¾æ¥ä¸€å®šæ˜¯è‡ªå·±ï¼Œä¸éœ€è¦è·å–
 	LOGFONT lf;
 	BOOL IsSimSun = false;
 	memset(&lf, 0, sizeof(LOGFONT));
 	lf.lfCharSet=DEFAULT_CHARSET;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	for (fn.next() ; !fn.atend(); fn.next()) {	//Ìø¹ıµÚÒ»¸öÁ´½Ó
+	for (fn.next() ; !fn.atend(); fn.next()) {	//è·³è¿‡ç¬¬ä¸€ä¸ªé“¾æ¥
 		//FreeTypeFontInfo* pfitemp = g_pFTEngine->FindFont(fn, m_weight, m_italic);
 		//if (pfitemp && pfitemp->m_isSimSun)
 		//	IsSimSun = true;
 		if (!m_SimSunID)
-			IsSimSun = (_wcsicmp(fn,L"ËÎÌå")==0 || _wcsicmp(fn,L"SimSun")==0);
+			IsSimSun = (_wcsicmp(fn,L"å®‹ä½“")==0 || _wcsicmp(fn,L"SimSun")==0);
 		StringCchCopy(lf.lfFaceName, LF_FACESIZE, fn);
 		if (!_wcsicmp(fn, m_familyname.c_str()))	// allow font link to itself
 			pSettings->CopyForceFont(lf,lf);
@@ -419,19 +419,19 @@ bool FreeTypeFontInfo::EmbeddedBmpExist(int px)
 	if (m_ebmps[px]!=-1)
 		return !!m_ebmps[px];
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_MANAGER);
-	FTC_ImageTypeRec imgtype={(FTC_FaceID)m_id, px, px, FT_LOAD_DEFAULT};	//¹¹ÔìÒ»¸öµ±Ç°´óĞ¡µÄimagetype
+	FTC_ImageTypeRec imgtype={(FTC_FaceID)m_id, px, px, FT_LOAD_DEFAULT};	//æ„é€ ä¸€ä¸ªå½“å‰å¤§å°çš„imagetype
 	FT_Glyph temp_glyph=NULL;
-	FT_UInt gindex = FTC_CMapCache_Lookup(cmap_cache, (FTC_FaceID)m_id, -1, FT_UInt32(L'0'));	//»ñµÃ0µÄË÷ÒıÖµ
+	FT_UInt gindex = FTC_CMapCache_Lookup(cmap_cache, (FTC_FaceID)m_id, -1, FT_UInt32(L'0'));	//è·å¾—0çš„ç´¢å¼•å€¼
 	FTC_ImageCache_Lookup(image_cache, &imgtype, gindex, &temp_glyph, NULL);
-	if (temp_glyph && temp_glyph->format==FT_GLYPH_FORMAT_BITMAP)	//Èç¹û¿ÉÒÔ¶Áµ½0µÄµãÕó
-		m_ebmps[px]=1;	//Ôò¸Ã×ÖºÅ´æÔÚµãÕó
+	if (temp_glyph && temp_glyph->format==FT_GLYPH_FORMAT_BITMAP)	//å¦‚æœå¯ä»¥è¯»åˆ°0çš„ç‚¹é˜µ
+		m_ebmps[px]=1;	//åˆ™è¯¥å­—å·å­˜åœ¨ç‚¹é˜µ
 	else
 	{
-		gindex = FTC_CMapCache_Lookup(cmap_cache, (FTC_FaceID)m_id, -1, FT_UInt32(L'µÄ'));	//»ñµÃ"µÄ"µÄË÷ÒıÖµ
+		gindex = FTC_CMapCache_Lookup(cmap_cache, (FTC_FaceID)m_id, -1, FT_UInt32(L'çš„'));	//è·å¾—"çš„"çš„ç´¢å¼•å€¼
 		if (gindex)
-			FTC_ImageCache_Lookup(image_cache, &imgtype, gindex, &temp_glyph, NULL);	//¶ÁÈ¡¡°µÄ¡±µÄµãÕó
-		if (temp_glyph && temp_glyph->format==FT_GLYPH_FORMAT_BITMAP)	//Èç¹û¿ÉÒÔ¶Áµ½0µÄµãÕó
-			m_ebmps[px]=1;	//Ôò¸Ã×ÖºÅ´æÔÚµãÕó
+			FTC_ImageCache_Lookup(image_cache, &imgtype, gindex, &temp_glyph, NULL);	//è¯»å–â€œçš„â€çš„ç‚¹é˜µ
+		if (temp_glyph && temp_glyph->format==FT_GLYPH_FORMAT_BITMAP)	//å¦‚æœå¯ä»¥è¯»åˆ°0çš„ç‚¹é˜µ
+			m_ebmps[px]=1;	//åˆ™è¯¥å­—å·å­˜åœ¨ç‚¹é˜µ
 		else
 			m_ebmps[px]=0;
 	}
@@ -442,21 +442,21 @@ FreeTypeFontCache* FreeTypeFontInfo::GetCache(FTC_ScalerRec& scaler, const LOGFO
 {
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_FONTCACHE);
 
-	if (AddIncrement() > m_nMaxSizes) {	//ÏÈÑ¹Ëõ
+	if (AddIncrement() > m_nMaxSizes) {	//å…ˆå‹ç¼©
 		Compact();
 	}
 	int weight = lf.lfWeight;
 	weight = weight < FW_BOLD ? 0: 1/*FW_BOLD*/;
 	const bool italic = !!lf.lfItalic;
-	if (scaler.height>0xfff || scaler.width>0xfff/* || scaler.height<0 || scaler.width<0*/)	//³¬´ó×ÖÌå²»äÖÈ¾
+	if (scaler.height>0xfff || scaler.width>0xfff/* || scaler.height<0 || scaler.width<0*/)	//è¶…å¤§å­—ä½“ä¸æ¸²æŸ“
 		return NULL;
 	FreeTypeFontCache* p = NULL;
-	UINT hash=getCacheHash(scaler.height, weight, italic, lf.lfWidth ? scaler.width : 0);	//¼ÆËãhash
-	CacheArray::iterator it=m_cache.find(hash); //Ñ°ÕÒcache
-	if (it!=m_cache.end())//cache´æÔÚ
+	UINT hash=getCacheHash(scaler.height, weight, italic, lf.lfWidth ? scaler.width : 0);	//è®¡ç®—hash
+	CacheArray::iterator it=m_cache.find(hash); //å¯»æ‰¾cache
+	if (it!=m_cache.end())//cacheå­˜åœ¨
 	{
 		p = it->second;
-		goto OK; //·µ»Øcache
+		goto OK; //è¿”å›cache
 	}
 	
 	p = new FreeTypeFontCache(/*scaler.height, weight, italic,*/ MruIncrement());
@@ -472,7 +472,7 @@ FreeTypeFontCache* FreeTypeFontInfo::GetCache(FTC_ScalerRec& scaler, const LOGFO
 OK:
 	Assert(p != NULL);
 	if (p && p->Activate()) {
-		DecIncrement();	//ÖØ¸´Ê¹ÓÃÔò¼õ¼ÆÊıÖµ
+		DecIncrement();	//é‡å¤ä½¿ç”¨åˆ™å‡è®¡æ•°å€¼
 	}
 	return p;
 }
@@ -485,7 +485,7 @@ void FreeTypeFontEngine::Compact()
 
 	TRACE(_T("FreeTypeFontEngine::Compact: %d > %d\n"), m_mfontMap.size(), m_nMaxFaces);
 	ResetGCCounter();
-	//memset(m_arrFace, 0, sizeof(FT_Face)*m_nFaceCount);	//³¬¹ı×î´ófaceÊıÁË£¬ÀÏµÄface»á±»ftÊÍ·Åµô£¬ËùÒÔĞèÒªÈ«²¿ÖØĞÂ»ñÈ¡
+	//memset(m_arrFace, 0, sizeof(FT_Face)*m_nFaceCount);	//è¶…è¿‡æœ€å¤§faceæ•°äº†ï¼Œè€çš„faceä¼šè¢«fté‡Šæ”¾æ‰ï¼Œæ‰€ä»¥éœ€è¦å…¨éƒ¨é‡æ–°è·å–
 	//FontListArray& arr = m_arrFontList;
 	//::Compact(arr.GetData(), arr.GetSize(), m_nMaxFaces);
 }
@@ -494,23 +494,23 @@ BOOL FreeTypeFontEngine::RemoveFont(FreeTypeFontInfo* fontinfo)
 {
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_FONTMAP);
 	{
-		FontMap::const_iterator iter=m_mfontMap.begin();	//±éÀúfontmap
+		FontMap::const_iterator iter=m_mfontMap.begin();	//éå†fontmap
 		while (iter!=m_mfontMap.end())
 		{
 			FreeTypeFontInfo* p = iter->second;
 			if (p==fontinfo)
-				m_mfontMap.erase(iter++);	//É¾³ıÒıÓÃ
+				m_mfontMap.erase(iter++);	//åˆ é™¤å¼•ç”¨
 			else
 				++iter;
 		}
 	}
 	{
-		FullNameMap::const_iterator iter=m_mfullMap.begin();	//±éÀúfullmap
+		FullNameMap::const_iterator iter=m_mfullMap.begin();	//éå†fullmap
 		while (iter!=m_mfullMap.end())
 		{
 			FreeTypeFontInfo* p = iter->second;
 			if (p==fontinfo)
-				m_mfullMap.erase(iter++);	//É¾³ıÒıÓÃ
+				m_mfullMap.erase(iter++);	//åˆ é™¤å¼•ç”¨
 			else
 			{
 				iter->second->UpdateFontSetting();
@@ -526,14 +526,14 @@ BOOL FreeTypeFontEngine::RemoveThisFont(FreeTypeFontInfo* fontinfo, LOGFONT* lg)
 {
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_FONTMAP);
 	{
-		FontMap::const_iterator iter=m_mfontMap.find(myfont(lg->lfFaceName, CalcBoldWeight(lg->lfWeight), lg->lfItalic));	//±éÀúfontmap
+		FontMap::const_iterator iter=m_mfontMap.find(myfont(lg->lfFaceName, CalcBoldWeight(lg->lfWeight), lg->lfItalic));	//éå†fontmap
 		if (iter!=m_mfontMap.end())
-			m_mfontMap.erase(iter);	//É¾³ıÒıÓÃ
+			m_mfontMap.erase(iter);	//åˆ é™¤å¼•ç”¨
 	}
 	{
-		FullNameMap::const_iterator iter=m_mfullMap.find(fontinfo->GetFullName());	//±éÀúfullmap
+		FullNameMap::const_iterator iter=m_mfullMap.find(fontinfo->GetFullName());	//éå†fullmap
 		if (iter!=m_mfullMap.end())
-			m_mfullMap.erase(iter);	//É¾³ıÒıÓÃ
+			m_mfullMap.erase(iter);	//åˆ é™¤å¼•ç”¨
 	}
 	delete fontinfo;
 	return true;
@@ -543,11 +543,11 @@ BOOL FreeTypeFontEngine::RemoveFont(LPCWSTR FontName)
 {
 	if (!FontName) return false;
 	LOGFONTW* fontarray = GetFontNameFromFile(FontName);
-	LOGFONTW* c_fontarray = fontarray;	//¼ÇÂ¼Ô­Ê¼Ö¸Õë
+	LOGFONTW* c_fontarray = fontarray;	//è®°å½•åŸå§‹æŒ‡é’ˆ
 	if (!fontarray) return false;
 	FTC_FaceID fid = NULL;
 	BOOL bIsFontLoaded, bIsFontFileLoaded = false;
-	COwnedCriticalSectionLock __lock2(2, COwnedCriticalSectionLock::OCS_DC);	//»ñÈ¡ËùÓĞÈ¨£¬ÏÖÔÚÒª´¦ÀíDC£¬½ûÖ¹ËùÓĞ»æÍ¼º¯Êı·ÃÎÊ
+	COwnedCriticalSectionLock __lock2(2, COwnedCriticalSectionLock::OCS_DC);	//è·å–æ‰€æœ‰æƒï¼Œç°åœ¨è¦å¤„ç†DCï¼Œç¦æ­¢æ‰€æœ‰ç»˜å›¾å‡½æ•°è®¿é—®
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_MANAGER);
 	while (*(char*)fontarray)
 	{
@@ -556,10 +556,10 @@ BOOL FreeTypeFontEngine::RemoveFont(LPCWSTR FontName)
 		if (result)
 		{
 			fid = (FTC_FaceID)result->GetId();
-			if (bIsFontLoaded)	//¸Ã×ÖÌåÒÑ¾­±»Ê¹ÓÃ¹ı
+			if (bIsFontLoaded)	//è¯¥å­—ä½“å·²ç»è¢«ä½¿ç”¨è¿‡
 			{
-				RemoveFont(result);	//Ã¶¾Ù×ÖÌåĞÅÏ¢È«²¿É¾³ı
-				bIsFontFileLoaded = true;	//ÉèÖÃ×ÖÌåÎÄ¼şÒ²±»Ê¹ÓÃ¹ı
+				RemoveFont(result);	//æšä¸¾å­—ä½“ä¿¡æ¯å…¨éƒ¨åˆ é™¤
+				bIsFontFileLoaded = true;	//è®¾ç½®å­—ä½“æ–‡ä»¶ä¹Ÿè¢«ä½¿ç”¨è¿‡
 			}
 			else
 				RemoveThisFont(result, fontarray);
@@ -569,13 +569,13 @@ BOOL FreeTypeFontEngine::RemoveFont(LPCWSTR FontName)
 		}
 		fontarray++;
 	}
-	free(c_fontarray); //ÀûÓÃÔ­Ê¼Ö¸ÕëÊÍ·Å
-	if (bIsFontFileLoaded)	//Èô×ÖÌåÎÄ¼ş±»Ê¹ÓÃ¹ı£¬ÔòĞèÒªÇå³şËùÓĞDC
+	free(c_fontarray); //åˆ©ç”¨åŸå§‹æŒ‡é’ˆé‡Šæ”¾
+	if (bIsFontFileLoaded)	//è‹¥å­—ä½“æ–‡ä»¶è¢«ä½¿ç”¨è¿‡ï¼Œåˆ™éœ€è¦æ¸…æ¥šæ‰€æœ‰DC
 	{
 		CTLSDCArray::iterator iter = TLSDCArray.begin();
 		while (iter!=TLSDCArray.end())
 		{
-			((CBitmapCache*)*iter)->~CBitmapCache();	//Çå³ıµôËùÓĞÊ¹ÓÃÖĞµÄDC
+			((CBitmapCache*)*iter)->~CBitmapCache();	//æ¸…é™¤æ‰æ‰€æœ‰ä½¿ç”¨ä¸­çš„DC
 			++iter;
 		}
 	}
@@ -607,7 +607,7 @@ FreeTypeFontInfo* FreeTypeFontEngine::AddFont(void* lpparams)
 	if (!pfi)
 		return NULL;
 	
-	if (pfi->GetFullName().size()==0)	//µãÕó×Ö
+	if (pfi->GetFullName().size()==0)	//ç‚¹é˜µå­—
 		{
 			delete pfi;
 			ReleaseFaceID();
@@ -623,22 +623,22 @@ FreeTypeFontInfo* FreeTypeFontEngine::AddFont(void* lpparams)
 	}*/
 
 	FullNameMap::const_iterator it = m_mfullMap.find(pfi->GetFullName());
-	if (it!=m_mfullMap.end())	//ÊÇÒÑ¾­´æÔÚµÄ×ÖÌåÁË,Ô­ÒòÊÇ×ÖÌåÌæ»»Ê¹Á½ÖÖÃû×ÖÖ¸ÏòÒ»¸ö×ÖÌå
+	if (it!=m_mfullMap.end())	//æ˜¯å·²ç»å­˜åœ¨çš„å­—ä½“äº†,åŸå› æ˜¯å­—ä½“æ›¿æ¢ä½¿ä¸¤ç§åå­—æŒ‡å‘ä¸€ä¸ªå­—ä½“
 	{
-		delete pfi;	//É¾³ı¸Õ²Å´´½¨µÄ×ÖÌå
+		delete pfi;	//åˆ é™¤åˆšæ‰åˆ›å»ºçš„å­—ä½“
 		ReleaseFaceID();
-		pfi = it->second;//Ö¸ÏòÔ­×ÖÌå
+		pfi = it->second;//æŒ‡å‘åŸå­—ä½“
 	}
 	else
 	{
-		m_mfullMap[pfi->GetFullName()]=pfi;	//²»´æÔÚ£¬Ìí¼Óµ½map±í
+		m_mfullMap[pfi->GetFullName()]=pfi;	//ä¸å­˜åœ¨ï¼Œæ·»åŠ åˆ°mapè¡¨
 		m_mfontList.push_back(pfi);
 	}
 
-	if (pfi->GetFullName()!=params->strFullName)	//Èç¹ûÄ¿±ê×ÖÌåµÄÕæÊµÃû³ÆºÍĞèÒªµÄÃû³Æ²»Ò»Ñù£¬ËµÃ÷ÊÇ×ÖÌåÌæ»»
+	if (pfi->GetFullName()!=params->strFullName)	//å¦‚æœç›®æ ‡å­—ä½“çš„çœŸå®åç§°å’Œéœ€è¦çš„åç§°ä¸ä¸€æ ·ï¼Œè¯´æ˜æ˜¯å­—ä½“æ›¿æ¢
 	{
-		pfi->AddRef();	//Ôö¼ÓÒıÓÃ¼ÆÊı
-		m_mfullMap[params->strFullName] = pfi;	//Ë«ÖØÒıÓÃ£¬Ö¸ÏòÍ¬Ò»¸ö×ÖÌå
+		pfi->AddRef();	//å¢åŠ å¼•ç”¨è®¡æ•°
+		m_mfullMap[params->strFullName] = pfi;	//åŒé‡å¼•ç”¨ï¼ŒæŒ‡å‘åŒä¸€ä¸ªå­—ä½“
 	}
 		
 	//bool ret = !!arr.Add(pfi);
@@ -684,26 +684,26 @@ FreeTypeFontInfo* FreeTypeFontEngine::AddFont(LPCTSTR lpFaceName, int weight, bo
 	FreeTypeFontInfo* pfi = new FreeTypeFontInfo(/*m_mfullMap.size() + 1*/GetFaceID(), lpFaceName, weight, italic, MruIncrement(), dumy, dumy);
 	if (!pfi)
 		return NULL;
-	if (pfi->GetFullName().size()==0)	//µãÕó×Ö
+	if (pfi->GetFullName().size()==0)	//ç‚¹é˜µå­—
 	{
 		delete pfi;
 		ReleaseFaceID();
 		return NULL;
 	}
 
-	FullNameMap::const_iterator it = m_mfullMap.find(pfi->GetFullName()); //ÊÇ·ñÔÚÖ÷map±íÖĞ´æÔÚÁË
-	if (it!=m_mfullMap.end())	//ÒÑ¾­´æÔÚ
+	FullNameMap::const_iterator it = m_mfullMap.find(pfi->GetFullName()); //æ˜¯å¦åœ¨ä¸»mapè¡¨ä¸­å­˜åœ¨äº†
+	if (it!=m_mfullMap.end())	//å·²ç»å­˜åœ¨
 	{
-		delete pfi;	//É¾³ı´´½¨³öÀ´µÄ×ÖÌå
+		delete pfi;	//åˆ é™¤åˆ›å»ºå‡ºæ¥çš„å­—ä½“
 		ReleaseFaceID();
-		pfi = it->second;	//Ö¸ÏòÒÑ¾­´æÔÚµÄ×ÖÌå
+		pfi = it->second;	//æŒ‡å‘å·²ç»å­˜åœ¨çš„å­—ä½“
 		if (bIsFontLoaded)
 			*bIsFontLoaded = true;
 		//pfi->AddRef();
 	}
 	else
 	{
-		m_mfullMap[pfi->GetFullName()]=pfi;	//²»´æÔÚ£¬Ìí¼Óµ½map±í
+		m_mfullMap[pfi->GetFullName()]=pfi;	//ä¸å­˜åœ¨ï¼Œæ·»åŠ åˆ°mapè¡¨
 		m_mfontList.push_back(pfi);
 		if (bIsFontLoaded)
 			*bIsFontLoaded = false;
@@ -712,7 +712,7 @@ FreeTypeFontInfo* FreeTypeFontEngine::AddFont(LPCTSTR lpFaceName, int weight, bo
 	//bool ret = !!arr.Add(pfi);
 	//weight = weight < FW_BOLD ? 0: FW_BOLD;
 	myfont font(lpFaceName, weight, italic);
-	m_mfontMap[font]=pfi;		//Ìí¼ÓÔÚ´ÎÒªmap±í
+	m_mfontMap[font]=pfi;		//æ·»åŠ åœ¨æ¬¡è¦mapè¡¨
 /*
 	if (!ret) {
 		delete pfi;
@@ -763,7 +763,7 @@ FreeTypeFontInfo* FreeTypeFontEngine::FindFont(void* lpparams)
 	if (iter!=m_mfullMap.end())
 	{
 		FreeTypeFontInfo* p = iter->second;
-		if (p->GetFullName()!=params->strFullName)	//ÊôÓÚÌæ»»×ÖÌå
+		if (p->GetFullName()!=params->strFullName)	//å±äºæ›¿æ¢å­—ä½“
 			return FindFont(params->lplf->lfFaceName, params->lplf->lfWeight, !!params->lplf->lfItalic);
 		p->SetMruCounter(this);
 		return p;
@@ -811,7 +811,7 @@ FreeTypeFontInfo* FreeTypeFontEngine::FindFont(int faceid)
 	if (faceid>m_mfontList.size())
 		return NULL;
 	else
-		return m_mfontList[faceid-1];	//´æÔÚbug£¡£¡£¡
+		return m_mfontList[faceid-1];	//å­˜åœ¨bugï¼ï¼ï¼
 	/*
 	FullNameMap::const_iterator iter=m_mfullMap.begin();
 		for(; iter != m_mfullMap.end(); ++iter) {
@@ -827,13 +827,13 @@ FreeTypeFontInfo* FreeTypeFontEngine::FindFont(int faceid)
 
 
 //FreeTypeSysFontData
-// http://kikyou.info/diary/?200510#i10 ‚ğQl‚É‚µ‚½
+// http://kikyou.info/diary/?200510#i10 ã‚’å‚è€ƒã«ã—ãŸ
 #include <freetype/tttables.h>	// FT_TRUETYPE_TABLES_H
 #include <mmsystem.h>	//mmioFOURCC
 #define TVP_TT_TABLE_ttcf	mmioFOURCC('t', 't', 'c', 'f')
 #define TVP_TT_TABLE_name	mmioFOURCC('n', 'a', 'm', 'e')
 
-// Windows‚É“o˜^‚³‚ê‚Ä‚¢‚éƒtƒHƒ“ƒg‚ÌƒoƒCƒiƒŠƒf[ƒ^‚ğ–¼Ì‚©‚çæ“¾
+// Windowsã«ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹ãƒ•ã‚©ãƒ³ãƒˆã®ãƒã‚¤ãƒŠãƒªãƒ‡ãƒ¼ã‚¿ã‚’åç§°ã‹ã‚‰å–å¾—
 FreeTypeSysFontData* FreeTypeSysFontData::CreateInstance(LPCTSTR name, int weight, bool italic)
 {
 	FreeTypeSysFontData* pData = new FreeTypeSysFontData;
@@ -850,8 +850,8 @@ FreeTypeSysFontData* FreeTypeSysFontData::CreateInstance(LPCTSTR name, int weigh
 bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 {
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	void* pNameFromGDI		= NULL; // Windows ‚©‚çæ“¾‚µ‚½ name ƒ^ƒO‚Ì“à—e
-	void* pNameFromFreeType	= NULL; // FreeType ‚©‚çæ“¾‚µ‚½ name ƒ^ƒO‚Ì“à—e
+	void* pNameFromGDI		= NULL; // Windows ã‹ã‚‰å–å¾—ã—ãŸ name ã‚¿ã‚°ã®å†…å®¹
+	void* pNameFromFreeType	= NULL; // FreeType ã‹ã‚‰å–å¾—ã—ãŸ name ã‚¿ã‚°ã®å†…å®¹
 	HFONT hf = NULL;
 	DWORD cbNameTable;
 	DWORD cbFontData;
@@ -863,7 +863,7 @@ bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 	if(m_hdc == NULL) {
 		return false;
 	}
-	// –¼‘OˆÈŠO“K“–
+	// åå‰ä»¥å¤–é©å½“
 	if (pSettings->FontSubstitutes() < SETTING_FONTSUBSTITUTE_ALL)
 	{
 		hf = CreateFont(
@@ -892,7 +892,7 @@ bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 	}
 
 	m_hOldFont = SelectFont(m_hdc, hf);
-	// ƒtƒHƒ“ƒgƒf[ƒ^‚ª“¾‚ç‚ê‚»‚¤‚©ƒ`ƒFƒbƒN
+	// ãƒ•ã‚©ãƒ³ãƒˆãƒ‡ãƒ¼ã‚¿ãŒå¾—ã‚‰ã‚Œãã†ã‹ãƒã‚§ãƒƒã‚¯
 	cbNameTable = ORIG_GetFontData(m_hdc, TVP_TT_TABLE_name, 0, NULL, 0);
 	if(cbNameTable == GDI_ERROR){
 		goto ERROR_Init;
@@ -907,15 +907,15 @@ bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 		goto ERROR_Init;
 	}
 
-	//- name ƒ^ƒO‚Ì“à—e‚ğƒƒ‚ƒŠ‚É“Ç‚İ‚Ş
+	//- name ã‚¿ã‚°ã®å†…å®¹ã‚’ãƒ¡ãƒ¢ãƒªã«èª­ã¿è¾¼ã‚€
 	if(ORIG_GetFontData(m_hdc, TVP_TT_TABLE_name, 0, pNameFromGDI, cbNameTable) == GDI_ERROR){
 		goto ERROR_Init;
 	}
 
-	// ƒtƒHƒ“ƒgƒTƒCƒYæ“¾ˆ—
+	// ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºå–å¾—å‡¦ç†
 	cbFontData = ORIG_GetFontData(m_hdc, TVP_TT_TABLE_ttcf, 0, &buf, 1);
 	if(cbFontData == 1){
-		// TTC ƒtƒ@ƒCƒ‹‚¾‚Æv‚í‚ê‚é
+		// TTC ãƒ•ã‚¡ã‚¤ãƒ«ã ã¨æ€ã‚ã‚Œã‚‹
 		cbFontData = ORIG_GetFontData(m_hdc, TVP_TT_TABLE_ttcf, 0, NULL, 0);
 		m_isTTC = true;
 	}
@@ -923,7 +923,7 @@ bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 		cbFontData = ORIG_GetFontData(m_hdc, 0, 0, NULL, 0);
 	}
 	if(cbFontData == GDI_ERROR){
-		// ƒGƒ‰[; GetFontData ‚Å‚Íˆµ‚¦‚È‚©‚Á‚½
+		// ã‚¨ãƒ©ãƒ¼; GetFontData ã§ã¯æ‰±ãˆãªã‹ã£ãŸ
 		goto ERROR_Init;
 	}
 
@@ -941,7 +941,7 @@ bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 		}
 	}
 
-	// FT_StreamRec ‚ÌŠeƒtƒB[ƒ‹ƒh‚ğ–„‚ß‚é
+	// FT_StreamRec ã®å„ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚’åŸ‹ã‚ã‚‹
 	fsr.base				= 0;
 	fsr.size				= cbFontData;
 	fsr.pos					= 0;
@@ -957,37 +957,37 @@ bool FreeTypeSysFontData::Init(LPCTSTR name, int weight, bool italic)
 	}
 
 	for(;;) {
-		// FreeType ‚©‚çAname ƒ^ƒO‚ÌƒTƒCƒY‚ğæ“¾‚·‚é
+		// FreeType ã‹ã‚‰ã€name ã‚¿ã‚°ã®ã‚µã‚¤ã‚ºã‚’å–å¾—ã™ã‚‹
 		FT_ULong length = 0;
 		FT_Error err = FT_Load_Sfnt_Table(m_ftFace, TTAG_name, 0, NULL, &length);
 		if(err){
 			goto ERROR_Init;
 		}
 
-		// FreeType ‚©‚ç“¾‚½ name ƒ^ƒO‚Ì’·‚³‚ğ Windows ‚©‚ç“¾‚½’·‚³‚Æ”äŠr
+		// FreeType ã‹ã‚‰å¾—ãŸ name ã‚¿ã‚°ã®é•·ã•ã‚’ Windows ã‹ã‚‰å¾—ãŸé•·ã•ã¨æ¯”è¼ƒ
 		if(length == cbNameTable){
-			// FreeType ‚©‚ç name ƒ^ƒO‚ğæ“¾
+			// FreeType ã‹ã‚‰ name ã‚¿ã‚°ã‚’å–å¾—
 			err = FT_Load_Sfnt_Table(m_ftFace, TTAG_name, 0, (unsigned char*)pNameFromFreeType, &length);
 			if(err){
 				goto ERROR_Init;
 			}
-			// FreeType ‚©‚ç“Ç‚İ‚ñ‚¾ name ƒ^ƒO‚Ì“à—e‚ÆAWindows ‚©‚ç“Ç‚İ‚ñ‚¾
-			// name ƒ^ƒO‚Ì“à—e‚ğ”äŠr‚·‚éB
-			// ˆê’v‚µ‚Ä‚¢‚ê‚Î‚»‚Ì index ‚ÌƒtƒHƒ“ƒg‚ğg‚¤B
+			// FreeType ã‹ã‚‰èª­ã¿è¾¼ã‚“ã  name ã‚¿ã‚°ã®å†…å®¹ã¨ã€Windows ã‹ã‚‰èª­ã¿è¾¼ã‚“ã 
+			// name ã‚¿ã‚°ã®å†…å®¹ã‚’æ¯”è¼ƒã™ã‚‹ã€‚
+			// ä¸€è‡´ã—ã¦ã„ã‚Œã°ãã® index ã®ãƒ•ã‚©ãƒ³ãƒˆã‚’ä½¿ã†ã€‚
 			if(!memcmp(pNameFromGDI, pNameFromFreeType, cbNameTable)){
-				// ˆê’v‚µ‚½
-				// face ‚ÍŠJ‚¢‚½‚Ü‚Ü
-				break; // ƒ‹[ƒv‚ğ”²‚¯‚é
+				// ä¸€è‡´ã—ãŸ
+				// face ã¯é–‹ã„ãŸã¾ã¾
+				break; // ãƒ«ãƒ¼ãƒ—ã‚’æŠœã‘ã‚‹
 			}
 		}
 
-		// ˆê’v‚µ‚È‚©‚Á‚½
-		// ƒCƒ“ƒfƒbƒNƒX‚ğˆê‚Â‘‚â‚µA‚»‚Ì face ‚ğŠJ‚­
+		// ä¸€è‡´ã—ãªã‹ã£ãŸ
+		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’ä¸€ã¤å¢—ã‚„ã—ã€ãã® face ã‚’é–‹ã
 		index ++;
 
 		if(!OpenFaceByIndex(index)){
-			// ˆê’v‚·‚é face ‚ª‚È‚¢‚Ü‚Ü ƒCƒ“ƒfƒbƒNƒX‚ª”ÍˆÍ‚ğ’´‚¦‚½‚ÆŒ©‚ç‚ê‚é
-			// index ‚ğ 0 ‚Éİ’è‚µ‚Ä‚»‚Ì index ‚ğŠJ‚«Aƒ‹[ƒv‚ğ”²‚¯‚é
+			// ä¸€è‡´ã™ã‚‹ face ãŒãªã„ã¾ã¾ ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãŒç¯„å›²ã‚’è¶…ãˆãŸã¨è¦‹ã‚‰ã‚Œã‚‹
+			// index ã‚’ 0 ã«è¨­å®šã—ã¦ãã® index ã‚’é–‹ãã€ãƒ«ãƒ¼ãƒ—ã‚’æŠœã‘ã‚‹
 			index = 0;
 			if(!OpenFaceByIndex(index)){
 				goto ERROR_Init;
@@ -1033,7 +1033,7 @@ unsigned long FreeTypeSysFontData::IoFunc(
 	} else {
 		result = ::GetFontData(pThis->m_hdc, pThis->m_isTTC ? TVP_TT_TABLE_ttcf : 0, offset, buffer, count);
 		if(result == GDI_ERROR) {
-			// ƒGƒ‰[
+			// ã‚¨ãƒ©ãƒ¼
 			return 0;
 		}
 	}
@@ -1060,7 +1060,7 @@ bool FreeTypeSysFontData::OpenFaceByIndex(int index)
 	args.flags		= FT_OPEN_STREAM;
 	args.stream		= &m_ftStream;
 
-	// FreeType ‚Åˆµ‚¦‚é‚©H
+	// FreeType ã§æ‰±ãˆã‚‹ã‹ï¼Ÿ
 	FT_Error ftErrCode = FT_Open_Face(freetype_library, &args, index, &m_ftFace);
 #ifdef DEBUG
 	if (ftErrCode!=0)

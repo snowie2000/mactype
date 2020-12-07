@@ -203,7 +203,7 @@ struct FREETYPE_PARAMS
 		ZeroMemory(this, sizeof(*this));
 	}
 
-	//FreeTypeTextOut—p (ƒTƒCƒYŒvZ{•¶š•`‰æ)
+	//FreeTypeTextOutç”¨ (ã‚µã‚¤ã‚ºè¨ˆç®—ï¼‹æ–‡å­—æç”»)
 	FREETYPE_PARAMS(UINT eto, HDC hdc, LOGFONTW* p, OUTLINETEXTMETRIC* lpotm = NULL)
 		: etoOptions(eto)
 		, ftOptions(0)
@@ -276,7 +276,7 @@ struct FreeTypeDrawInfo
 {
 	FT_FaceRec_ dummy_freetype_face;
 
-	//FreeTypePrepare‚ªİ’è‚·‚é
+	//FreeTypePrepareãŒè¨­å®šã™ã‚‹
 	int sx,sy;
 	FT_Face freetype_face;
 	FT_Int cmap_index;
@@ -295,7 +295,7 @@ struct FreeTypeDrawInfo
 	int* Dx;
 	int* Dy;
 
-	//ŒÄ‚Ño‚µ‘O‚É©•ª‚Åİ’è‚·‚é
+	//å‘¼ã³å‡ºã—å‰ã«è‡ªåˆ†ã§è¨­å®šã™ã‚‹
 	HDC hdc;
 	int xBase;
 	int y;//coord height, calculated by ETO_PDY, 0 if not provided

@@ -20,13 +20,13 @@ GdipDrawString)(
 			   GDIPCONST RectF          *layoutRect,
 			   GDIPCONST GpStringFormat *stringFormat,
 			   GDIPCONST GpBrush        *brush
-			   );//»æÖÆÎÄ×ÖµÄº¯Êı
+			   );//ç»˜åˆ¶æ–‡å­—çš„å‡½æ•°
 
 typedef GpStatus (WINGDIPAPI*
-GdipGetLogFontW)(GpFont * font, GpGraphics *graphics, LOGFONTW * logfontW);//´ÓGPFont»ñÈ¡Logfont
+GdipGetLogFontW)(GpFont * font, GpGraphics *graphics, LOGFONTW * logfontW);//ä»GPFontè·å–Logfont
 
 typedef GpStatus (WINGDIPAPI*
-GdipGetDC)(GpGraphics* graphics, HDC * hdc);	//´ÓGPGraphic»ñÈ¡HDC
+GdipGetDC)(GpGraphics* graphics, HDC * hdc);	//ä»GPGraphicè·å–HDC
 
 typedef GpStatus (WINGDIPAPI*
 GdipReleaseDC)(GpGraphics* graphics, HDC hdc);
@@ -39,17 +39,17 @@ typedef GpStatus (WINGDIPAPI*
 GdipGetStringFormatTrimming)(
 							GDIPCONST GpStringFormat *format,
 							StringTrimming       *trimming
-							);	//»ñÈ¡×Ö·û´®µÄËõÂÔ·½Ê½¡£µ±×Ö·û´®³¤¶È³¬¹ı¾ØĞÎ³¤¶ÈÊ±£¬½«Ê¹ÓÃÉèÖÃµÄ·½Ê½É¾³ıÖĞ¼äµÄ²¿·ÖÎÄ×Ö¡£
-								//×ª»»³ÉGDIºóÓ¦Ê¹ÓÃDrawTextÀ´Ä£Äâ¡£
+							);	//è·å–å­—ç¬¦ä¸²çš„ç¼©ç•¥æ–¹å¼ã€‚å½“å­—ç¬¦ä¸²é•¿åº¦è¶…è¿‡çŸ©å½¢é•¿åº¦æ—¶ï¼Œå°†ä½¿ç”¨è®¾ç½®çš„æ–¹å¼åˆ é™¤ä¸­é—´çš„éƒ¨åˆ†æ–‡å­—ã€‚
+								//è½¬æ¢æˆGDIååº”ä½¿ç”¨DrawTextæ¥æ¨¡æ‹Ÿã€‚
 typedef GpStatus (WINGDIPAPI*
 GdipGetStringFormatHotkeyPrefix)(GDIPCONST GpStringFormat *format, 
-								INT *hotkeyPrefix);	//»ñÈ¡&·ûºÅµÄÏÔÊ¾·½Ê½£¬Òş²Ø£¬ÏÔÊ¾ÏÂ»®Ïß»òÕß²»´¦Àí&¡£ÓÉDrawTextÄ£Äâ¡£
+								INT *hotkeyPrefix);	//è·å–&ç¬¦å·çš„æ˜¾ç¤ºæ–¹å¼ï¼Œéšè—ï¼Œæ˜¾ç¤ºä¸‹åˆ’çº¿æˆ–è€…ä¸å¤„ç†&ã€‚ç”±DrawTextæ¨¡æ‹Ÿã€‚
 
 typedef GpStatus (WINGDIPAPI*
 GdipGetBrushType)(GpBrush *brush, GpBrushType *type);
 
 typedef GpStatus (WINGDIPAPI*
-GdipGetSolidFillColor)(GpSolidFill *brush, ARGB *color);	//»ñÈ¡µ¥É«BrushµÄÑÕÉ«
+GdipGetSolidFillColor)(GpSolidFill *brush, ARGB *color);	//è·å–å•è‰²Brushçš„é¢œè‰²
 
 extern GdipDrawString pfnGdipDrawString ;
 extern GdipGetBrushType pfnGdipGetBrushType ;
