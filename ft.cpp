@@ -99,16 +99,6 @@ void Log(wchar_t* Msg)
 	fclose(f);
 }
 
-FT_EXPORT_DEF(FT_Error)
-FT_Glyph_To_BitmapEx(FT_Glyph* the_glyph,
-	FT_Render_Mode  render_mode,
-	FT_Vector* origin,
-	FT_Bool         destroy,
-	FT_Bool			loadcolor,
-	FT_UInt			glyphindex,
-	FT_Face			face);
-
-
 class CAlphaBlend
 {
 private:

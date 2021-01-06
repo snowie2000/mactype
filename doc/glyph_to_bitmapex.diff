@@ -1,8 +1,3 @@
- src/base/ftglyph.c | 112 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 112 insertions(+)
-
-diff --git a/src/base/ftglyph.c b/src/base/ftglyph.c
-index 27402ecf8..7637388a8 100644
 --- a/src/base/ftglyph.c
 +++ b/src/base/ftglyph.c
 @@ -634,6 +634,118 @@
@@ -124,3 +119,20 @@ index 27402ecf8..7637388a8 100644
    /* documentation is in ftglyph.h */
  
    FT_EXPORT_DEF( void )
+--- a/include/freetype/ftglyph.h
++++ b/include/freetype/ftglyph.h
+@@ -574,6 +574,14 @@
+                       FT_Vector*      origin,
+                       FT_Bool         destroy );
+
++  FT_EXPORT(FT_Error)
++  FT_Glyph_To_BitmapEx(FT_Glyph* the_glyph,
++    FT_Render_Mode  render_mode,
++    FT_Vector* origin,
++    FT_Bool         destroy,
++    FT_Bool                    loadcolor,
++    FT_UInt                    glyphindex,
++    FT_Face                    face);
+
+   /**************************************************************************
+    *
