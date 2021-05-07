@@ -1,4 +1,4 @@
-// override.cpp - ƒLƒŒƒC‚ÈTextOut
+// override.cpp - ã‚­ãƒ¬ã‚¤ãªTextOut
 // 2006/09/27
 
 #include "override.h"
@@ -56,13 +56,13 @@ HFONT GetCurrentFont(HDC hdc)
 {
 	HFONT hCurFont = (HFONT)GetCurrentObject(hdc, OBJ_FONT);
 	if (!hCurFont) {
-		// NULL‚Ìê‡‚ÍSystem‚ğİ’è‚µ‚Ä‚¨‚­
+		// NULLã®å ´åˆã¯Systemã‚’è¨­å®šã—ã¦ãŠã
 		hCurFont = (HFONT)GetStockObject(SYSTEM_FONT);
 	}
 	return hCurFont;
 }
 
-//ÅĞ¶ÏÊÇ·ñÊÇÓĞĞ§ÆÕÍ¨ÏÔÊ¾DC£¬ÓÃÓÚÌø¹ı×ÖÄ»
+//åˆ¤æ–­æ˜¯å¦æ˜¯æœ‰æ•ˆæ™®é€šæ˜¾ç¤ºDCï¼Œç”¨äºè·³è¿‡å­—å¹•
 BOOL IsValidDC(HDC hdc)	
 {
 	if (GetDeviceCaps(hdc, TECHNOLOGY) != DT_RASDISPLAY) {
@@ -128,7 +128,7 @@ BOOL IsExeUnload(LPCTSTR lpApp)
 	return FALSE;
 }
 
-//Ø‚èã‚°œZ
+//åˆ‡ã‚Šä¸Šã’é™¤ç®—
 int div_ceil(int a, int b)
 {
 	if(a % b)
@@ -136,7 +136,7 @@ int div_ceil(int a, int b)
 	return a / b;
 }
 
-template <typename _TCHAR>	//ĞŞ¸ÄÕâ¸öº¯Êı£¬Ê¹ËüÔÚÊ§°ÜµÄÊ±ºò·µ»Øfalse£¬ÓÉµ÷ÓÃÕß¸ºÔğµ÷ÓÃWindowsÔ­º¯Êı£¬ÊµÏÖÏß³Ì°²È«¡£
+template <typename _TCHAR>	//ä¿®æ”¹è¿™ä¸ªå‡½æ•°ï¼Œä½¿å®ƒåœ¨å¤±è´¥çš„æ—¶å€™è¿”å›falseï¼Œç”±è°ƒç”¨è€…è´Ÿè´£è°ƒç”¨WindowsåŸå‡½æ•°ï¼Œå®ç°çº¿ç¨‹å®‰å…¨ã€‚
 BOOL _GetTextExtentPoint32AorW(HDC hdc, _TCHAR* lpString, int cbString, LPSIZE lpSize)
 {
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
@@ -230,8 +230,8 @@ LONG WINAPI IMPL_LdrLoadDll(IN PWCHAR PathToFile OPTIONAL, IN ULONG Flags OPTION
 		wstring filename = wstring(ModuleFileName->Buffer);
 		int last_slash=filename.find_last_of('\\');
 		if (last_slash!=-1)
-			filename.erase(0,last_slash+1);	//É¾³ıÂ·¾¶
-		if (_wcsicmp(filename.c_str(), L"d2d1.dll")==0)	//ÕıÔÚÔØÈëd2d1.dll
+			filename.erase(0,last_slash+1);	//åˆ é™¤è·¯å¾„
+		if (_wcsicmp(filename.c_str(), L"d2d1.dll")==0)	//æ­£åœ¨è½½å…¥d2d1.dll
 		{
 			bD2D1Loaded = true;
 			LONG result = ORIG_LdrLoadDll(PathToFile, Flags, ModuleFileName, ModuleHandle);
@@ -411,15 +411,15 @@ LPCWSTR GetCachedFontLocale(HFONT lFont)
 
 void AddToCachedFont(HFONT lfont, LPWSTR lpFaceName, LPWSTR lpGDIName)
 {
-	if (!lfont) return;	//²»¿ÉÒÔÌí¼Ó¿Õ½Úµã
+	if (!lfont) return;	//ä¸å¯ä»¥æ·»åŠ ç©ºèŠ‚ç‚¹
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_CACHEDFONT);
-	if (GetCachedFont(lfont)) return;	//ÒÑ¾­´æÔÚµÄ×ÖÌå
+	if (GetCachedFont(lfont)) return;	//å·²ç»å­˜åœ¨çš„å­—ä½“
 	FontCache[lfont] = new CFontSubResult(lpFaceName, lpGDIName);
 }
 
 void DeleteCachedFont(HFONT lfont)
 {
-	if (!lfont) return;	//²»¿ÉÒÔÉ¾³ıÍ·½áµã
+	if (!lfont) return;	//ä¸å¯ä»¥åˆ é™¤å¤´ç»“ç‚¹
 	CCriticalSectionLock __lock(CCriticalSectionLock::CS_CACHEDFONT);
 	CFontCache::iterator it= FontCache.find(lfont);
 	if (it!=FontCache.end())
@@ -755,7 +755,7 @@ HFONT WINAPI IMPL_CreateFontIndirectExW(CONST ENUMLOGFONTEXDV *penumlfex)
 BOOL WINAPI IMPL_DeleteObject(HGDIOBJ hObject)
 {
 	//CThreadCounter __counter;
-	if (hObject == g_alterGUIFont)	//ÎÒµÄÏµÍ³×ÖÌå£¬²»¿ÉÒÔÊÍ·Åµô
+	if (hObject == g_alterGUIFont)	//æˆ‘çš„ç³»ç»Ÿå­—ä½“ï¼Œä¸å¯ä»¥é‡Šæ”¾æ‰
 		return true;
 	BOOL bResult = ORIG_DeleteObject(hObject);
 	if (bResult) DeleteCachedFont((HFONT)hObject);
@@ -763,7 +763,7 @@ BOOL WINAPI IMPL_DeleteObject(HGDIOBJ hObject)
 }
 
 
-HFONT WINAPI IMPL_CreateFontIndirectW(CONST LOGFONTW *lplf)	//ÖØĞÂÆôÓÃÕâ¸öhook£¬Ö»Îª¼æÈİËÑ¹·ÊäÈë·¨
+HFONT WINAPI IMPL_CreateFontIndirectW(CONST LOGFONTW *lplf)	//é‡æ–°å¯ç”¨è¿™ä¸ªhookï¼Œåªä¸ºå…¼å®¹æœç‹—è¾“å…¥æ³•
 {
 	ENUMLOGFONTEXDVW envlf = {0};
 	memcpy(&envlf.elfEnumLogfontEx.elfLogFont, lplf, sizeof(LOGFONTW));
@@ -794,8 +794,8 @@ BOOL WINAPI IMPL_DrawStateA(HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPA
 	return ORIG_DrawStateA(hdc, hbr, lpOutputFunc, lData, wData, x, y, cx, cy, uFlags);
 }
 
-//ŠDF•`‰æ‚ğDrawText‚Ö“Š‚°‚é
-//DrawText‚Í“à•”‚ÅExtTextOut‚µ‚Ä‚­‚ê‚é‚Ì‚Å–â‘è‚È‚µ
+//ç°è‰²æç”»ã‚’DrawTextã¸æŠ•ã’ã‚‹
+//DrawTextã¯å†…éƒ¨ã§ExtTextOutã—ã¦ãã‚Œã‚‹ã®ã§å•é¡Œãªã—
 BOOL WINAPI IMPL_DrawStateW(HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPARAM lData, WPARAM wData, int x, int y, int cx, int cy, UINT uFlags)
 {
 	//CThreadCounter __counter;
@@ -804,16 +804,16 @@ BOOL WINAPI IMPL_DrawStateW(HDC hdc, HBRUSH hbr, DRAWSTATEPROC lpOutputFunc, LPA
 		case DST_TEXT:
 		case DST_PREFIXTEXT:
 			{
-			//wData==0‚Ì‚É•¶š”©“®ŒvZ
-			//‘¼‚ÌAPI‚Æˆá‚Á‚Ä-1‚Ì‚Å‚Í‚È‚¢
+			//wData==0ã®æ™‚ã«æ–‡å­—æ•°è‡ªå‹•è¨ˆç®—
+			//ä»–ã®APIã¨é•ã£ã¦-1ã®æ™‚ã§ã¯ãªã„
 			if(wData == 0) {
 				wData = wcslen((LPCWSTR)lData);
 			}
 			RECT rect = { x, y, x + 10000, y + 10000 };
-			//‚Ç‚¤‚â‚ç3DHighLight‚Ìã‚É1px‚¸‚ç‚µ‚Ä3DShadow‚ğd‚Ë‚Ä‚é‚ç‚µ‚¢
+			//ã©ã†ã‚„ã‚‰3DHighLightã®ä¸Šã«1pxãšã‚‰ã—ã¦3DShadowã‚’é‡ã­ã¦ã‚‹ã‚‰ã—ã„
 			int oldbm = SetBkMode(hdc, TRANSPARENT);
 			COLORREF oldfg = SetTextColor(hdc, GetSysColor(COLOR_3DHIGHLIGHT));
-			//DrawState‚ÆDrawText‚Å‚Íprefix‚Ìƒtƒ‰ƒO‚ª‹t(API‚ÌİŒvƒ_ƒ‚·‚¬)
+			//DrawStateã¨DrawTextã§ã¯prefixã®ãƒ•ãƒ©ã‚°ãŒé€†(APIã®è¨­è¨ˆãƒ€ãƒ¡ã™ã)
 			const UINT uDTFlags = DT_SINGLELINE | DT_NOCLIP | (uFlags & DST_PREFIXTEXT ? 0 : DT_NOPREFIX);
 
 			OffsetRect(&rect, 1, 1);
@@ -879,7 +879,7 @@ void AnsiDxToUnicodeDx(LPCSTR lpStringA, int cbString, const int* lpDxA, int* lp
 	}
 }
 
-// ANSI->Unicode‚É•ÏŠ·‚µ‚ÄExtTextOutW‚É“Š‚°‚éExtTextOutA
+// ANSI->Unicodeã«å¤‰æ›ã—ã¦ExtTextOutWã«æŠ•ã’ã‚‹ExtTextOutA
 
 BOOL WINAPI IMPL_ExtTextOutA(HDC hdc, int nXStart, int nYStart, UINT fuOptions, CONST RECT *lprc, LPCSTR lpString, UINT cbString, CONST INT *lpDx)
 {
@@ -890,11 +890,11 @@ BOOL WINAPI IMPL_ExtTextOutA(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 	//However, if the ANSI version of ExtTextOut is called with ETO_GLYPH_INDEX,
 	//the function returns TRUE even though the function does nothing.
-	//‚Æ‚è‚ ‚¦‚¸ƒIƒŠƒWƒiƒ‹‚É”ò‚Î‚·
+	//ã¨ã‚Šã‚ãˆãšã‚ªãƒªã‚¸ãƒŠãƒ«ã«é£›ã°ã™
 	if (fuOptions & ETO_GLYPH_INDEX)
 		return ORIG_ExtTextOutA(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 
-	//HDBENCHƒ`[ƒg
+	//HDBENCHãƒãƒ¼ãƒˆ
 //	if (lpString && cbString == 7 && pSettings->IsHDBench() && (memcmp(lpString, "HDBENCH", 7) == 0 || memcmp(lpString, "       ", 7) == 0))
 //		return ORIG_ExtTextOutA(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 
@@ -939,7 +939,7 @@ BOOL WINAPI IMPL_ExtTextOutA(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 	lpszUnicode = _StrDupExAtoW(lpString, cbString, szStack, CCH_MAX_STACK, &bufferLength, nACP);
 	if(!lpszUnicode) {
-		//ƒƒ‚ƒŠ•s‘«: ˆê‰ƒIƒŠƒWƒiƒ‹‚É“Š‚°‚Æ‚­
+		//ãƒ¡ãƒ¢ãƒªä¸è¶³: ä¸€å¿œã‚ªãƒªã‚¸ãƒŠãƒ«ã«æŠ•ã’ã¨ã
 		return ORIG_ExtTextOutA(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	}
 
@@ -992,7 +992,7 @@ typedef enum {
 	ETOE_GENERAL		= 19,
 } ExtTextOut_ErrorCode;
 
-//—áŠOƒ‚ƒhƒL
+//ä¾‹å¤–ãƒ¢ãƒ‰ã‚­
 #define ETO_TRY()		ExtTextOut_ErrorCode error = ETOE_OK; {
 #define ETO_THROW(code)	error = (code); goto _EXCEPTION_THRU
 #define ETO_CATCH()		} _EXCEPTION_THRU:
@@ -1058,17 +1058,17 @@ public:
 };
 
 extern ControlIder CID;
-// È¡´úWindowsµÄExtTextOutW
+// å–ä»£Windowsçš„ExtTextOutW
 BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, CONST RECT *lprc, LPCWSTR lpString, UINT cbString, CONST INT *SyslpDx)
 {
-	//CThreadCounter __counter;		//ÓÃÓÚ°²È«ÍË³öµÄ¼ÆÊıÆ÷
+	//CThreadCounter __counter;		//ç”¨äºå®‰å…¨é€€å‡ºçš„è®¡æ•°å™¨
 	INT* lpDx = const_cast<INT*>(SyslpDx);
 
 	if (!hdc || !lpString || !cbString || !g_ccbRender || cbString>8192) {		//no valid param or rendering is disabled from control center.
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	}
-	if (!(fuOptions & ETO_GLYPH_INDEX) && cbString==1 && *lpString==32)	//¿Õ¸ñ
-		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions | ETO_IGNORELANGUAGE, lprc, lpString, cbString, lpDx);	//¿Õ¸ñ¾Í²»ÓÃ´¦ÀíÁË¡£¡£¡£·´Õı¶¼Ò»Ñù
+	if (!(fuOptions & ETO_GLYPH_INDEX) && cbString==1 && *lpString==32)	//ç©ºæ ¼
+		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions | ETO_IGNORELANGUAGE, lprc, lpString, cbString, lpDx);	//ç©ºæ ¼å°±ä¸ç”¨å¤„ç†äº†ã€‚ã€‚ã€‚åæ­£éƒ½ä¸€æ ·
 
 	CThreadLocalInfo* pTLInfo = g_TLInfo.GetPtr();		
 	if(!pTLInfo) {
@@ -1099,14 +1099,14 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 	if (!(fuOptions & ETO_GLYPH_INDEX) && !(fuOptions & ETO_IGNORELANGUAGE) && !lpDx && CID.myiscomplexscript(lpString,cbString))		//complex script
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
-	CGdippSettings* pSettings = CGdippSettings::GetInstance(); //»ñµÃÒ»¸öÅäÖÃÎÄ¼şÊµÀı
+	CGdippSettings* pSettings = CGdippSettings::GetInstance(); //è·å¾—ä¸€ä¸ªé…ç½®æ–‡ä»¶å®ä¾‹
 
 /*
 
-#ifndef _DEBUG		//debugÄ£Ê½ÏÂ´Ë²ÎÊıÓĞÎÊÌâ
+#ifndef _DEBUG		//debugæ¨¡å¼ä¸‹æ­¤å‚æ•°æœ‰é—®é¢˜
 	if (pSettings->FontLoader()==SETTING_FONTLOADER_WIN32)
 	{
-		if (!(fuOptions & ETO_GLYPH_INDEX) 	//¸´ÔÓÎÄ¼ş£¬²»½øĞĞäÖÈ¾
+		if (!(fuOptions & ETO_GLYPH_INDEX) 	//å¤æ‚æ–‡ä»¶ï¼Œä¸è¿›è¡Œæ¸²æŸ“
 		&& !(fuOptions & ETO_IGNORELANGUAGE) && ScriptIsComplex(lpString, cbString, SIC_COMPLEX) == S_OK) {
 			return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 		}
@@ -1121,7 +1121,7 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 
 
 	
-	if (pTLInfo->InExtTextOut()) {	//ÊÇÒì³£Ö®ºóµÄ×Ô¶¯»¹Ô­Ö´ĞĞ
+	if (pTLInfo->InExtTextOut()) {	//æ˜¯å¼‚å¸¸ä¹‹åçš„è‡ªåŠ¨è¿˜åŸæ‰§è¡Œ
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	}
 
@@ -1132,11 +1132,11 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 	if (GetTransform)
 	{
 		GetTransform(hdc, GT_WORLD_TO_DEVICE, &xfm);
-		if (memcmp(&xfm, &stdXfm, sizeof(XFORM)-sizeof(FLOAT)*2)) //(xfm.eM11!=1.0 || xfm.eM22!=1.0)	//Èç¹û´æÔÚ×ø±ê×ª»»
+		if (memcmp(&xfm, &stdXfm, sizeof(XFORM)-sizeof(FLOAT)*2)) //(xfm.eM11!=1.0 || xfm.eM22!=1.0)	//å¦‚æœå­˜åœ¨åæ ‡è½¬æ¢
 		{
-			bool bZoomInOut = (xfm.eM12==0 && xfm.eM21==0 && xfm.eM11>0 && xfm.eM22>0);	//Ö»ÊÇËõ·Å,ÇÒÊÇÕıÊıËõ·Å
+			bool bZoomInOut = (xfm.eM12==0 && xfm.eM21==0 && xfm.eM11>0 && xfm.eM22>0);	//åªæ˜¯ç¼©æ”¾,ä¸”æ˜¯æ­£æ•°ç¼©æ”¾
 			if (!bZoomInOut)
-				return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);	//·ÅÆúäÖÈ¾
+				return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);	//æ”¾å¼ƒæ¸²æŸ“
 			else
 			{
 				bZoomedDC = true;
@@ -1177,7 +1177,7 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 	if (!size.cx)
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);*/
 
-	COwnedCriticalSectionLock __lock2(1, COwnedCriticalSectionLock::OCS_DC);	//»ñÈ¡ËùÓĞÈ¨£¬·ÀÖ¹³åÍ»
+	COwnedCriticalSectionLock __lock2(1, COwnedCriticalSectionLock::OCS_DC);	//è·å–æ‰€æœ‰æƒï¼Œé˜²æ­¢å†²çª
 	CBitmapCache& cache	= pTLInfo->BitmapCache();
 	CETOBitmap bmp(cache);
 
@@ -1194,10 +1194,10 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 	OUTLINETEXTMETRIC* otm = NULL;
 
 ETO_TRY();
-	//ÉèÖÃ±êÖ¾£¬
+	//è®¾ç½®æ ‡å¿—ï¼Œ
 	pTLInfo->InExtTextOut(true);
 
-	POINT	curPos = { nXStart, nYStart };	//¼ÇÂ¼¿ªÊ¼µÄÎ»ÖÃ
+	POINT	curPos = { nXStart, nYStart };	//è®°å½•å¼€å§‹çš„ä½ç½®
 	POINT	destPos;
 	SIZE	drawSize;
 
@@ -1217,7 +1217,7 @@ ETO_TRY();
 	if (!nSize) {
 		//nSize = sizeof(OUTLINETEXTMETRIC);
 		ETO_THROW(ETOE_INVALIDHDC);
-	}	//ºÄÊ±50-100ms
+	}	//è€—æ—¶50-100ms
 
 	otm = (OUTLINETEXTMETRIC*)malloc(nSize);
 	memset(otm, 0, nSize);
@@ -1363,7 +1363,7 @@ ETO_TRY();
 			FTInfo.Dx[i]-=FTInfo.xBase;	// modify the start position of painting
 	}
 
-	/*if (bZoomedDC && DCTrans->MirrorX())	//×óÓÒ·´Ïò£¬RGBºÍBGRÒªÏà·´
+	/*if (bZoomedDC && DCTrans->MirrorX())	//å·¦å³åå‘ï¼ŒRGBå’ŒBGRè¦ç›¸å
 		for (int i=0; i<cbString; ++i)
 		{
 			switch (FTInfo.AAModes[i])
@@ -1382,7 +1382,7 @@ ETO_TRY();
 				break;
 			}
 		}*/
-	//POINT destSize;	//LPÏÂµÄ´óĞ¡ºÍÆğÊ¼Î»ÖÃ
+	//POINT destSize;	//LPä¸‹çš„å¤§å°å’Œèµ·å§‹ä½ç½®
 	/*
 	if (bZoomedDC)
 		{
@@ -1455,7 +1455,7 @@ ETO_TRY();
 	if(drawSize.cx < 1 || drawSize.cy < 1) {
 		ETO_THROW(ETOE_NOAREA); //throw no area
 	}
-	//drawSize.cx += tm.tmMaxCharWidth;	//¼ÓÉÏÒ»¸ö×î´ó×ÖÌå¿í¶È
+	//drawSize.cx += tm.tmMaxCharWidth;	//åŠ ä¸Šä¸€ä¸ªæœ€å¤§å­—ä½“å®½åº¦
 
 	//bitmap
 
@@ -1475,7 +1475,7 @@ ETO_TRY();
 		}
 		else
 			IntersectRect(&rcClip, &rcBlt, lprc);
-		xorg = rcClip.left-destPos.x; //¼ÆËãÆ«ÒÆ
+		xorg = rcClip.left-destPos.x; //è®¡ç®—åç§»
 		yorg = rcClip.top-destPos.y;
 		destPos.x = rcClip.left;
 		destPos.y = rcClip.top;
@@ -1488,7 +1488,7 @@ ETO_TRY();
 		//clear bitmap
 
 		if(fillrect || GetBkMode(hdc) == OPAQUE) {
-			COLORREF  bgcolor = GetBkColor(hdc); //—¼•û‚Æ‚à“¯‚¶”wŒiF‚É
+			COLORREF  bgcolor = GetBkColor(hdc); //ä¸¡æ–¹ã¨ã‚‚åŒã˜èƒŒæ™¯è‰²ã«
 			//if ((bgcolor>>24)%2 || (bgcolor>>28)%2)
 			//	bgcolor = 0;
 			if ((bgcolor>>24)%2 || (bgcolor>>28)%2)

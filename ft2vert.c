@@ -531,31 +531,31 @@ FT_UInt ft2_subst_uvs(const FT_Face face, const FT_UInt gid, const FT_UInt vsind
 	if (!ft2vert)
 		return 0;
 
-	// ���݂���Ȃ�UVS Subtable����T��
+	// 存在するならUVS Subtableから探す
 	if (ft2vert->variantSelectors)
 		return FT_Face_GetCharVariantIndex(face, baseChar, 0xE0100 + vsindex);
 
-	// GSUB�e�[�u����OpenType feature�ɂ��V�~�����[�g����
+	// GSUBテーブルのOpenType featureによりシミュレートする
 	if (vsindex >= sizeof ivs_otft_index / sizeof ivs_otft_index[0])
 		return 0;
 	found = (const struct ivs_otft_desc *)bsearch(&key, ivs_otft + ivs_otft_index[vsindex], ivs_otft_count[vsindex], sizeof(struct ivs_otft_desc), glyphs_comp);
 	if (!found)
 		return 0;
 
-	// �V�~�����[�g�ł���feature�����������̂Œu�������݂�B
+	// シミュレートできるfeatureが見つかったので置換を試みる。
 	newglyph = ft2gsub_get_gid(ft2vert, gid, found->otft_index);
-	// �u���ɐ��������炻���Ԃ�
+	// 置換に成功したらそれを返す
 	if (newglyph)
 		return newglyph;
-	// �t�H���g��GSUB�e�[�u���ɒu����`�������Ă��Ȃ��B
-	// 'jp04'�������Ă��邪'jp90'�������Ă��Ȃ��Ƃ���JIS90�t�H���g�Ƃ݂Ȃ��A
-	// 'jp90'�������Ă��邪'jp04'�������Ă��Ȃ��Ƃ���JIS2004�t�H���g�Ƃ݂Ȃ��B
-	// JIS90�t�H���g��'jp90'��v�����ꂽ�ꍇ��JIS2004�t�H���g'jp04'��v�����ꂽ�ꍇ��
-	// �f�t�H���g���`���v�����ꂽ���`�ł���Ƃ݂Ȃ��Ă��̂܂ܕԂ��B
+	// フォントがGSUBテーブルに置換定義を持っていない。
+	// 'jp04'を持っているが'jp90'を持っていないときはJIS90フォントとみなし、
+	// 'jp90'を持っているが'jp04'を持っていないときはJIS2004フォントとみなす。
+	// JIS90フォントに'jp90'を要求された場合とJIS2004フォント'jp04'を要求された場合は
+	// デフォルト字形が要求された字形であるとみなしてそのまま返す。
 	if (ft2vert->jp04Lookup && !ft2vert->jp90Lookup && found->otft_index == JP90_LOOKUP_INDEX
 		|| ft2vert->jp90Lookup && !ft2vert->jp04Lookup && found->otft_index == JP04_LOOKUP_INDEX)
 		return gid;
-	// �ǂ���ł��Ȃ���΃t�H���g�͗v�����ꂽ���`�������Ă��Ȃ��Ƃ݂Ȃ��B
+	// どちらでもなければフォントは要求された字形を持っていないとみなす。
 	return 0;
 }
 

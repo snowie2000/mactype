@@ -6,7 +6,7 @@ typedef struct _OWNED_CRITIAL_SECTION
 	HANDLE hEvent;
 	CRITICAL_SECTION threadLock;
 }OWNED_CRITIAL_SECTION, *POWNED_CRITIAL_SECTION;
-	//用于自定义临界区
+	//鐢ㄤ簬鑷畾涔変复鐣屽尯
 
 void WINAPI InitializeOwnedCritialSection(POWNED_CRITIAL_SECTION cs);
 void WINAPI DeleteOwnedCritialSection(POWNED_CRITIAL_SECTION cs);

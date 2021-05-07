@@ -1,7 +1,7 @@
 #include "override.h"
 
-//CreateDIB¼ÆÊı£¬½«ÔÚ»æÖÆÏÂÁĞ´ÎÊıºó¸üĞÂDIBÇø
-#define BITMAP_REDUCE_COUNTER	256//Ä¬ÈÏ1024
+//CreateDIBè®¡æ•°ï¼Œå°†åœ¨ç»˜åˆ¶ä¸‹åˆ—æ¬¡æ•°åæ›´æ–°DIBåŒº
+#define BITMAP_REDUCE_COUNTER	256//é»˜è®¤1024
 
 
 HDC CBitmapCache::CreateDC(HDC dc)
@@ -23,8 +23,8 @@ HBITMAP CBitmapCache::CreateDIB(int width, int height, BYTE** lplpPixels)
 			*lplpPixels = m_lpPixels;
 			return m_hbmp;
 		}
-		//ƒJƒEƒ“ƒ^’´‰ß
-		//‚½‚¾‚µƒTƒCƒY‚ª‘S‚­“¯‚¶‚È‚çÄ¶¬‚µ‚È‚¢
+		//ã‚«ã‚¦ãƒ³ã‚¿è¶…é
+		//ãŸã ã—ã‚µã‚¤ã‚ºãŒå…¨ãåŒã˜ãªã‚‰å†ç”Ÿæˆã—ãªã„
 		if (dibSize.cx == width && dibSize.cy == height) {
 			m_counter   = 0;
 			*lplpPixels = m_lpPixels;
@@ -46,8 +46,8 @@ HBITMAP CBitmapCache::CreateDIB(int width, int height, BYTE** lplpPixels)
 	}
 	TRACE(_T("width=%d, height=%d\n"), width, height);
 
-	//ƒƒ‚ƒŠ•s‘«“™‚ÅhbmpNew==NULL‚Ìê‡‚ğ‘z’è‚µA
-	//¬Œ÷‚µ‚½‚Æ‚«‚Ì‚İƒLƒƒƒbƒVƒ…‚ğXV
+	//ãƒ¡ãƒ¢ãƒªä¸è¶³ç­‰ã§hbmpNew==NULLã®å ´åˆã‚’æƒ³å®šã—ã€
+	//æˆåŠŸã—ãŸã¨ãã®ã¿ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚’æ›´æ–°
 	if (m_hbmp) {
 		DeleteBitmap(m_hbmp);
 	}
@@ -55,7 +55,7 @@ HBITMAP CBitmapCache::CreateDIB(int width, int height, BYTE** lplpPixels)
 	m_hbmp		= hbmpNew;
 	dibSize.cx	= width;
 	dibSize.cy	= height;
-	//CreateDIBSection‚Í‘½•ªƒy[ƒW‹«ŠE‚©ƒZƒOƒƒ“ƒg‹«ŠE
+	//CreateDIBSectionã¯å¤šåˆ†ãƒšãƒ¼ã‚¸å¢ƒç•Œã‹ã‚»ã‚°ãƒ¡ãƒ³ãƒˆå¢ƒç•Œ
 	m_lpPixels	= *lplpPixels;
 	m_counter	= 0;
 	return m_hbmp;
@@ -79,7 +79,7 @@ void CBitmapCache::FillSolidRect(COLORREF rgb, const RECT* lprc)
 	const DWORD dwBmpBytes		= m_dibSize.cx * m_dibSize.cy;
 	rgb = RGB2DIB(rgb);
 
-	//TODO: MMX or SSE‰»
+	//TODO: MMX or SSEåŒ–
 	__asm {
 		mov edi, dword ptr [lpPixels]
 		mov ecx, dword ptr [dwBmpBytes]
@@ -94,7 +94,7 @@ void CBitmapCache::FillSolidRect(COLORREF rgb, const RECT* lprc)
 //	}
 }
 
-//…•½ü‚ğˆø‚­
+//æ°´å¹³ç·šã‚’å¼•ã
 //(X1,Y1)           (X2,Y1)
 //   +-----------------+   ^
 //   |       rgb       |   | width
@@ -111,7 +111,7 @@ void CBitmapCache::DrawHorizontalLine(int X1, int Y1, int X2, COLORREF rgb, int 
 		X2 = xx;
 	}
 
-	//ƒNƒŠƒbƒsƒ“ƒO
+	//ã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°
 	const int xSize = m_dibSize.cx;
 	const int ySize = m_dibSize.cy;
 	X1 = Bound(X1, 0, xSize);
@@ -142,7 +142,7 @@ void CBitmapCache::DrawHorizontalLine(int X1, int Y1, int X2, COLORREF rgb, int 
 	}*/
 
 /*#ifdef _M_IX86
-	//–³ˆÓ–¡‚ÉƒAƒZƒ“ƒuƒŠ‰»
+	//ç„¡æ„å‘³ã«ã‚¢ã‚»ãƒ³ãƒ–ãƒªåŒ–
 	__asm {
 		mov ebx, dword ptr [Yd]
 		mov edx, dword ptr [lpPixels]
@@ -157,7 +157,7 @@ L1:
 		dec ebx
 		jnz L1
 	}
-#else*/	//¶ÔÓÚ64Î»ÏµÍ³£¬Ê¹ÓÃCÓïÑÔ
+#else*/	//å¯¹äº64ä½ç³»ç»Ÿï¼Œä½¿ç”¨Cè¯­è¨€
 	for (int yy=Y1; yy<Y2; yy++) {
 		for (int xx=X1; xx<X2; xx++) {
 			*( (DWORD*)m_lpPixels + (yy * xSize + xx) ) = rgb;
