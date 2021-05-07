@@ -122,9 +122,9 @@ void CGdippSettings::DelayedInit()
 	}	
 
 	//ForceChangeFont
-	if (m_szForceChangeFont[0]) {
-		EnumFontFamilies(hdcScreen, m_szForceChangeFont, EnumFontFamProc, reinterpret_cast<LPARAM>(this));
-	}
+	//if (m_szForceChangeFont[0]) {
+	//	EnumFontFamilies(hdcScreen, m_szForceChangeFont, EnumFontFamProc, reinterpret_cast<LPARAM>(this));
+	//}
 	//fetch screen dpi
 	m_nScreenDpi = GetDeviceCaps(hdcScreen, LOGPIXELSX);
 	ReleaseDC(NULL, hdcScreen);
@@ -597,7 +597,7 @@ SKIP:
 	// フォント指定
 	ZeroMemory(&m_lfForceFont, sizeof(LOGFONT));
 	m_szForceChangeFont[0] = _T('\0');
-	_GetFreeTypeProfileString(_T("ForceChangeFont"), _T(""), m_szForceChangeFont, LF_FACESIZE, lpszFile);
+	//_GetFreeTypeProfileString(_T("ForceChangeFont"), _T(""), m_szForceChangeFont, LF_FACESIZE, lpszFile);
 
 	// OSのバージョンがXP以降かどうか
 	//OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
@@ -665,14 +665,6 @@ SKIP:
 		m_bUseCustomLcdFilter = AddLcdFilterFromSection(_T("LcdFilterWeight"), lpszFile, m_arrLcdFilterWeights);
 
 	return true;
-}
-
-int CALLBACK CGdippSettings::EnumFontFamProc(const LOGFONT* lplf, const TEXTMETRIC* /*lptm*/, DWORD FontType, LPARAM lParam)
-{
-	CGdippSettings* pThis = reinterpret_cast<CGdippSettings*>(lParam);
-	if (pThis && FontType == TRUETYPE_FONTTYPE)
-		pThis->m_lfForceFont = *lplf;
-	return 0;
 }
 
 bool CGdippSettings::AddExcludeListFromSection(LPCTSTR lpszSection, LPCTSTR lpszFile, set<wstring> & arr)
@@ -1152,15 +1144,12 @@ bool CGdippSettings::CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const
 	if (GetLastError()!=ERROR_ENVVAR_NOT_FOUND)
 		return false;
 	//&lf == &lfOrgも可
-	bool bForceFont = !!GetForceFontName();
+	bool bForceFont = false;
 	BOOL bFontExist = true;
 	const LOGFONT *lplf;
-	if (bForceFont) {
-		lplf = &m_lfForceFont;
-	} else {
-		lplf = GetFontSubstitutesInfo().lookup((LOGFONT&)lfOrg);
-		if (lplf) bForceFont = true;
-	}
+	lplf = GetFontSubstitutesInfo().lookup((LOGFONT&)lfOrg);
+	if (lplf) bForceFont = true;
+
 	if (bForceFont) {
 		memcpy(&lf, &lfOrg, sizeof(LOGFONT)-sizeof(lf.lfFaceName));
 		StringCchCopy(lf.lfFaceName, LF_FACESIZE, lplf->lfFaceName);

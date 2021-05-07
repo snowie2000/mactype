@@ -349,7 +349,6 @@ private:
 	static float  _GetFreeTypeProfileFloat     (LPCTSTR lpszKey, float fDefault, LPCTSTR lpszFile);
 	static float  _GetFreeTypeProfileBoundFloat(LPCTSTR lpszKey, float fDefault, float fMin, float fMax, LPCTSTR lpszFile);
 	static DWORD  _GetFreeTypeProfileString    (LPCTSTR lpszKey, LPCTSTR lpszDefault, LPTSTR lpszRet, DWORD cch, LPCTSTR lpszFile);
-	static int CALLBACK EnumFontFamProc(const LOGFONT* lplf, const TEXTMETRIC* lptm, DWORD FontType, LPARAM lParam);
 	//template <typename T>
 	static bool AddListFromSection(LPCTSTR lpszSection, LPCTSTR lpszFile, set<wstring> & arr);
 	static bool AddExcludeListFromSection(LPCTSTR lpszSection, LPCTSTR lpszFile, set<wstring> & arr);
@@ -468,13 +467,6 @@ public:
 // OS version comparsion for magic code
 	bool IsWindows8() const { return m_dwOSMajorVer == 6 && m_dwOSMinorVer == 2; }
 	bool IsWindows81() const { return m_dwOSMajorVer == 6 && m_dwOSMinorVer == 3; }
-	// フォント兆よみとり
-	LPCTSTR GetForceFontName() const
-	{
-		_ASSERTE(m_bDelayedInit);
-		LPCTSTR lpszFace = m_lfForceFont.lfFaceName;
-		return lpszFace[0] ? lpszFace : NULL;
-	}
 
 	bool CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const;
 

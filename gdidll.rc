@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "winres.h"
+#include "afxres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -24,8 +24,8 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2019,523,1
- PRODUCTVERSION 1,2019,5,23
+ FILEVERSION 1,2021,507,1
+ PRODUCTVERSION 1,2021,5,7
  FILEFLAGSMASK 0x8L
 #ifdef _DEBUG
  FILEFLAGS 0xbL
@@ -40,15 +40,15 @@ BEGIN
     BEGIN
         BLOCK "000004b0"
         BEGIN
-            VALUE "Comments", "Portions of this software are copyright (c) 2005-2017 The FreeType Project (www.freetype.org). All rights reserved."
-            VALUE "CompanyName", "2ch & THEMEX"
+            VALUE "Comments", "Portions of this software are copyright (c) 2005-2021 The FreeType Project (www.freetype.org). All rights reserved."
+            VALUE "CompanyName", "2ch & THEMEX & everyone"
             VALUE "FileDescription", "The Ultimate Font Rasterizer"
-            VALUE "FileVersion", "1.2019.523.1"
+            VALUE "FileVersion", "1.2021.507.1"
             VALUE "InternalName", "MacType"
             VALUE "LegalCopyright", "(C) 460, 168, Higambana, 555 and sy567. All rights reserved. FlyingSnow republished"
             VALUE "OriginalFilename", "MacType.dll"
             VALUE "ProductName", "The Ultimate Font Rasterizer"
-            VALUE "ProductVersion", "1.2019.5.23"
+            VALUE "ProductVersion", "1.2021.5.7"
             VALUE "URL", "http://www.mactype.net http://drwatson.nobody.jp/gdi++/"
         END
     END
