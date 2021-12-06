@@ -60,7 +60,7 @@ Known issues
 
 - WPS has a builtin defense that **UNLOADS** MacType automatically which can't be turned off. Please contact its software support for solution. We won't to anything to walkaround it.
 
-How to get regitry mode back
+How to get registry mode back
 -------------
 
 It is no longer possible to enable registry mode via the wizard in Windows 10. 
