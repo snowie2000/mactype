@@ -6,20 +6,21 @@ Better font rendering for Windows.
 Latest beta
 ------------------
 
-[2019.1-beta6](https://github.com/snowie2000/mactype/releases) (Recommended)
+[2021.1-RC1](https://github.com/snowie2000/mactype/releases) (Recommended)
 
 Official site
 ------------------
 
-MacType official site (download is an older release version): 
+MacType official site: 
 
-http://www.mactype.net (Not recommended)
+http://www.mactype.net
 
 What's new?
 ------------------
 
 - Win10 compatible
-- Updated FreeType (up to git commit 0c4feb72cf976f63d4bf62436bc48f190d0e0c28)
+- CET compatible
+- Updated FreeType
 - Support for color fonts :sunglasses:
 - New installer
 - Lots of bug fixes
@@ -34,7 +35,6 @@ What's new?
 - English localization improved
 - Added Korea localization, thanks to 조현희
 - MultiLang system improved
-- (Does not include Infinality as this is still experimental)
 
 Donation
 ------------------
@@ -58,7 +58,14 @@ Known issues
 
 - Office 2013 does not use DirectWrite or GDI (it uses its own custom rendering), so Office 2013 doesn't work with MacType. If this bothers you you can use Office 2010 which uses GDI or Office 2016+ which uses DirectWrite.
 
-- WPS has a builtin defense that **UNLOADS** MacType automatically which can't be turned off. Please contact its software support for solution. We won't to anything to walkaround it.
+- WPS has a built in defense that **UNLOADS** MacType automatically which can't be turned off. Please contact its software support for solution. We won't do anything about it.
+
+How to get registry mode back
+-------------
+
+It is no longer possible to enable registry mode via the wizard in Windows 10. 
+
+We have a detailed guide on how you can enable the registry mode manually in [wiki](https://github.com/snowie2000/mactype/wiki/Enable-registry-mode-manually), get your screwdrivers ready before you head over to it.
 
 How to build
 -------------
