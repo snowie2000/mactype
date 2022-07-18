@@ -1031,3 +1031,14 @@ EXTERN_C LPWSTR WINAPI GdippEnvironment(DWORD& dwCreationFlags, LPVOID lpEnviron
 	dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
 	return pEnvW;
 }
+
+void DebugOut(const WCHAR* szFormat, ...) {
+#ifdef TRACE
+	va_list args;
+	va_start(args, szFormat);
+	WCHAR buffer[1024] = { 0 };
+	vswprintf(buffer, szFormat, args);
+	std::wstring fullmsg = L"[MTCore] " + std::wstring(buffer);
+	OutputDebugString(fullmsg.c_str());
+#endif
+}

@@ -32,6 +32,9 @@
 #include <dwrite_1.h>
 #include <dwrite_2.h>
 #include <dwrite_3.h>
+#include <string>
+#include <locale>
+#include <codecvt>
 //#include <wincodec.h>
 //#include <wincodecsdk.h>
 
@@ -83,6 +86,21 @@ using namespace std;
 
 void Log(char* Msg);
 void Log(wchar_t* Msg);
+
+
+// convert string to wstring
+inline std::wstring to_wide_string(const std::string & input)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	return converter.from_bytes(input);
+}
+// convert wstring to string 
+inline std::string to_byte_string(const std::wstring & input)
+{
+	//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	return converter.to_bytes(input);
+}
 
 
 FORCEINLINE HINSTANCE GetDLLInstance()

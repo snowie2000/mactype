@@ -410,6 +410,7 @@ BOOL AddEasyHookEnv()
 extern FT_Int * g_charmapCache;
 extern BYTE* AACache, *AACacheFull;	
 extern HFONT g_alterGUIFont;
+extern void DebugOut(const WCHAR* szFormat, ...);
 
 extern COLORCACHE* g_AACache2[MAX_CACHE_SIZE]; 
 HANDLE hDelayHook = 0;
@@ -422,7 +423,8 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 #ifdef DEBUG
 		MessageBox(0, L"Load", NULL, MB_OK);
 #endif
-		if (bDllInited)
+		DebugOut(L"Begin core loading stage, pid %d", ::GetCurrentProcessId());
+		if (bDllInited) 
 			return true;
 		g_dllInstance = instance;
 		{
@@ -438,8 +440,10 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 #endif
 			HMODULE hEasyhk = LoadLibrary(dllPath);
 			delete[]dllPath;
-			if (!hEasyhk) 
-				return false;			
+			if (!hEasyhk) {
+				DebugOut(L"Failed to load Easyhook, exiting");
+				return false;
+			}
 		}
 		//初期化順序
 		//DLL_PROCESS_DETACHではこれの逆順にする
@@ -461,7 +465,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 		//Operaよ止まれ～
 		//Assert(GetModuleHandleA("opera.exe") == NULL);
 		
-		setlocale(LC_ALL, "");
+		//setlocale(LC_ALL, "");
 		g_hinstDLL = instance;
 		
 
@@ -472,6 +476,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 		COwnedCriticalSectionLock::Init();
 		CThreadCounter::Init();
 		if (!g_TLInfo.ProcessInit()) {
+			DebugOut(L"Can't initialize process, exiting");
 			return FALSE;
 		}
 
@@ -500,6 +505,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			InitWow64ext();
 #endif
 			if (!FontLInit()) {
+				DebugOut(L"FreeType failed to initialize, exiting");
 				return FALSE;
 			}
 			g_pFTEngine = new FreeTypeFontEngine;
@@ -509,8 +515,10 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			
 			//if (!AddEasyHookEnv()) return FALSE;	//fail to load easyhook
 			InterlockedExchange(&g_bHookEnabled, TRUE);
-			if (hook_init()!=NOERROR)
+			if (hook_init() != NOERROR) {
+				DebugOut(L"Can't do hooking, exiting");
 				return FALSE;
+			}
 			//hook d2d if already loaded
 /*
 			DWORD dwSessionID = 0;
@@ -525,11 +533,6 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 				HookD2DDll();
 				//hook_demand_LdrLoadDll();
 			}
-			/*if (IsWindows8OrGreater()) {
-				*(DWORD_PTR*)&(ORIG_MySetProcessMitigationPolicy) = *(DWORD_PTR*)&(MySetProcessMitigationPolicy);
-				//hook_demand_MySetProcessMitigationPolicy();
-			}*/
-//			InstallManagerHook();
 		}
 		//获得当前加载模式
 
@@ -546,8 +549,10 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			CloseHandle(mutex_CompMode);
 			CloseHandle(mutex_gditray2);
 			CloseHandle(mutex_offical);
-			if (!HookMode)	//非兼容模式下，拒绝加载
+			if (!HookMode) {	//非兼容模式下，拒绝加载
+				DebugOut(L"Process is in unloaddll list, exiting");
 				return false;
+			}
 		}
 
 //APITracer::Finish();

@@ -32,7 +32,7 @@ private:
 	bool bZoomMode;
 	bool bMirrorX, bMirrorY;
 public:
-	CDCTransformer():bMirrorY(false), bMirrorX(false) {};
+	CDCTransformer():bMirrorY(false), bMirrorX(false), bZoomMode(false), fXZoomFactor(0), fYZoomFactor(0) {};
 	void init(XFORM& xfm)
 	{
 		memcpy(&m_xfm, &xfm, sizeof(XFORM));

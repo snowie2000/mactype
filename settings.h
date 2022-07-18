@@ -6,6 +6,10 @@
 #include "hash_list.h"
 #include <VersionHelpers.h>
 #include <IniParser/ParseIni.h>
+#include "json.hpp"
+#include <thread>
+
+using json = nlohmann::json;
 
 #ifdef _WIN64
 #ifdef DEBUG
@@ -21,7 +25,7 @@
 #endif
 #endif
 
-#define MACTYPE_VERSION		20170628
+#define MACTYPE_VERSION		20220712
 #define MAX_FONT_SETTINGS	16
 #define DEFINE_FS_MEMBER(name, param) \
 	int  Get##name() const { return GetParam(param); } \
@@ -236,7 +240,9 @@ interface IControlCenter
 	virtual BOOL WINAPI ClearIndividual() = 0;
 	virtual BOOL WINAPI AddIndividual(WCHAR* fontSetting) = 0;
 	virtual BOOL WINAPI DelIndividual(WCHAR* lpFaceName) = 0;
-	virtual void WINAPI LoadSetting(WCHAR* lpFileName) = 0;
+	virtual void WINAPI LoadSetting(const WCHAR* lpFileName) = 0;
+	virtual HWND WINAPI CreateMessageWnd() = 0;
+	virtual void WINAPI DestroyMessageWnd() = 0;
 };
 class CControlCenter;
 
@@ -538,11 +544,14 @@ extern FreeTypeFontEngine* g_pFTEngine;
 extern BOOL g_ccbCache;
 extern BOOL g_ccbRender;
 
+extern CControlCenter* g_ControlCenter;
+
 class CControlCenter: public IControlCenter
 {
 private:
 	int m_nRefCount;
 	bool m_bDirty;
+	HWND m_msgwnd;
 	enum eMTSettings{
 		ATTR_HINTINGMODE,
 		ATTR_ANTIALIASMODE,
@@ -881,7 +890,7 @@ public:
 		}
 		m_bDirty = true;
 		return true;};
-	void WINAPI LoadSetting(WCHAR* lpFileName)
+	void WINAPI LoadSetting(const WCHAR* lpFileName)
 	{
 		CGdippSettings* pSettings = CGdippSettings::GetInstance();
 		ClearIndividual();
@@ -894,8 +903,12 @@ public:
 		RefreshAlphaTable();
 		RefreshSetting();
 	}
-	CControlCenter():m_nRefCount(1), m_bDirty(false){};
-	~CControlCenter(){};
+	CControlCenter():m_nRefCount(1), m_bDirty(false), m_msgwnd(NULL) {
+		g_ControlCenter = this;
+	};
+	~CControlCenter(){
+		g_ControlCenter = NULL;
+	};
 	static void WINAPI ReloadConfig()
 	{
 		//CCriticalSectionLock __lock(CCriticalSectionLock::CS_LIBRARY);
@@ -911,5 +924,98 @@ public:
 		UpdateLcdFilter();
 		if (g_pFTEngine)
 			g_pFTEngine->ReloadAll();
+	}
+	HWND WINAPI CreateMessageWnd() {
+		HANDLE event = CreateEvent(NULL, true, false, NULL);
+
+		auto run = [&]() -> void {
+			if (this->m_msgwnd) {
+				SendMessage(this->m_msgwnd, WM_CLOSE, 0, 0);
+			}
+			WNDCLASS wndclass;
+			wndclass.style = 0;
+			wndclass.lpfnWndProc = [](HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT {
+				return g_ControlCenter ? g_ControlCenter->MsgProc(hwnd, message, wParam, lParam) : DefWindowProc(hwnd, message, wParam, lParam);
+			};
+			wndclass.cbClsExtra = 0;
+			wndclass.cbWndExtra = 0;
+			wndclass.hInstance = 0;
+			wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+			wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+			wndclass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+			wndclass.lpszMenuName = NULL;
+			wndclass.lpszClassName = L"MT_CMSGWND";
+			RegisterClass(&wndclass);
+			this->m_msgwnd = CreateWindow(L"MT_CMSGWND", NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, NULL);
+			SetEvent(event);
+
+			MSG msg;
+			while (GetMessage(&msg, NULL, 0, 0)) //消息循环
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+			DestroyWindow(this->m_msgwnd);
+		};
+		auto wndThread = thread(run);
+		wndThread.detach();
+		WaitForSingleObject(event, 10000);
+		CloseHandle(event);
+		return this->m_msgwnd;
+	}
+
+	void RedrawCurrentApp() {
+		auto EnumCurrentProcWindow = [](HWND hwnd, LPARAM lparam)->BOOL {
+			DWORD pid = 0;
+			GetWindowThreadProcessId(hwnd, &pid);
+			if (pid == lparam) {
+				RedrawWindow(hwnd, NULL, 0, RDW_ALLCHILDREN | RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE);
+			}
+			return true;
+		};
+
+		EnumWindows(EnumCurrentProcWindow, GetCurrentProcessId());
+	}
+
+	LRESULT WINAPI MsgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+		switch (msg) {
+			case WM_COPYDATA: {
+				COPYDATASTRUCT* data = (COPYDATASTRUCT*)lparam;
+				if (data->cbData && data->lpData) {	// ignore invalid request.
+					string json;
+					json.resize(data->cbData);
+					memcpy((void*)json.c_str(), data->lpData, data->cbData);
+					// now parse the json string
+					auto jsonobj = json::parse(json.begin(), json.end());
+					string command = jsonobj["command"].get<std::string>();
+					// various command dispatch
+					if (command == "loadprofile") {	// load target profile from disk
+						string filename = jsonobj["file"].get<std::string>();
+						if (filename.length()) {
+							this->LoadSetting(to_wide_string(filename).c_str());
+							RedrawCurrentApp();
+						}
+						return ERROR_SUCCESS;
+					}
+					if (command == "ping") {
+						//__asm db 0xcc;	// cause debugger to break
+						//DebugBreak();
+						return ERROR_SUCCESS;
+					}
+				}
+				break;
+			}
+			default: {
+				return DefWindowProc(hwnd, msg, wparam, lparam);
+			}
+		}
+		return 0;
+	}
+
+	void WINAPI DestroyMessageWnd() {
+		if (m_msgwnd) {
+			DestroyWindow(m_msgwnd);
+			m_msgwnd = NULL;
+		}
 	}
 };

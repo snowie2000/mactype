@@ -1,7 +1,6 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MacType", "gdipp.vcxproj", "{15C33FD9-0811-4981-B08F-E0BAD74A3028}"
 EndProject
@@ -11,6 +10,8 @@ Global
 		Debug Infinality|x64 = Debug Infinality|x64
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
+		Rel+Trace|Win32 = Rel+Trace|Win32
+		Rel+Trace|x64 = Rel+Trace|x64
 		Release Infinality|Win32 = Release Infinality|Win32
 		Release Infinality|x64 = Release Infinality|x64
 		Release|Win32 = Release|Win32
@@ -25,6 +26,10 @@ Global
 		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Debug|Win32.Build.0 = Debug|Win32
 		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Debug|x64.ActiveCfg = Debug|x64
 		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Debug|x64.Build.0 = Debug|x64
+		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Rel+Trace|Win32.ActiveCfg = Rel+Trace|Win32
+		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Rel+Trace|Win32.Build.0 = Rel+Trace|Win32
+		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Rel+Trace|x64.ActiveCfg = Rel+Trace|x64
+		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Rel+Trace|x64.Build.0 = Rel+Trace|x64
 		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Release Infinality|Win32.ActiveCfg = Release Infinality|Win32
 		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Release Infinality|Win32.Build.0 = Release Infinality|Win32
 		{15C33FD9-0811-4981-B08F-E0BAD74A3028}.Release Infinality|x64.ActiveCfg = Release Infinality|x64
@@ -36,5 +41,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3F209D78-C531-4FA9-941E-68BEF65161FD}
 	EndGlobalSection
 EndGlobal

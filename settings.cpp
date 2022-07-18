@@ -8,6 +8,8 @@
 #include <freetype/ftenv.h>
 #endif
 
+CControlCenter* g_ControlCenter = NULL;
+
 inline BOOL IsFolder(LPCTSTR pszPath) {
 	return pszPath && *pszPath && *(pszPath + wcslen(pszPath) - 1) == '\\';
 }
