@@ -270,6 +270,7 @@ private:
 //	bool m_bHaveNewerFreeType		: 1;
 	bool							: 0;
 	bool m_bUseCustomLcdFilter;	//使用自定义lcdfilter
+	bool m_bHarmonyLCDRendering;
 
 	BOOL m_bHintSmallFont;
 	BOOL m_bDirectWrite;
@@ -286,6 +287,7 @@ private:
 	int  m_nFontSubstitutes;
 	int	 m_bFontLink;	//改为可以使用多种参数
 	int  m_nWidthMode;
+
 	int  m_nFontLoader;
 	int	 m_nScreenDpi;	// screen dpi
 	DWORD m_nShadowLightColor;
@@ -400,6 +402,7 @@ private:
 		, m_bHintSmallFont(true)
 		, m_bDirectWrite(true)
 		, m_nScreenDpi(96)
+		, m_bHarmonyLCDRendering(false)
 	{
 		ZeroMemory(m_nTuneTable,		sizeof(m_nTuneTable));
 		ZeroMemory(m_nTuneTableR,		sizeof(m_nTuneTableR));
@@ -454,6 +457,7 @@ public:
 	int LcdFilter() const { return m_nLcdFilter; }
 	const unsigned char* LcdFilterWeights() const { return m_arrLcdFilterWeights; }
 	bool UseCustomLcdFilter() const { return m_bUseCustomLcdFilter; }
+	int PixelMode() const { return m_nPixelMode; }
 	int WidthMode() const { return m_nWidthMode; }
 	int FontLoader() const { return m_nFontLoader; }
 	bool EnableClipBoxFix() const { return m_bEnableClipBoxFix; }

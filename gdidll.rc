@@ -9,7 +9,8 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-//#include "afxres.h"/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
@@ -24,8 +25,8 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2021,507,1
- PRODUCTVERSION 1,2021,5,7
+ FILEVERSION 1,2022,720,1
+ PRODUCTVERSION 1,2022,720,1
  FILEFLAGSMASK 0x8L
 #ifdef _DEBUG
  FILEFLAGS 0xbL
@@ -43,12 +44,12 @@ BEGIN
             VALUE "Comments", "Portions of this software are copyright (c) 2005-2021 The FreeType Project (www.freetype.org). All rights reserved."
             VALUE "CompanyName", "2ch & THEMEX & everyone"
             VALUE "FileDescription", "The Ultimate Font Rasterizer"
-            VALUE "FileVersion", "1.2021.507.1"
+            VALUE "FileVersion", "1.2022.720.1"
             VALUE "InternalName", "MacType"
             VALUE "LegalCopyright", "(C) 460, 168, Higambana, 555 and sy567. All rights reserved. FlyingSnow republished"
             VALUE "OriginalFilename", "MacType.dll"
             VALUE "ProductName", "The Ultimate Font Rasterizer"
-            VALUE "ProductVersion", "1.2021.5.7"
+            VALUE "ProductVersion", "1.2022.720.1"
             VALUE "URL", "http://www.mactype.net http://drwatson.nobody.jp/gdi++/"
         END
     END
@@ -63,7 +64,7 @@ END
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Chinese (Simplified, PRC) resources
+// Chinese (Simplified, China) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
@@ -91,7 +92,7 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Chinese (Simplified, PRC) resources
+#endif    // Chinese (Simplified, China) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -101,6 +102,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

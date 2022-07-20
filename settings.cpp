@@ -43,7 +43,7 @@ static const TCHAR c_szDirectWrite[] = _T("DirectWrite");
 #define HINTING_MIN			0
 #define HINTING_MAX			2
 #define AAMODE_MIN			-1
-#define AAMODE_MAX			5
+#define AAMODE_MAX			6
 #define GAMMAVALUE_MIN		0.0625f
 #define GAMMAVALUE_MAX		20.0f
 #define CONTRAST_MIN		0.0625f
@@ -172,6 +172,62 @@ void CGdippSettings::DelayedInit()
 	//FontLink
 	if (FontLink()) {
 		m_fontlinkinfo.init();
+	}
+
+	// Init LCD settings
+	this->m_bHarmonyLCDRendering = FT_Library_SetLcdFilter(NULL, FT_LCD_FILTER_NONE) == FT_Err_Unimplemented_Feature;
+	if (this->m_bHarmonyLCDRendering) {
+		// Harmony LCD rendering
+		switch (this->m_FontSettings.GetAntiAliasMode()) {
+		case 0:
+		case 1: {
+			FT_Vector  sub[3] = { { 0, 0 }, { 0, 0 },	 { 0, 0 } };	// gray scale
+			FT_Library_SetLcdGeometry(freetype_library, sub);
+			break;
+		}
+		case 2: //RGB
+		case 4: {
+			FT_Vector  sub[3] = { { -21, 0 }, { 0, 0 },	 { 0, 21 } };	
+			FT_Library_SetLcdGeometry(freetype_library, sub);
+			break;
+		}
+		case 3:	//BGR
+		case 5: {
+			FT_Vector  sub[3] = { { 21, 0 }, { 0, 0 },	 { 0, -21 } };
+			FT_Library_SetLcdGeometry(freetype_library, sub);
+			this->m_FontSettings.SetAntiAliasMode(2);
+			break;
+		}
+		case 6: {
+			//Pentile
+			FT_Vector  sub[3] = { {-11, 16}, {-11, -16}, {22, 0} };
+			FT_Library_SetLcdGeometry(freetype_library, sub);
+			this->m_FontSettings.SetAntiAliasMode(2);
+			break;
+		}
+		case 7: {
+			// TODO: custom pixel arrangement support
+			this->m_FontSettings.SetAntiAliasMode(2);
+		}
+		}
+	}
+	else {
+		int nLcdFilter = LcdFilter();
+		if ((int)FT_LCD_FILTER_NONE < nLcdFilter && nLcdFilter < (int)FT_LCD_FILTER_MAX) {
+			switch (GetFontSettings().GetAntiAliasMode()) {
+			case 1:
+			case 4:
+			case 5:
+				nLcdFilter = FT_LCD_FILTER_LIGHT;	// now we apply a light filter to lcd based on AA mode automatically, unless a custom lcd filter is defined.
+			}
+			FT_Library_SetLcdFilter(freetype_library, (FT_LcdFilter)nLcdFilter);
+			if (UseCustomLcdFilter())
+			{
+				unsigned char buff[5];
+				memcpy(buff, LcdFilterWeights(), sizeof(buff));
+				FT_Library_SetLcdFilterWeights(freetype_library, buff);
+			}
+		}
 	}
 
 
@@ -1113,7 +1169,10 @@ const CFontSettings& CGdippSettings::FindIndividual(LPCTSTR lpFaceName) const
 
 	for(; p != end; ++p) {
 		if (p->GetHash() == hash) {
-			return p->GetIndividual();
+			CFontSettings& individual = p->GetIndividual();
+			if (this->m_bHarmonyLCDRendering && individual.GetAntiAliasMode() > 1)
+				individual.SetAntiAliasMode(2);
+			return individual;
 		}
 	}
 	return GetFontSettings();

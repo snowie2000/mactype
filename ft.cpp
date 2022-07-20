@@ -3339,32 +3339,6 @@ BOOL FontLInit(void) {
 		return FALSE;
 	}
 
-	const int nLcdFilter = pSettings->LcdFilter();
-	if ((int)FT_LCD_FILTER_NONE < nLcdFilter && nLcdFilter < (int)FT_LCD_FILTER_MAX) {
-		FT_Library_SetLcdFilter(freetype_library, (FT_LcdFilter)nLcdFilter);
-		if (pSettings->UseCustomLcdFilter())
-		{
-			unsigned char buff[5];
-			memcpy(buff, pSettings->LcdFilterWeights(), sizeof(buff));
-			FT_Library_SetLcdFilterWeights(freetype_library, buff);
-		}
-		else
-			switch (nLcdFilter)
-			{
-			case FT_LCD_FILTER_NONE:
-			case FT_LCD_FILTER_DEFAULT:
-			case FT_LCD_FILTER_LEGACY:
-			{
-				FT_Library_SetLcdFilterWeights(freetype_library,
-					(unsigned char*)"\x00\x55\x56\x55\x00");
-				break;
-			}
-			case FT_LCD_FILTER_LIGHT:
-			default:
-				FT_Library_SetLcdFilterWeights(freetype_library,
-					(unsigned char*)"\x10\x40\x70\x40\x10");
-			}
-	}
 	//s_AlphaBlendTable.init();
 	s_AlphaBlendTable.initRGB();
 
