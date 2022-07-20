@@ -589,8 +589,7 @@ static void FreeTypeDrawBitmapPixelModeLCD(FreeTypeGlyphInfo& FTGInfo,
 				backColor = cachebufrowp[dx];
 				COLORREF last = 0xFFFFFFFF;
 				if (AAMode == 2 || AAMode == 4) {
-					// これはRGBの順にサブピクセルがあるディスプレイ用
-					// これはRGBの順にサブピクセルがあるディスプレイ用
+					// This is for displays with subpixels in RGB order
 					alphaR = p[i + 0] / alphatuner;
 					alphaG = p[i + 1] / alphatuner;
 					alphaB = p[i + 2] / alphatuner;
@@ -1641,6 +1640,10 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 	FT_Render_Mode render_mode = FTInfo.render_mode;
 	const int LinkNum = FTInfo.face_id_list_num;
 	int AAMode = FTInfo.pfs->GetAntiAliasMode();
+	// fix AAMode to LCD if harmony lcd is enabled. This is will not affect directwrite output.
+	if (AAMode > 2 && pSettings->HarmonyLCD()) {
+		AAMode = 2;
+	}
 	int* AAList = FTInfo.AAModes;
 	const LOGFONTW& lf = FTInfo.LogFont();
 	FreeTypeFontCache* pftCache = FTInfo.pftCache;

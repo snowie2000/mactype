@@ -269,7 +269,8 @@ private:
 //	bool m_bIsHDBench				: 1;
 //	bool m_bHaveNewerFreeType		: 1;
 	bool							: 0;
-	bool m_bUseCustomLcdFilter;	//使用自定义lcdfilter
+	bool m_bUseCustomLcdFilter;	// use custom lcdfilter
+	bool m_bUseCustomPixelLayout;
 	bool m_bHarmonyLCDRendering;
 
 	BOOL m_bHintSmallFont;
@@ -293,6 +294,7 @@ private:
 	DWORD m_nShadowLightColor;
 	DWORD m_nShadowDarkColor;
 	unsigned char m_arrLcdFilterWeights[5];
+	char m_arrPixelLayout[6];
 
 	//settings for experimental
 	bool m_bEnableClipBoxFix;
@@ -362,6 +364,7 @@ private:
 	static bool AddExcludeListFromSection(LPCTSTR lpszSection, LPCTSTR lpszFile, set<wstring> & arr);
 	bool AddIndividualFromSection(LPCTSTR lpszSection, LPCTSTR lpszFile, IndividualArray& arr);
 	bool AddLcdFilterFromSection(LPCTSTR lpszKey, LPCTSTR lpszFile, unsigned char* arr);
+	bool AddPixelModeFromSection(LPCTSTR lpszKey, LPCTSTR lpszFile, char* arr);
 	static int   _StrToInt(LPCTSTR pStr, int nDefault);
 	static float _StrToFloat(LPCTSTR pStr, float fDefault);
 	static int _httoi(const TCHAR *value);
@@ -439,6 +442,7 @@ public:
 	int BolderMode() const { return m_nBolderMode; }
 	int GammaMode() const { return m_nGammaMode; }
 	float GammaValue() const { return m_fGammaValue; }
+	bool HarmonyLCD() const { return m_bHarmonyLCDRendering; }
 
 	//DW options
 	float GammaValueForDW() const {	return m_fGammaValueForDW;	}
@@ -457,7 +461,6 @@ public:
 	int LcdFilter() const { return m_nLcdFilter; }
 	const unsigned char* LcdFilterWeights() const { return m_arrLcdFilterWeights; }
 	bool UseCustomLcdFilter() const { return m_bUseCustomLcdFilter; }
-	int PixelMode() const { return m_nPixelMode; }
 	int WidthMode() const { return m_nWidthMode; }
 	int FontLoader() const { return m_nFontLoader; }
 	bool EnableClipBoxFix() const { return m_bEnableClipBoxFix; }

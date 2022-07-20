@@ -178,37 +178,39 @@ void CGdippSettings::DelayedInit()
 	this->m_bHarmonyLCDRendering = FT_Library_SetLcdFilter(NULL, FT_LCD_FILTER_NONE) == FT_Err_Unimplemented_Feature;
 	if (this->m_bHarmonyLCDRendering) {
 		// Harmony LCD rendering
-		switch (this->m_FontSettings.GetAntiAliasMode()) {
-		case 0:
-		case 1: {
-			FT_Vector  sub[3] = { { 0, 0 }, { 0, 0 },	 { 0, 0 } };	// gray scale
+		if (m_bUseCustomPixelLayout) {
+			FT_Vector  sub[3] = { { m_arrPixelLayout[0], m_arrPixelLayout[1]}, 
+									{m_arrPixelLayout[2], m_arrPixelLayout[3]},	 
+									{m_arrPixelLayout[4], m_arrPixelLayout[5]}};	// custom layout
 			FT_Library_SetLcdGeometry(freetype_library, sub);
-			break;
 		}
-		case 2: //RGB
-		case 4: {
-			FT_Vector  sub[3] = { { -21, 0 }, { 0, 0 },	 { 0, 21 } };	
-			FT_Library_SetLcdGeometry(freetype_library, sub);
-			break;
-		}
-		case 3:	//BGR
-		case 5: {
-			FT_Vector  sub[3] = { { 21, 0 }, { 0, 0 },	 { 0, -21 } };
-			FT_Library_SetLcdGeometry(freetype_library, sub);
-			this->m_FontSettings.SetAntiAliasMode(2);
-			break;
-		}
-		case 6: {
-			//Pentile
-			FT_Vector  sub[3] = { {-11, 16}, {-11, -16}, {22, 0} };
-			FT_Library_SetLcdGeometry(freetype_library, sub);
-			this->m_FontSettings.SetAntiAliasMode(2);
-			break;
-		}
-		case 7: {
-			// TODO: custom pixel arrangement support
-			this->m_FontSettings.SetAntiAliasMode(2);
-		}
+		else {
+			switch (this->m_FontSettings.GetAntiAliasMode()) {
+			case 0:
+			case 1: {
+				FT_Vector  sub[3] = { { 0, 0 }, { 0, 0 },	 { 0, 0 } };	// gray scale
+				FT_Library_SetLcdGeometry(freetype_library, sub);
+				break;
+			}
+			case 2: //RGB
+			case 4: {
+				FT_Vector  sub[3] = { { -21, 0 }, { 0, 0 },	 { 21, 0 } };
+				FT_Library_SetLcdGeometry(freetype_library, sub);
+				break;
+			}
+			case 3:	//BGR
+			case 5: {
+				FT_Vector  sub[3] = { { 21, 0 }, { 0, 0 },	 { -21, 0 } };
+				FT_Library_SetLcdGeometry(freetype_library, sub);
+				break;
+			}
+			case 6: {
+				//Pentile
+				FT_Vector  sub[3] = { {-11, 16}, {-11, -16}, {22, 0} };
+				FT_Library_SetLcdGeometry(freetype_library, sub);
+				break;
+			}
+			}
 		}
 	}
 	else {
@@ -721,6 +723,8 @@ SKIP:
 		m_bUseCustomLcdFilter = AddLcdFilterFromSection(names.c_str(), lpszFile, m_arrLcdFilterWeights);
 	else
 		m_bUseCustomLcdFilter = AddLcdFilterFromSection(_T("LcdFilterWeight"), lpszFile, m_arrLcdFilterWeights);
+	
+	m_bUseCustomPixelLayout = AddPixelModeFromSection(_T("PixelLayout"), lpszFile, m_arrPixelLayout);
 
 	return true;
 }
@@ -787,6 +791,30 @@ bool CGdippSettings::AddLcdFilterFromSection(LPCTSTR lpszKey, LPCTSTR lpszFile, 
 		LPCTSTR arg = token.GetArgument(i);
 		if (!arg)
 			return false;	//参数少于5个则视为不使用此参数
+		arr[i] = _StrToInt(arg, arr[i]);
+	}
+
+	return true;
+}
+
+bool CGdippSettings::AddPixelModeFromSection(LPCTSTR lpszKey, LPCTSTR lpszFile, char* arr)
+{
+	TCHAR buffer[100];
+	_GetFreeTypeProfileString(lpszKey, _T("\0"), buffer, sizeof(buffer), lpszFile);
+	if (buffer[0] == '\0') {
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		return false;
+	}
+
+	LPTSTR p = buffer;
+	CStringTokenizer token;
+	int argc = 0;
+	argc = token.Parse(buffer);
+
+	for (int i = 0; i < 6; i++) {
+		LPCTSTR arg = token.GetArgument(i);
+		if (!arg)
+			return false;	
 		arr[i] = _StrToInt(arg, arr[i]);
 	}
 
@@ -1169,10 +1197,7 @@ const CFontSettings& CGdippSettings::FindIndividual(LPCTSTR lpFaceName) const
 
 	for(; p != end; ++p) {
 		if (p->GetHash() == hash) {
-			CFontSettings& individual = p->GetIndividual();
-			if (this->m_bHarmonyLCDRendering && individual.GetAntiAliasMode() > 1)
-				individual.SetAntiAliasMode(2);
-			return individual;
+			return p->GetIndividual();
 		}
 	}
 	return GetFontSettings();
