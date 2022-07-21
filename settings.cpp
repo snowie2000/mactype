@@ -211,6 +211,8 @@ void CGdippSettings::DelayedInit()
 				break;
 			}
 			}
+			if (m_FontSettings.GetAntiAliasMode() > 2)
+				m_FontSettings.SetAntiAliasMode(2);	// all non-grayscale panel should use DrawLCD routine as its output.
 		}
 	}
 	else {
@@ -505,6 +507,7 @@ bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 	fs.SetBoldWeight(_GetFreeTypeProfileBoundInt(_T("BoldWeight"), 0, BWEIGHT_MIN, BWEIGHT_MAX, lpszFile));
 	fs.SetItalicSlant(_GetFreeTypeProfileBoundInt(_T("ItalicSlant"), 0, SLANT_MIN, SLANT_MAX, lpszFile));
 	fs.SetKerning(!!_GetFreeTypeProfileInt(_T("EnableKerning"), 0, lpszFile));
+	m_nAntiAliasModeForDW = fs.GetAntiAliasMode();	// DirectWrite always use the user defined AA mode.
 	{
 		TCHAR szShadow[256];
 		CStringTokenizer token;
@@ -1197,7 +1200,9 @@ const CFontSettings& CGdippSettings::FindIndividual(LPCTSTR lpFaceName) const
 
 	for(; p != end; ++p) {
 		if (p->GetHash() == hash) {
-			return p->GetIndividual();
+			CFontSettings& result = p->GetIndividual();
+			if (result.GetAntiAliasMode() > 2 && HarmonyLCD())
+				result.SetAntiAliasMode(2);
 		}
 	}
 	return GetFontSettings();

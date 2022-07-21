@@ -307,6 +307,7 @@ private:
 	float m_fContrastForDW;
 	float m_fClearTypeLevelForDW;
 	int	m_nRenderingModeForDW;
+	int m_nAntiAliasModeForDW;
     CFontSubstitutesInfo m_FontSubstitutesInfoForDW;
 
 	//FTC_Manager_Newに渡すパラメータ
@@ -393,6 +394,7 @@ private:
 		, m_nGammaMode(0)
 		, m_fGammaValue(1.0f)
 		, m_fGammaValueForDW(0.0f)
+		, m_nAntiAliasModeForDW(0)
 		, m_fRenderWeight(1.0f)
 		, m_fContrast(1.0f)
 		, m_nMaxHeight(0)
@@ -449,6 +451,7 @@ public:
 	float ContrastForDW() const { return m_fContrastForDW;  }
 	float ClearTypeLevelForDW() const { return m_fClearTypeLevelForDW;  }
 	int RenderingModeForDW() const { return m_nRenderingModeForDW; }
+	int AntiAliasModeForDW() const { return m_nAntiAliasModeForDW; }
 	/*const CFontSubstitutesInfo& GetFontSubstitutesInfoForDW() const
 		{ _ASSERTE(m_bDelayedInit); return m_FontSubstitutesInfoForDW; }*/
 

@@ -197,7 +197,7 @@ Params::Params() {
 	//	Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
 	EnhancedContrast = pSettings->ContrastForDW();
 	ClearTypeLevel = pSettings->ClearTypeLevelForDW();
-	switch (pSettings->GetFontSettings().GetAntiAliasMode())
+	switch (pSettings->AntiAliasModeForDW())
 	{
 		case 2:
 		case 4:
