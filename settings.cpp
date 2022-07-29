@@ -1203,6 +1203,7 @@ const CFontSettings& CGdippSettings::FindIndividual(LPCTSTR lpFaceName) const
 			CFontSettings& result = p->GetIndividual();
 			if (result.GetAntiAliasMode() > 2 && HarmonyLCD())
 				result.SetAntiAliasMode(2);
+			return result;
 		}
 	}
 	return GetFontSettings();
