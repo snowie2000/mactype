@@ -8,6 +8,7 @@
 
     Mactype depends on
      - [Freetype](https://www.freetype.org/download.html)
+       - For the lastest version of Mactype, a customized version of FreeType is required, which can be obtained from https://github.com/snowie2000/freetype    
      - [EasyHook](http://easyhook.github.io/)
      - or Detours (obsolete, better not use)
      - [IniParser (fork)](https://github.com/snowie2000/IniParser)
