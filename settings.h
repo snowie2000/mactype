@@ -5,6 +5,7 @@
 #include "cache.h"
 #include "hash_list.h"
 #include <VersionHelpers.h>
+#include <freetype/ftmodapi.h>
 #include <IniParser/ParseIni.h>
 #include "json.hpp"
 #include <thread>
@@ -271,7 +272,6 @@ private:
 	bool							: 0;
 	bool m_bUseCustomLcdFilter;	// use custom lcdfilter
 	bool m_bUseCustomPixelLayout;
-	bool m_bHarmonyLCDRendering;
 
 	BOOL m_bHintSmallFont;
 	BOOL m_bDirectWrite;
@@ -407,7 +407,7 @@ private:
 		, m_bHintSmallFont(true)
 		, m_bDirectWrite(true)
 		, m_nScreenDpi(96)
-		, m_bHarmonyLCDRendering(false)
+		, m_bUseCustomPixelLayout(false)
 	{
 		ZeroMemory(m_nTuneTable,		sizeof(m_nTuneTable));
 		ZeroMemory(m_nTuneTableR,		sizeof(m_nTuneTableR));
@@ -444,7 +444,8 @@ public:
 	int BolderMode() const { return m_nBolderMode; }
 	int GammaMode() const { return m_nGammaMode; }
 	float GammaValue() const { return m_fGammaValue; }
-	bool HarmonyLCD() const { return m_bHarmonyLCDRendering; }
+	// Only fallback to tranditional ClearType mode when Custom LCD Filter is defined, and pixelLayout is not defined and AAMode is not in pentile.
+	bool HarmonyLCD() const { return m_bUseCustomPixelLayout || m_FontSettings.GetAntiAliasMode() == 6 || !m_bUseCustomLcdFilter; }
 
 	//DW options
 	float GammaValueForDW() const {	return m_fGammaValueForDW;	}
@@ -609,6 +610,44 @@ public:
 		return result;
 	}
 	ULONG WINAPI GetVersion(void){ return MACTYPE_VERSION; };
+	static void UpdateLcdFilter()
+	{
+		const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+		if (pSettings->HarmonyLCD()) {
+			FT_LCDMode_Set(freetype_library, 1);
+			return;
+		}
+		FT_LCDMode_Set(freetype_library, 0);
+		const int nLcdFilter = pSettings->LcdFilter();
+		if ((int)FT_LCD_FILTER_NONE <= nLcdFilter && nLcdFilter < (int)FT_LCD_FILTER_MAX) {
+			FT_Library_SetLcdFilter(freetype_library, (FT_LcdFilter)nLcdFilter);
+			if (pSettings->UseCustomLcdFilter())
+			{
+				unsigned char buff[5];
+				memcpy(buff, pSettings->LcdFilterWeights(), sizeof(buff));
+				FT_Library_SetLcdFilterWeights(freetype_library, buff);
+			}
+			/*
+			else
+			switch (nLcdFilter)
+			{
+			case FT_LCD_FILTER_NONE:
+			case FT_LCD_FILTER_DEFAULT:
+			case FT_LCD_FILTER_LEGACY:
+			{
+			FT_Library_SetLcdFilterWeights(freetype_library,
+			(unsigned char*)"\x10\x40\x70\x40\x10" );
+			break;
+			}
+			case FT_LCD_FILTER_LIGHT:
+			default:
+			FT_Library_SetLcdFilterWeights(freetype_library,
+			(unsigned char*)"\x00\x55\x56\x55\x00" );
+			}*/
+
+		}
+	}
+
 	BOOL WINAPI SetIntAttribute(int eSet, int nValue)
 	{
 		CGdippSettings* pSettings = CGdippSettings::GetInstance();
@@ -638,7 +677,7 @@ public:
 			break;
 		case ATTR_LcdFilter:
 			pSettings->m_nLcdFilter = nValue;
-			FT_Library_SetLcdFilter(freetype_library, (FT_LcdFilter)nValue);
+			UpdateLcdFilter();
 			break;
 		case ATTR_BolderMode:
 			pSettings->m_nBolderMode = nValue;

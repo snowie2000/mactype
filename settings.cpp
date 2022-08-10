@@ -4,6 +4,7 @@
 #include "supinfo.h"
 #include "fteng.h"
 #include <stdlib.h>
+#include <freetype/ftmodapi.h>
 #ifdef INFINALITY
 #include <freetype/ftenv.h>
 #endif
@@ -174,9 +175,13 @@ void CGdippSettings::DelayedInit()
 		m_fontlinkinfo.init();
 	}
 
+	// check wheteher harmony LCD should be used over ClearType
+	FT_LCDMode_Set(freetype_library, this->HarmonyLCD() ? 1 : 0);
+
 	// Init LCD settings
-	this->m_bHarmonyLCDRendering = FT_Library_SetLcdFilter(NULL, FT_LCD_FILTER_NONE) == FT_Err_Unimplemented_Feature;
-	if (this->m_bHarmonyLCDRendering) {
+	// this->m_bHarmonyLCDRendering = FT_Library_SetLcdFilter(NULL, FT_LCD_FILTER_NONE) == FT_Err_Unimplemented_Feature; // official method of detecting freetype mode.
+	if (this->HarmonyLCD()) {
+		FT_Library_SetLcdFilter(NULL, FT_LCD_FILTER_NONE);
 		// Harmony LCD rendering
 		if (m_bUseCustomPixelLayout) {
 			FT_Vector  sub[3] = { { m_arrPixelLayout[0], m_arrPixelLayout[1]}, 
@@ -217,7 +222,7 @@ void CGdippSettings::DelayedInit()
 	}
 	else {
 		int nLcdFilter = LcdFilter();
-		if ((int)FT_LCD_FILTER_NONE < nLcdFilter && nLcdFilter < (int)FT_LCD_FILTER_MAX) {
+		if ((int)FT_LCD_FILTER_NONE <= nLcdFilter && nLcdFilter < (int)FT_LCD_FILTER_MAX) {
 			switch (GetFontSettings().GetAntiAliasMode()) {
 			case 1:
 			case 4:

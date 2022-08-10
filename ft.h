@@ -404,6 +404,5 @@ BOOL FreeTypeGetGlyph(	// Get all the glyphs and widths needed.
 					  FT_DRAW_STATE* drState
 					  );
 void RefreshAlphaTable();
-void UpdateLcdFilter();
 
 #endif
