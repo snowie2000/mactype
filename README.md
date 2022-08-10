@@ -70,5 +70,5 @@ We have a detailed guide on how you can enable the registry mode manually in [wi
 How to build
 -------------
 
-Check how to build [document](https://github.com/snowie2000/mactype/blob/master/doc/HOWTOBUILD.md)
+Check how to build [document](https://github.com/snowie2000/mactype/blob/directwrite/doc/HOWTOBUILD.md)
 
