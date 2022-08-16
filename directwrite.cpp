@@ -197,6 +197,7 @@ Params::Params() {
 	//	Gamma = pSettings->GammaValue()*pSettings->GammaValue() > 1.3 ? pSettings->GammaValue()*pSettings->GammaValue() / 2 : 0.7f;
 	EnhancedContrast = pSettings->ContrastForDW();
 	ClearTypeLevel = pSettings->ClearTypeLevelForDW();
+	AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE; //D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
 	switch (pSettings->AntiAliasModeForDW())
 	{
 		case 2:
@@ -209,9 +210,9 @@ Params::Params() {
 			break;
 		default:
 			PixelGeometry = DWRITE_PIXEL_GEOMETRY_FLAT;
+			AntialiasMode = D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE;
 	}
-
-	AntialiasMode = (D2D1_TEXT_ANTIALIAS_MODE)D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
+	
 	RenderingMode = (DWRITE_RENDERING_MODE)pSettings->RenderingModeForDW();
 	GrayscaleEnhancedContrast = pSettings->ContrastForDW();
 	switch (pSettings->GetFontSettings().GetHintingMode())
@@ -533,7 +534,8 @@ void HookRenderTarget(
 		}();
 	}
 
-	pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
+	//pD2D1RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
+	pD2D1RenderTarget->SetTextAntialiasMode(GetD2DParams()->AntialiasMode);
 	if (GetD2DRenderingParams(NULL)) {
 		pD2D1RenderTarget->SetTextRenderingParams(GetD2DRenderingParams(NULL));
 	}
@@ -1050,7 +1052,7 @@ void WINAPI IMPL_D2D1RenderTarget_SetTextAntialiasMode(
 	D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode
 	) {
 	MyDebug(L"IMPL_D2D1RenderTarget_SetTextAntialiasMode hooked");
-	ORIG_D2D1RenderTarget_SetTextAntialiasMode(This, D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
+	ORIG_D2D1RenderTarget_SetTextAntialiasMode(This, GetD2DParams()->AntialiasMode);
 }
 
 void WINAPI IMPL_D2D1DeviceContext_SetTextAntialiasMode(
@@ -1058,7 +1060,7 @@ void WINAPI IMPL_D2D1DeviceContext_SetTextAntialiasMode(
 	D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode
 	) {
 	MyDebug(L"IMPL_D2D1DeviceContext_SetTextAntialiasMode hooked");
-	ORIG_D2D1DeviceContext_SetTextAntialiasMode(This, D2D1_TEXT_ANTIALIAS_MODE_DEFAULT);
+	ORIG_D2D1DeviceContext_SetTextAntialiasMode(This, GetD2DParams()->AntialiasMode);
 }
 
 void WINAPI IMPL_D2D1RenderTarget_SetTextRenderingParams(
