@@ -58,7 +58,7 @@ Known issues
 
 - Office 2013 does not use DirectWrite or GDI (it uses its own custom rendering), so Office 2013 doesn't work with MacType. If this bothers you you can use Office 2010 which uses GDI or Office 2016+ which uses DirectWrite.
 
-- WPS has a built in defense that **UNLOADS** MacType automatically which can't be turned off. Please contact its software support for solution. We won't do anything about it.
+- WPS has a built in defense that **UNLOADS** MacType automatically. The latest version has a workaround [here](https://github.com/snowie2000/mactype/wiki/WPS) thanks to wmjordan.
 
 How to get registry mode back
 -------------
