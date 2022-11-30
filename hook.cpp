@@ -407,6 +407,25 @@ BOOL AddEasyHookEnv()
 	return true;
 }
 
+void HookFontCreation() {
+	HMODULE gdi32 = GetModuleHandle(L"gdi32full.dll");	// prefer to hook deeply
+	if (!gdi32) {
+		gdi32 = GetModuleHandle(L"gdi32.dll");
+	}
+	if (gdi32) {
+		void* CreateFontIndirectW = GetProcAddress(gdi32, "CreateFontIndirectWImpl");
+		void* CreateFontIndirectExW = GetProcAddress(gdi32, "CreateFontIndirectExW");
+		if (!CreateFontIndirectW) {
+			CreateFontIndirectW = GetProcAddress(gdi32, "CreateFontIndirectW");
+		}
+		*(DWORD_PTR*)&ORIG_CreateFontIndirectW = (DWORD_PTR)CreateFontIndirectW;
+		*(DWORD_PTR*)&ORIG_CreateFontIndirectExW = (DWORD_PTR)CreateFontIndirectExW;
+
+		hook_demand_CreateFontIndirectExW();
+		hook_demand_CreateFontIndirectW();
+	}
+}
+
 extern FT_Int * g_charmapCache;
 extern BYTE* AACache, *AACacheFull;	
 extern HFONT g_alterGUIFont;
@@ -417,7 +436,7 @@ HANDLE hDelayHook = 0;
 BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 {
 	static bool bDllInited = false;
-	BOOL IsUnload = false, bEnableDW = true;
+	BOOL IsUnload = false, bEnableDW = true, bUseFontSubstitute = false;
 	switch(reason) {
 	case DLL_PROCESS_ATTACH:
 #ifdef DEBUG
@@ -497,6 +516,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 			}
 			IsUnload = IsProcessUnload();
 			bEnableDW = pSettings->DirectWrite();
+			bUseFontSubstitute = !!pSettings->FontSubstitutes();
 		}
 		if (!IsUnload) hook_initinternal();	//不加载的模块就不做任何事莵E
 		//5
@@ -532,6 +552,10 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 				//MessageBox(0, L"Test", NULL, MB_OK);
 				HookD2DDll();
 				//hook_demand_LdrLoadDll();
+			}
+			// only hook font creation funcs if font substition is set.
+			if (bUseFontSubstitute) {
+				HookFontCreation();
 			}
 		}
 		//获得当前加载模式

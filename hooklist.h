@@ -32,8 +32,8 @@ HOOK_DEFINE(DWORD, GetGlyphOutlineA, (__in HDC hdc, \
 HOOK_DEFINE(HFONT, CreateFontA, (int nHeight, int nWidth, int nEscapement, int nOrientation, int fnWeight, DWORD fdwItalic, DWORD fdwUnderline, DWORD fdwStrikeOut, DWORD fdwCharSet, DWORD fdwOutputPrecision, DWORD fdwClipPrecision, DWORD fdwQuality, DWORD fdwPitchAndFamily, LPCSTR  lpszFace))
 HOOK_DEFINE(HFONT, CreateFontW, (int nHeight, int nWidth, int nEscapement, int nOrientation, int fnWeight, DWORD fdwItalic, DWORD fdwUnderline, DWORD fdwStrikeOut, DWORD fdwCharSet, DWORD fdwOutputPrecision, DWORD fdwClipPrecision, DWORD fdwQuality, DWORD fdwPitchAndFamily, LPCWSTR lpszFace))
 HOOK_DEFINE(HFONT, CreateFontIndirectA, (CONST LOGFONTA *lplf))*/
-HOOK_DEFINE(HFONT, CreateFontIndirectW, (CONST LOGFONTW *lplf))
-HOOK_DEFINE(HFONT, CreateFontIndirectExW, (CONST ENUMLOGFONTEXDV *penumlfex))
+HOOK_MANUALLY(HFONT, CreateFontIndirectW, (CONST LOGFONTW *lplf))
+HOOK_MANUALLY(HFONT, CreateFontIndirectExW, (CONST ENUMLOGFONTEXDV *penumlfex))
 
 // HOOK_DEFINE(BOOL, GetCharWidthW, (HDC hdc, UINT iFirstChar, UINT iLastChar, LPINT lpBuffer))
 // HOOK_DEFINE(BOOL, GetCharWidth32W, (HDC hdc, UINT iFirstChar, UINT iLastChar, LPINT lpBuffer))
