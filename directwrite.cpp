@@ -376,13 +376,13 @@ void HookDevice(ID2D1Device* d2dDevice){
 		CComPtr<ID2D1Device5> ptr6;
 		hr = (d2dDevice)->QueryInterface(&ptr6);
 		if SUCCEEDED(hr) {
-			HOOK(ptr6, CreateDeviceContext6, 17);
+			HOOK(ptr6, CreateDeviceContext6, 19);
 			MyDebug(L"ID2D1Device5 hooked");
 		}
 		CComPtr<ID2D1Device6> ptr7;
 		hr = (d2dDevice)->QueryInterface(&ptr7);
 		if SUCCEEDED(hr) {
-			HOOK(ptr7, CreateDeviceContext7, 18);
+			HOOK(ptr7, CreateDeviceContext7, 20);
 			MyDebug(L"ID2D1Device6 hooked");
 		}
 		return true;
