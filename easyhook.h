@@ -54,7 +54,11 @@ extern "C"{
 	#define DRIVER_SHARED_API(type, decl)		EXTERN_C type EASYHOOK_API decl
 #else
     #ifndef DRIVER
-        #define EASYHOOK_API					__declspec(dllimport) __stdcall
+		#ifdef STATIC_LIB 
+			#define EASYHOOK_API					__stdcall
+		#else
+			#define EASYHOOK_API					__declspec(dllimport) __stdcall
+		#endif
 		#define DRIVER_SHARED_API(type, decl)	EXTERN_C type EASYHOOK_API decl
     #else
         #define EASYHOOK_API					__stdcall
@@ -130,6 +134,10 @@ DRIVER_SHARED_API(NTSTATUS, LhUninstallAllHooks());
 DRIVER_SHARED_API(NTSTATUS, LhUninstallHook(TRACED_HOOK_HANDLE InHandle));
 
 DRIVER_SHARED_API(NTSTATUS, LhWaitForPendingRemovals());
+
+#ifdef STATIC_LIB
+BOOL APIENTRY EasyHookDllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved);
+#endif
 
 /*
     Setup the ACLs after hook installation. Please note that every

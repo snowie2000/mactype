@@ -21,6 +21,14 @@
 #include <VersionHelpers.h>
 #include "EventLogging.h"
 
+#ifdef STATIC_LIB
+	#include <aux_ulib.h>
+	#include <psapi.h>
+
+	#pragma comment(lib, "aux_ulib.lib")
+	#pragma comment(lib, "psapi.lib")
+#endif
+
 #ifndef _WIN64
 #include "wow64ext.h"
 #endif
@@ -435,6 +443,7 @@ extern COLORCACHE* g_AACache2[MAX_CACHE_SIZE];
 HANDLE hDelayHook = 0;
 BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 {
+	EasyHookDllMain(instance, reason, lpReserved);
 	static bool bDllInited = false;
 	BOOL IsUnload = false, bEnableDW = true, bUseFontSubstitute = false;
 	switch(reason) {
@@ -446,6 +455,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 		if (bDllInited) 
 			return true;
 		g_dllInstance = instance;
+#ifndef STATIC_LIB
 		{
 			LPWSTR dllPath = new WCHAR[MAX_PATH + 1];
 			int nSize = GetModuleFileName(g_dllInstance, dllPath, MAX_PATH + 1);
@@ -464,6 +474,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 				return false;
 			}
 		}
+#endif
 		//初期化順序
 		//DLL_PROCESS_DETACHではこれの逆順にする
 		//1. CRT関数の初期化

@@ -25,8 +25,8 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2022,810,1
- PRODUCTVERSION 1,2022,810,1
+ FILEVERSION 1,2023,531,1
+ PRODUCTVERSION 1,2023,531,1
  FILEFLAGSMASK 0x8L
 #ifdef _DEBUG
  FILEFLAGS 0xbL
@@ -44,12 +44,12 @@ BEGIN
             VALUE "Comments", "Portions of this software are copyright (c) 2005-2021 The FreeType Project (www.freetype.org). All rights reserved."
             VALUE "CompanyName", "2ch & THEMEX & everyone"
             VALUE "FileDescription", "The Ultimate Font Rasterizer"
-            VALUE "FileVersion", "1.2022.810.1"
+            VALUE "FileVersion", "1.2023.531.1"
             VALUE "InternalName", "MacType"
             VALUE "LegalCopyright", "(C) 460, 168, Higambana, 555 and sy567. All rights reserved. FlyingSnow republished"
             VALUE "OriginalFilename", "MacType.dll"
             VALUE "ProductName", "The Ultimate Font Rasterizer"
-            VALUE "ProductVersion", "1.2022.810.1"
+            VALUE "ProductVersion", "1.2023.531.1"
             VALUE "URL", "http://www.mactype.net http://drwatson.nobody.jp/gdi++/"
         END
     END
