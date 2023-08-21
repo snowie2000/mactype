@@ -18,18 +18,25 @@ void MyDebug(const TCHAR * sz, ...)
 
 #define SET_VAL(x, y) *(DWORD_PTR*)&(x) = *(DWORD_PTR*)&(y)
 // To hook a method, add HOOK_MANUALLY() in hooklist.h and use this.
+
+#ifdef EASYHOOK
+#define ISHOOKED(name) (!!HOOK_##name.Link)
+#else
+#define ISHOOKED(name) (IsHooked_##name)
+#endif
+
 #define HOOK(obj, name, index) { \
-	if (!HOOK_##name.Link) {  \
+	if (!ISHOOKED(name)) {  \
 		AutoEnableDynamicCodeGen dynHelper(true);  \
 		SET_VAL(ORIG_##name, (*reinterpret_cast<void***>(obj.p))[index]);  \
 		hook_demand_##name(false);  \
-		if (!HOOK_##name.Link) { MyDebug(L"##name hook failed"); }  \
+		if (!ISHOOKED(name)) { MyDebug(L"##name hook failed"); }  \
 	}  \
 };
 
 struct ComMethodHooker {
 	// The target function if it has been hooked
-	void*(*lpGetTargetFunc)();
+	BOOL (*lpGetTargetFunc)();
 	// The method the vftable refers to
 	void*(*lpGetMethod)(IUnknown* obj);
 	// Hook the method
@@ -37,10 +44,11 @@ struct ComMethodHooker {
 };
 
 #define COM_METHOD_HOOKER(type, name, index) ComMethodHooker { \
-	[]() -> void* { \
-		if (!HOOK_##name.Link) \
+	[]() -> BOOL { \
+		return ISHOOKED(name); \
+		/*if (!ISHOOKED(name)) \
 			return NULL; \
-		return HOOK_##name.Link->TargetProc; \
+		return HOOK_##name.Link->TargetProc;*/ \
 	}, \
 	[](IUnknown* obj) -> void* { \
 		return (*reinterpret_cast<void***>(obj))[index]; \
@@ -52,8 +60,8 @@ struct ComMethodHooker {
 }
 
 #define COM_METHOD_HOOKER_EMPTY() ComMethodHooker { \
-	[]() -> void* { \
-		return NULL; \
+	[]() -> BOOL { \
+		return false; \
 	}, \
 	[](IUnknown* obj) -> void* { \
 		return NULL; \
@@ -398,20 +406,20 @@ void HookRenderTargetMethod(
 	void* method = methodHookers[hookCategory].lpGetMethod(pD2D1RenderTarget);
 
 	if (D2D1_RENDER_TARGET_CATEGORY != hookCategory) {
-		void* target = methodHookers[D2D1_RENDER_TARGET_CATEGORY].lpGetTargetFunc();
-		if (target != NULL && target == method) {
+		BOOL target = methodHookers[D2D1_RENDER_TARGET_CATEGORY].lpGetTargetFunc();
+		if (target) {
 			return;
 		}
 	}
 	if (D2D1_RENDER_TARGET1_CATEGORY != hookCategory) {
-		void* target = methodHookers[D2D1_RENDER_TARGET1_CATEGORY].lpGetTargetFunc();
-		if (target != NULL && target == method) {
+		BOOL target = methodHookers[D2D1_RENDER_TARGET1_CATEGORY].lpGetTargetFunc();
+		if (target) {
 			return;
 		}
 	}
 	if (D2D1_DEVICE_CONTEXT_CATEGORY != hookCategory) {
-		void* target = methodHookers[D2D1_DEVICE_CONTEXT_CATEGORY].lpGetTargetFunc();
-		if (target != NULL && target == method) {
+		BOOL target = methodHookers[D2D1_DEVICE_CONTEXT_CATEGORY].lpGetTargetFunc();
+		if (target) {
 			return;
 		}
 	}

@@ -49,12 +49,16 @@ HINSTANCE g_dllInstance;
 #ifdef USE_DETOURS
 
 #include "detours.h"
+#ifdef _M_IX86
 #pragma comment (lib, "detours.lib")
-#pragma comment (lib, "detoured.lib")
+#else
+#pragma comment (lib, "detours64.lib")
+#endif
 // DATA_foo、ORIG_foo の２つをまとめて定義するマクロ
 #define HOOK_MANUALLY HOOK_DEFINE
 #define HOOK_DEFINE(rettype, name, argtype) \
-	rettype (WINAPI * ORIG_##name) argtype;
+	rettype (WINAPI * ORIG_##name) argtype; \
+	BOOL IsHooked_##name = false;
 
 #include "hooklist.h"
 
@@ -76,7 +80,7 @@ static void hook_initinternal()
 
 #define HOOK_MANUALLY(rettype, name, argtype) ;
 #define HOOK_DEFINE(rettype, name, argtype) \
-	if (&ORIG_##name) { DetourAttach(&(PVOID&)ORIG_##name, IMPL_##name); }
+	if (&ORIG_##name) { DetourAttach(&(PVOID&)ORIG_##name, IMPL_##name); IsHooked_##name = true; }
 static LONG hook_init()
 {
 	DetourRestoreAfterWith();
@@ -98,11 +102,11 @@ static LONG hook_init()
 
 #define HOOK_DEFINE(rettype, name, argtype);
 #define HOOK_MANUALLY(rettype, name, argtype) \
-	LONG hook_demand_##name(){ \
+	LONG hook_demand_##name(bool bForce = false){ \
 	DetourRestoreAfterWith(); \
 	DetourTransactionBegin(); \
 	DetourUpdateThread(GetCurrentThread()); \
-	if (&ORIG_##name) { DetourAttach(&(PVOID&)ORIG_##name, IMPL_##name); } \
+	if (&ORIG_##name && (bForce || !IsHooked_##name)) { DetourAttach(&(PVOID&)ORIG_##name, IMPL_##name); IsHooked_##name = true; } \
 	LONG error = DetourTransactionCommit(); \
 	if (error != NOERROR) { \
 	    TRACE(_T("hook_init error: %#x\n"), error); \
@@ -117,7 +121,8 @@ static LONG hook_init()
 //
 #define HOOK_MANUALLY(rettype, name, argtype) ;
 #define HOOK_DEFINE(rettype, name, argtype) \
-	DetourDetach(&(PVOID&)ORIG_##name, IMPL_##name);
+	DetourDetach(&(PVOID&)ORIG_##name, IMPL_##name); \
+	IsHooked_##name = false;
 static void hook_term()
 {
 	DetourTransactionBegin();
@@ -144,19 +149,13 @@ static void hook_term()
 
 #define HOOK_MANUALLY HOOK_DEFINE
 #define HOOK_DEFINE(rettype, name, argtype) \
-	rettype (WINAPI * ORIG_##name) argtype;
-
-#include "hooklist.h"
-#undef HOOK_DEFINE
-
-
-#define HOOK_DEFINE(rettype, name, argtype) \
+	rettype (WINAPI * ORIG_##name) argtype; \
 	HOOK_TRACE_INFO HOOK_##name = {0};	//建立hook结构
 
 #include "hooklist.h"
-
 #undef HOOK_DEFINE
 #undef HOOK_MANUALLY
+
 //
 #define HOOK_MANUALLY(rettype, name, argtype) ;
 #define HOOK_DEFINE(rettype, name, argtype) \
@@ -443,7 +442,6 @@ extern COLORCACHE* g_AACache2[MAX_CACHE_SIZE];
 HANDLE hDelayHook = 0;
 BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 {
-	EasyHookDllMain(instance, reason, lpReserved);
 	static bool bDllInited = false;
 	BOOL IsUnload = false, bEnableDW = true, bUseFontSubstitute = false;
 	switch(reason) {
@@ -455,7 +453,11 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 		if (bDllInited) 
 			return true;
 		g_dllInstance = instance;
-#ifndef STATIC_LIB
+
+#ifdef EASYHOOK
+#ifdef STATIC_LIB
+		EasyHookDllMain(instance, reason, lpReserved);
+#else
 		{
 			LPWSTR dllPath = new WCHAR[MAX_PATH + 1];
 			int nSize = GetModuleFileName(g_dllInstance, dllPath, MAX_PATH + 1);
@@ -474,6 +476,7 @@ BOOL WINAPI  DllMain(HINSTANCE instance, DWORD reason, LPVOID lpReserved)
 				return false;
 			}
 		}
+#endif
 #endif
 		//初期化順序
 		//DLL_PROCESS_DETACHではこれの逆順にする

@@ -9,8 +9,7 @@
     Mactype depends on
      - [Freetype](https://www.freetype.org/download.html)
        - For the lastest version of Mactype, a customized version of FreeType is required, which can be obtained from https://github.com/snowie2000/freetype    
-     - [EasyHook](http://easyhook.github.io/)
-     - or Detours (obsolete, better not use)
+     - [EasyHook](http://easyhook.github.io/) / [Detours](https://github.com/microsoft/Detours)
      - [IniParser (fork)](https://github.com/snowie2000/IniParser)
      - [wow64ext (fork)](https://github.com/snowie2000/rewolf-wow64ext)
      - Windows SDK (10.0.14393.0 or later)
@@ -46,6 +45,14 @@
         Build it as easyhook32.lib and easyhook64.lib, or get the binary distributions.
 
         Dll filename is not important but you'd better give it a special name to avoid dll confliction as stated above. Do not forget to modify filename in `hook.cpp` of MacType.
+
+    - Detours
+
+        Since Microsoft Detours is now free and opensource, it is back to be supported and recommended.
+
+        Follow the official guide to build detours.lib and detours64.lib and put them in the root of MacType.
+
+        Detours lib are static libraries, so name confiction is not a thing.
 
     - Windows SDK
 

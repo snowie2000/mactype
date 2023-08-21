@@ -83,13 +83,15 @@ extern LONG g_bHookEnabled;
 #include "gdiPlusFlat2.h"
 
 #ifdef USE_DETOURS
+//detours
 #include "detours.h"
+//
+#define HOOK_MANUALLY(rettype, name, argtype) ;
 #define HOOK_DEFINE(rettype, name, argtype) \
 	DetourDetach(&(PVOID&)ORIG_##name, IMPL_##name);
-static LONG hook_term()
+LONG hook_term()
 {
 	DetourTransactionBegin();
-
 	DetourUpdateThread(GetCurrentThread());
 
 #include "hooklist.h"
@@ -102,6 +104,8 @@ static LONG hook_term()
 	return error;
 }
 #undef HOOK_DEFINE
+#undef HOOK_MANUALLY
+
 #else
 #include "easyhook.h"
 #define HOOK_MANUALLY(rettype, name, argtype) ;

@@ -2,8 +2,8 @@
 .vscode/
 deps/
 lib/
-Debug/
-Release/
+Debug*/
+Rel*/
 x64/
 *.vcxproj.user
 *.DotSettings.user
