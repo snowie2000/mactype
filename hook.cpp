@@ -20,6 +20,7 @@
 #include <dwrite_3.h>
 #include <VersionHelpers.h>
 #include "EventLogging.h"
+#include "hookCounter.h"
 
 #ifdef STATIC_LIB
 	#include <aux_ulib.h>
@@ -56,9 +57,13 @@ HINSTANCE g_dllInstance;
 #endif
 // DATA_foo、ORIG_foo の２つをまとめて定義するマクロ
 #define HOOK_MANUALLY HOOK_DEFINE
-#define HOOK_DEFINE(rettype, name, argtype) \
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
 	rettype (WINAPI * ORIG_##name) argtype; \
-	BOOL IsHooked_##name = false;
+	BOOL IsHooked_##name = false; \
+	rettype WINAPI REF_##name argtype { \
+		HCounter _; \
+		return IMPL_##name arglist; \
+	}
 
 #include "hooklist.h"
 
@@ -66,8 +71,8 @@ HINSTANCE g_dllInstance;
 #undef HOOK_MANUALLY
 
 //
-#define HOOK_MANUALLY(rettype, name, argtype) ;
-#define HOOK_DEFINE(rettype, name, argtype) \
+#define HOOK_MANUALLY(rettype, name, argtype, arglist) ;
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
 	ORIG_##name = name;
 #pragma optimize("s", on)
 static void hook_initinternal()
@@ -78,9 +83,12 @@ static void hook_initinternal()
 #undef HOOK_DEFINE
 #undef HOOK_MANUALLY
 
-#define HOOK_MANUALLY(rettype, name, argtype) ;
-#define HOOK_DEFINE(rettype, name, argtype) \
-	if (&ORIG_##name) { DetourAttach(&(PVOID&)ORIG_##name, IMPL_##name); IsHooked_##name = true; }
+#define HOOK_MANUALLY(rettype, name, argtype, arglist) ;
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
+	if (&ORIG_##name && !IsHooked_##name) { \
+		if (DetourAttach(&(PVOID&)ORIG_##name, REF_##name) == NOERROR) IsHooked_##name = true; \
+	}
+
 static LONG hook_init()
 {
 	DetourRestoreAfterWith();
@@ -100,13 +108,13 @@ static LONG hook_init()
 #undef HOOK_DEFINE
 #undef HOOK_MANUALLY
 
-#define HOOK_DEFINE(rettype, name, argtype);
-#define HOOK_MANUALLY(rettype, name, argtype) \
+#define HOOK_DEFINE(rettype, name, argtype, arglist);
+#define HOOK_MANUALLY(rettype, name, argtype, arglist) \
 	LONG hook_demand_##name(bool bForce = false){ \
 	DetourRestoreAfterWith(); \
 	DetourTransactionBegin(); \
 	DetourUpdateThread(GetCurrentThread()); \
-	if (&ORIG_##name && (bForce || !IsHooked_##name)) { DetourAttach(&(PVOID&)ORIG_##name, IMPL_##name); IsHooked_##name = true; } \
+	if (&ORIG_##name && (bForce || !IsHooked_##name)) { DetourAttach(&(PVOID&)ORIG_##name, REF_##name); IsHooked_##name = true; } \
 	LONG error = DetourTransactionCommit(); \
 	if (error != NOERROR) { \
 	    TRACE(_T("hook_init error: %#x\n"), error); \
@@ -119,9 +127,9 @@ static LONG hook_init()
 #undef HOOK_DEFINE
 
 //
-#define HOOK_MANUALLY(rettype, name, argtype) ;
-#define HOOK_DEFINE(rettype, name, argtype) \
-	DetourDetach(&(PVOID&)ORIG_##name, IMPL_##name); \
+#define HOOK_MANUALLY HOOK_DEFINE
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
+	if (IsHooked_##name) DetourDetach(&(PVOID&)ORIG_##name, REF_##name); \
 	IsHooked_##name = false;
 static void hook_term()
 {
@@ -135,6 +143,7 @@ static void hook_term()
 	if (error != NOERROR) {
 		TRACE(_T("hook_term error: %#x\n"), error);
 	}
+	HCounter::wait(3000);
 }
 #undef HOOK_DEFINE
 #undef HOOK_MANUALLY
@@ -148,7 +157,7 @@ static void hook_term()
 #endif
 
 #define HOOK_MANUALLY HOOK_DEFINE
-#define HOOK_DEFINE(rettype, name, argtype) \
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
 	rettype (WINAPI * ORIG_##name) argtype; \
 	HOOK_TRACE_INFO HOOK_##name = {0};	//建立hook结构
 
@@ -157,8 +166,8 @@ static void hook_term()
 #undef HOOK_MANUALLY
 
 //
-#define HOOK_MANUALLY(rettype, name, argtype) ;
-#define HOOK_DEFINE(rettype, name, argtype) \
+#define HOOK_MANUALLY(rettype, name, argtype, arglist) ;
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
 	ORIG_##name = name;
 #pragma optimize("s", on)
 static void hook_initinternal()
@@ -171,12 +180,12 @@ static void hook_initinternal()
 
 #define FORCE(expr) {if(!SUCCEEDED(NtStatus = (expr))) goto ERROR_ABORT;}
 
-#define HOOK_DEFINE(rettype, name, argtype) \
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
 	if (&ORIG_##name) { \
 	FORCE(LhInstallHook((PVOID&)ORIG_##name, IMPL_##name, (PVOID)0, &HOOK_##name)); \
 	*(void**)&ORIG_##name =  (void*)HOOK_##name.Link->OldProc; \
 	FORCE(LhSetExclusiveACL(ACLEntries, 0, &HOOK_##name)); }
-#define HOOK_MANUALLY(rettype, name, argtype) ;
+#define HOOK_MANUALLY(rettype, name, argtype, arglist) ;
 
 static LONG hook_init()
 {
@@ -196,8 +205,8 @@ ERROR_ABORT:
 #undef HOOK_DEFINE
 #undef HOOK_MANUALLY
 
-#define HOOK_DEFINE(rettype, name, argtype);
-#define HOOK_MANUALLY(rettype, name, argtype) \
+#define HOOK_DEFINE(rettype, name, argtype, arglist);
+#define HOOK_MANUALLY(rettype, name, argtype, arglist) \
 	LONG hook_demand_##name(bool bForce = false){ \
 	NTSTATUS NtStatus; \
 	ULONG ACLEntries[1] = { 0 }; \
@@ -221,8 +230,8 @@ ERROR_ABORT:
 #undef HOOK_MANUALLY
 #undef HOOK_DEFINE
 
-#define HOOK_MANUALLY(rettype, name, argtype) ;
-#define HOOK_DEFINE(rettype, name, argtype) \
+#define HOOK_MANUALLY(rettype, name, argtype, arglist) ;
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
 	ORIG_##name = name;
 #pragma optimize("s", on)
 static LONG hook_term()

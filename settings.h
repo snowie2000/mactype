@@ -33,7 +33,7 @@ using json = nlohmann::json;
 	void Set##name(int n)  { SetParam(param, n); }
 
 #define HOOK_MANUALLY HOOK_DEFINE
-#define HOOK_DEFINE(rettype, name, argtype) \
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
 	extern rettype (WINAPI * ORIG_##name) argtype; \
 	extern rettype WINAPI IMPL_##name argtype;
 #include "hooklist.h"

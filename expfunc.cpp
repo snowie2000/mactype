@@ -86,8 +86,8 @@ extern LONG g_bHookEnabled;
 //detours
 #include "detours.h"
 //
-#define HOOK_MANUALLY(rettype, name, argtype) ;
-#define HOOK_DEFINE(rettype, name, argtype) \
+#define HOOK_MANUALLY(rettype, name, argtype, arglist) ;
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
 	DetourDetach(&(PVOID&)ORIG_##name, IMPL_##name);
 LONG hook_term()
 {
@@ -108,8 +108,8 @@ LONG hook_term()
 
 #else
 #include "easyhook.h"
-#define HOOK_MANUALLY(rettype, name, argtype) ;
-#define HOOK_DEFINE(rettype, name, argtype) \
+#define HOOK_MANUALLY(rettype, name, argtype, arglist) ;
+#define HOOK_DEFINE(rettype, name, argtype, arglist) \
 	ORIG_##name = name;
 #pragma optimize("s", on)
 static LONG hook_term()

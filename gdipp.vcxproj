@@ -813,6 +813,7 @@
     <ClCompile Include="gdiPlusFlat2.cpp" />
     <ClCompile Include="hash_list.cpp" />
     <ClCompile Include="hook.cpp" />
+    <ClCompile Include="hookCounter.cpp" />
     <ClCompile Include="misc.cpp" />
     <ClCompile Include="override.cpp">
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Sync</ExceptionHandling>
@@ -843,6 +844,7 @@
     <ClInclude Include="ftref.h" />
     <ClInclude Include="gdiPlusFlat2.h" />
     <ClInclude Include="hash_list.h" />
+    <ClInclude Include="hookCounter.h" />
     <ClInclude Include="hooklist.h" />
     <ClInclude Include="ivs_otft.h" />
     <ClInclude Include="json.hpp" />
