@@ -19,6 +19,7 @@ namespace mactype {
 enum class Engine { mactype, plain };
 
 class PreviewRuntime {
+  friend struct PreviewRuntimeTestAccess;
  public:
   explicit PreviewRuntime(std::wstring install_root, Engine engine = Engine::mactype);
   ~PreviewRuntime();
@@ -171,6 +172,7 @@ class PreviewRuntime {
   int hover_action_{};
   int pressed_action_{};
   int minimum_client_width_{};
+  int toolbar_layout_height_{};
   /// Client width at which every toolbar label fits unabbreviated; the first
   /// show grows the window to it so the labels are the words, not initials.
   int full_labels_client_width_{};
@@ -182,7 +184,7 @@ class PreviewRuntime {
   std::vector<std::wstring> toolbar_button_texts_;
   RECT face_label_rect_{};
   RECT size_label_rect_{};
-  std::vector<int> toolbar_separators_;
+  std::vector<RECT> toolbar_separators_;
   std::wstring temporary_status_;
   WINDOWPLACEMENT placement_{sizeof(WINDOWPLACEMENT)};
   bool has_placement_{false};

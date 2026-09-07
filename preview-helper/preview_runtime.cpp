@@ -1413,8 +1413,17 @@ void PreviewRuntime::relayout_controls() {
   const int toolbar_height = chrome_metric(&NativeChrome::toolbar_height, 40);
   const int control_height = chrome_metric(&NativeChrome::control_height, 28);
   const int top = std::max(0, (toolbar_height - control_height) / 2);
-  const int face_label_width = scaled(32, native_dpi_);
-  const int size_label_width = scaled(28, native_dpi_);
+  HDC dc = GetDC(native_window_);
+  HGDIOBJ previous = SelectObject(dc, ui_font_);
+  auto label_width = [&](const std::wstring& text) {
+    SIZE extent{};
+    GetTextExtentPoint32W(dc, text.c_str(), static_cast<int>(text.size()), &extent);
+    return static_cast<int>(extent.cx) + scaled(8, native_dpi_);
+  };
+  const int face_label_width = label_width(labels_.font_face);
+  const int size_label_width = label_width(labels_.font_size);
+  SelectObject(dc, previous);
+  ReleaseDC(native_window_, dc);
   const int face_width = std::clamp(static_cast<int>(client.right) / 7, scaled(110, native_dpi_),
                                     scaled(160, native_dpi_));
   const int size_width = scaled(58, native_dpi_);
@@ -1426,9 +1435,6 @@ void PreviewRuntime::relayout_controls() {
   size_label_rect_ = {x, top, x + size_label_width, top + control_height};
   x += size_label_width;
   MoveWindow(size_combo_, x, top, size_width, scaled(250, native_dpi_), TRUE);
-  MoveWindow(edit_control_, scaled(8, native_dpi_), toolbar_height + scaled(4, native_dpi_),
-             std::max(1, static_cast<int>(client.right) - scaled(16, native_dpi_)),
-             scaled(64, native_dpi_), TRUE);
   rebuild_toolbar_layout();
   InvalidateRect(native_window_, nullptr, FALSE);
 }
@@ -1443,7 +1449,7 @@ void PreviewRuntime::rebuild_toolbar_layout() {
   const int right = static_cast<int>(client.right) - scaled(8, native_dpi_);
   const int toolbar_height = chrome_metric(&NativeChrome::toolbar_height, 40);
   const int height = chrome_metric(&NativeChrome::control_height, 28);
-  const int top = std::max(0, (toolbar_height - height) / 2);
+  int top = std::max(0, (toolbar_height - height) / 2);
   constexpr std::array<int, 13> actions{kBold, kItalic, kModeSample, kModeLadder, kModeCompare,
                                          kModeListing, kInvert, kLoupe, kZoom, kTopmost,
                                          kEditText, kSavePng, kCopy};
@@ -1469,7 +1475,7 @@ void PreviewRuntime::rebuild_toolbar_layout() {
   const int gap = scaled(2, native_dpi_);
   HDC dc = GetDC(native_window_);
   HGDIOBJ previous = SelectObject(dc, ui_font_);
-  auto widths = [&] {
+  const auto widths = [&] {
     std::vector<int> result;
     for (const auto& text : toolbar_button_texts_) {
       SIZE extent{};
@@ -1484,31 +1490,32 @@ void PreviewRuntime::rebuild_toolbar_layout() {
     return total;
   };
   full_labels_client_width_ = left + total_width() + scaled(16, native_dpi_);
-  if (total_width() > right - left) {
-    for (std::size_t index = 0; index <= 5; ++index) {
-      toolbar_button_texts_[index] = toolbar_button_texts_[index].empty()
-                                              ? L""
-                                              : toolbar_button_texts_[index].substr(0, 1);
-    }
-    widths = [&] {
-      std::vector<int> result;
-      for (const auto& text : toolbar_button_texts_) {
-        SIZE extent{};
-        GetTextExtentPoint32W(dc, text.c_str(), static_cast<int>(text.size()), &extent);
-        result.push_back(std::max(scaled(40, native_dpi_), static_cast<int>(extent.cx) + scaled(20, native_dpi_)));
-      }
-      return result;
-    }();
-  }
   SelectObject(dc, previous);
   ReleaseDC(native_window_, dc);
   int x = left;
+  int row = 0;
+  const int row_left = scaled(8, native_dpi_);
   for (std::size_t index = 0; index < actions.size(); ++index) {
+    if (x + widths[index] > right && x > row_left) {
+      x = row_left;
+      top += toolbar_height;
+      ++row;
+    }
     toolbar_buttons_.push_back({actions[index], RECT{x, top, x + widths[index], top + height}});
     x += widths[index] + gap;
-    if (index == 1 || index == 5 || index == 8) toolbar_separators_.push_back(x - gap / 2);
+    if ((index == 1 || index == 5 || index == 8) && index + 1 < actions.size() &&
+        x + widths[index + 1] <= right) {
+      toolbar_separators_.push_back(RECT{x - gap / 2, top + scaled(5, native_dpi_),
+                                       x - gap / 2, top + height - scaled(5, native_dpi_)});
+    }
   }
-  minimum_client_width_ = std::max(scaled(720, native_dpi_), x + scaled(8, native_dpi_));
+  toolbar_layout_height_ = (row + 1) * toolbar_height;
+  minimum_client_width_ = std::max(scaled(720, native_dpi_),
+      std::max(left, *std::max_element(widths.begin(), widths.end()) + row_left) +
+          scaled(8, native_dpi_));
+  MoveWindow(edit_control_, row_left, toolbar_layout_height_ + scaled(4, native_dpi_),
+             std::max(1, static_cast<int>(client.right) - scaled(16, native_dpi_)),
+             scaled(64, native_dpi_), TRUE);
 }
 
 void PreviewRuntime::draw_toolbar(HDC dc, const RECT& area) {
@@ -1519,11 +1526,11 @@ void PreviewRuntime::draw_toolbar(HDC dc, const RECT& area) {
   SetTextColor(dc, palette.muted);
   DrawTextW(dc, labels_.font_face.c_str(), -1, &face_label_rect_, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
   DrawTextW(dc, labels_.font_size.c_str(), -1, &size_label_rect_, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-  for (int separator : toolbar_separators_) {
+  for (const RECT& separator : toolbar_separators_) {
     HPEN pen = CreatePen(PS_SOLID, 1, palette.border);
     HGDIOBJ previous_pen = SelectObject(dc, pen);
-    MoveToEx(dc, separator, scaled(11, native_dpi_), nullptr);
-    LineTo(dc, separator, scaled(29, native_dpi_));
+    MoveToEx(dc, separator.left, separator.top, nullptr);
+    LineTo(dc, separator.right, separator.bottom);
     SelectObject(dc, previous_pen);
     DeleteObject(pen);
   }
@@ -1562,7 +1569,7 @@ void PreviewRuntime::draw_toolbar(HDC dc, const RECT& area) {
     SetTextColor(dc, (active || pressed_action_ == action)
                          ? palette.on_accent
                          : palette.text);
-    DrawTextW(dc, text.c_str(), -1, &text_rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+    DrawTextW(dc, text.c_str(), -1, &text_rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
   }
   SelectObject(dc, previous_font);
 }
@@ -1703,12 +1710,11 @@ void PreviewRuntime::paint_native(HWND window) {
   }
   const Palette& palette = this->palette();
   fill_solid(buffer.dc, client, palette.canvas);
-  const int toolbar_height = chrome_metric(&NativeChrome::toolbar_height, 40);
   const int edit_height = edit_visible_ ? scaled(72, native_dpi_) : 0;
   const int status_height = chrome_metric(&NativeChrome::status_height, 26);
-  RECT toolbar{0, 0, client.right, toolbar_height};
+  RECT toolbar{0, 0, client.right, toolbar_layout_height_};
   draw_toolbar(buffer.dc, toolbar);
-  const int canvas_top = toolbar_height + edit_height;
+  const int canvas_top = toolbar_layout_height_ + edit_height;
   RECT canvas_view{0, canvas_top, client.right,
                    std::max(canvas_top, static_cast<int>(client.bottom) - status_height)};
   fill_solid(buffer.dc, canvas_view, palette.canvas);
@@ -1806,8 +1812,8 @@ void PreviewRuntime::paint_native(HWND window) {
   if (hairlines) {
     HPEN pen = CreatePen(PS_SOLID, 1, palette.border);
     HGDIOBJ previous_pen = SelectObject(buffer.dc, pen);
-    MoveToEx(buffer.dc, 0, toolbar_height - 1, nullptr);
-    LineTo(buffer.dc, client.right, toolbar_height - 1);
+    MoveToEx(buffer.dc, 0, toolbar_layout_height_ - 1, nullptr);
+    LineTo(buffer.dc, client.right, toolbar_layout_height_ - 1);
     MoveToEx(buffer.dc, 0, status.top, nullptr);
     LineTo(buffer.dc, client.right, status.top);
     SelectObject(buffer.dc, previous_pen);

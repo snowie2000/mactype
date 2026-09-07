@@ -1,4 +1,5 @@
 #include "preview_runtime.h"
+#include "toolbar_layout_tests.h"
 
 #include <array>
 #include <filesystem>
@@ -232,6 +233,9 @@ int wmain(int argc, wchar_t** argv) {
   if (load_response.kind != mtpc::MessageKind::ack ||
       load_response.json != R"({"loaded":false,"engine":"plain"})") {
     return 24;
+  }
+  for (const char* skin : {"classic"}) {
+    if (!mactype::PreviewRuntimeTestAccess::toolbar_labels(plain_runtime, skin)) return 80;
   }
   return 0;
 }
