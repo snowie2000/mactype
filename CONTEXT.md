@@ -11,7 +11,7 @@ This file fixes the domain language used by code, tests, CI, and architecture do
 : The open-source Windows service owned by MacType Control Center. Its fixed production SCM name is `MacTypeControlCenter`; ownership requires the quoted fixed protected service image followed by ` --service`, the own-process service type, and the LocalSystem account. Other SCM registration fields are configuration, not identity. It observes eligible processes, selects a fixed helper, publishes versioned health, and reads only administrator-protected runtime and profile generations. English documents may add “new service” in parentheses, but the Korean product term is always **신식 서비스**.
 
 **ServiceConfigurationDrift**
-: A difference between an owned 신식 서비스's SCM configuration and its fixed start type, error control, display name, load order group, tag, or dependencies. It does not make the service foreign. Control Center offers repair or upgrade, and the setup broker restores the fixed configuration through `reconfigure`.
+: A difference between an owned 신식 서비스's SCM configuration and its fixed start type, error control, display name, load order group, tag (only when a load order group is present), or dependencies. It does not make the service foreign. Control Center offers repair or upgrade, and the setup broker restores the fixed configuration through `reconfigure`.
 
 **레거시 서비스**
 : The original `MacType` Windows service hosted by `MacTray.exe`. It is detected, backed up, stopped, restored, or removed only by the explicit migration flow. It is never a normal dependency of the 신식 서비스. English documents may add “legacy service” in parentheses, but the Korean product term is always **레거시 서비스**.
