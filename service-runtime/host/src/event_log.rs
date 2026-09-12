@@ -29,6 +29,10 @@ pub(crate) fn service_started(version: &str) {
     with_logger(|logger| logger.service_started(version));
 }
 
+pub(crate) fn service_start_skipped(error: &StructuredServiceError) {
+    with_logger(|logger| logger.service_start_skipped(error));
+}
+
 pub(crate) fn service_stopped() {
     with_logger(|logger| {
         logger.flush_summary(Instant::now());
@@ -130,6 +134,19 @@ impl HostEventLogger {
             None,
         );
         self.health = Some(HealthState::Ready);
+    }
+
+    fn service_start_skipped(&mut self, error: &StructuredServiceError) {
+        self.write(
+            EventSeverity::Info,
+            EventArea::Service,
+            "service-start-skipped",
+            BTreeMap::from([
+                ("message".to_owned(), error.message.clone()),
+                ("reason".to_owned(), error.code.clone()),
+            ]),
+            None,
+        );
     }
 
     fn health_changed(&mut self, state: HealthState, error: Option<&StructuredServiceError>) {
@@ -327,6 +344,35 @@ mod tests {
             code: code.to_owned(),
             win32_error: Some(5),
         }
+    }
+
+    #[test]
+    fn supported_stop_records_an_info_event_with_the_reason_and_message() {
+        let root =
+            std::env::temp_dir().join(format!("host-service-start-skipped-{}", std::process::id()));
+        let path = root.join("host.log");
+        let mut logger = HostEventLogger::new(path.clone(), Instant::now());
+        let error = StructuredServiceError {
+            code: "runtime-profile-absent".to_owned(),
+            message: "the generated profile is absent".to_owned(),
+            win32_error: None,
+        };
+
+        logger.service_start_skipped(&error);
+
+        let events = read_events(&[path], 20);
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].severity, EventSeverity::Info);
+        assert_eq!(events[0].code, "service-start-skipped");
+        assert_eq!(
+            events[0].params.get("reason").map(String::as_str),
+            Some("runtime-profile-absent")
+        );
+        assert_eq!(
+            events[0].params.get("message").map(String::as_str),
+            Some("the generated profile is absent")
+        );
+        let _ = std::fs::remove_dir_all(root);
     }
 
     #[test]

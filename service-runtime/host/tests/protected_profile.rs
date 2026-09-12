@@ -3,7 +3,9 @@ use std::fs;
 use mactype_service_contract::{
     ComponentReadiness, GenerationPointer, MachinePaths, ProfileCatalog, SourceMetadata,
 };
-use mactype_service_host::{ProtectedProfileInitializer, RuntimeInitializer};
+use mactype_service_host::{
+    ProtectedProfileInitializer, RuntimeInitializer, RUNTIME_PROFILE_ABSENT_CODE,
+};
 
 fn paths() -> (tempfile::TempDir, MachinePaths) {
     let base = tempfile::tempdir_in(std::env::current_dir().unwrap()).unwrap();
@@ -20,6 +22,15 @@ fn paths() -> (tempfile::TempDir, MachinePaths) {
 fn install_active_runtime(paths: &MachinePaths, profile_bytes: &[u8]) -> std::path::PathBuf {
     let runtime = paths.runtime_versions().join("0.2.0");
     fs::create_dir_all(&runtime).unwrap();
+    for name in [
+        "mactype-service.exe",
+        "mactype-injector32.exe",
+        "mactype-injector64.exe",
+        "MacType.dll",
+        "MacType64.dll",
+    ] {
+        fs::write(runtime.join(name), name.as_bytes()).unwrap();
+    }
     fs::write(runtime.join("MacType.ini"), profile_bytes).unwrap();
     fs::create_dir_all(paths.runtime_pointer().parent().unwrap()).unwrap();
     fs::write(
@@ -134,6 +145,24 @@ fn initializer_reports_the_verified_protected_active_profile_digest() {
         .err()
         .expect("tampered profile must fail initialization");
     assert_eq!(error.code, "active-profile-tampered");
+}
+
+#[test]
+fn initializer_reports_an_absent_generated_runtime_profile() {
+    let (_base, paths) = paths();
+    let bytes = b"[General]
+HintingMode=0
+";
+    install_active_profile(&paths, bytes);
+    let runtime = install_active_runtime(&paths, bytes);
+    fs::remove_file(runtime.join("MacType.ini")).unwrap();
+
+    let error = ProtectedProfileInitializer::new(paths)
+        .initialize()
+        .err()
+        .expect("the supported stopped runtime has no generated profile");
+
+    assert_eq!(error.code, RUNTIME_PROFILE_ABSENT_CODE);
 }
 
 #[test]

@@ -3,7 +3,7 @@ use std::fs;
 use mactype_service_contract::{
     MachinePaths, IMMUTABLE_RUNTIME_FILES, MAX_PROFILE_BYTES, MAX_RUNTIME_FILE_BYTES,
 };
-use mactype_service_host::ProtectedRuntimeAssets;
+use mactype_service_host::{ProtectedRuntimeAssets, RUNTIME_PROFILE_ABSENT_CODE};
 
 fn paths() -> (tempfile::TempDir, MachinePaths) {
     let base = tempfile::tempdir_in(std::env::current_dir().unwrap()).unwrap();
@@ -92,6 +92,31 @@ fn helpers_and_dlls_are_selected_only_from_the_active_protected_runtime_generati
         .generation_id()
         .bytes()
         .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()));
+}
+
+#[test]
+fn active_runtime_reports_a_missing_generated_profile_as_a_supported_stop() {
+    let (_base, paths) = paths();
+    let generation = install_runtime_fixture(&paths);
+    fs::remove_file(generation.join("MacType.ini")).unwrap();
+
+    let error = ProtectedRuntimeAssets::load(paths)
+        .expect_err("a stopped runtime has no generated profile");
+
+    assert_eq!(error.code, RUNTIME_PROFILE_ABSENT_CODE);
+}
+
+#[test]
+fn active_runtime_with_a_missing_profile_and_stray_file_remains_invalid() {
+    let (_base, paths) = paths();
+    let generation = install_runtime_fixture(&paths);
+    fs::remove_file(generation.join("MacType.ini")).unwrap();
+    fs::write(generation.join("unsigned.dll"), b"unexpected").unwrap();
+
+    let error = ProtectedRuntimeAssets::load(paths)
+        .expect_err("a stray runtime file must not become a supported stop");
+
+    assert_eq!(error.code, "runtime-file-set-invalid");
 }
 
 #[test]

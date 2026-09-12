@@ -21,6 +21,8 @@ const REQUIRED_RUNTIME_FILES: [&str; 6] = [
     "MacType.ini",
 ];
 
+pub const RUNTIME_PROFILE_ABSENT_CODE: &str = "runtime-profile-absent";
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProtectedRuntimeAssets {
     root: PathBuf,
@@ -133,7 +135,7 @@ impl ProtectedRuntimeAssets {
     }
 }
 
-fn validate_runtime_file_set(root: &Path) -> Result<(), StructuredServiceError> {
+pub(crate) fn validate_runtime_file_set(root: &Path) -> Result<(), StructuredServiceError> {
     let names = fs::read_dir(root)
         .map_err(|error| {
             service_error(
@@ -172,6 +174,20 @@ fn validate_runtime_file_names(
                 None,
             )
         })?);
+    }
+
+    if count == REQUIRED_RUNTIME_FILES.len() - 1
+        && actual.len() == REQUIRED_RUNTIME_FILES.len() - 1
+        && REQUIRED_RUNTIME_FILES
+            .iter()
+            .filter(|name| **name != "MacType.ini")
+            .all(|name| actual.contains(*name))
+    {
+        return Err(service_error(
+            RUNTIME_PROFILE_ABSENT_CODE,
+            "the protected runtime has no generated profile, so the service stays stopped until setup publishes one",
+            None,
+        ));
     }
 
     if count != REQUIRED_RUNTIME_FILES.len()
@@ -218,7 +234,48 @@ fn service_error(code: &str, message: &str, win32_error: Option<i32>) -> Structu
 mod tests {
     use std::ffi::OsString;
 
-    use super::{validate_runtime_file_names, REQUIRED_RUNTIME_FILES};
+    use super::{validate_runtime_file_names, REQUIRED_RUNTIME_FILES, RUNTIME_PROFILE_ABSENT_CODE};
+
+    fn validate(names: &[&str]) -> Result<(), mactype_service_contract::StructuredServiceError> {
+        validate_runtime_file_names(names.iter().map(|name| Ok(OsString::from(name))))
+    }
+
+    #[test]
+    fn exact_non_profile_runtime_files_report_the_generated_profile_absent() {
+        let error = validate(&REQUIRED_RUNTIME_FILES[..REQUIRED_RUNTIME_FILES.len() - 1])
+            .expect_err("the supported stopped runtime has no generated profile");
+
+        assert_eq!(error.code, RUNTIME_PROFILE_ABSENT_CODE);
+    }
+
+    #[test]
+    fn non_profile_runtime_files_with_a_foreign_file_are_invalid() {
+        let mut names = REQUIRED_RUNTIME_FILES[..REQUIRED_RUNTIME_FILES.len() - 1].to_vec();
+        names.push("foreign.dll");
+
+        let error = validate(&names).expect_err("a foreign runtime file must remain invalid");
+
+        assert_eq!(error.code, "runtime-file-set-invalid");
+    }
+
+    #[test]
+    fn runtime_files_missing_the_profile_and_a_dll_are_invalid() {
+        let names = [
+            "mactype-service.exe",
+            "mactype-injector32.exe",
+            "mactype-injector64.exe",
+            "MacType.dll",
+        ];
+
+        let error = validate(&names).expect_err("two missing runtime files must remain invalid");
+
+        assert_eq!(error.code, "runtime-file-set-invalid");
+    }
+
+    #[test]
+    fn exact_required_runtime_files_pass_validation() {
+        validate(&REQUIRED_RUNTIME_FILES).unwrap();
+    }
 
     #[test]
     fn runtime_file_set_validation_stops_at_the_first_excess_entry() {

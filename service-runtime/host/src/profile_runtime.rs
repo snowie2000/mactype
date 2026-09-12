@@ -87,6 +87,14 @@ impl RuntimeInitializer for ProtectedProfileInitializer {
             ));
         }
         let runtime_profile = active_runtime_profile_path(&self.paths)?;
+        if let Some(runtime_root) = runtime_profile.parent() {
+            match crate::runtime_assets::validate_runtime_file_set(runtime_root) {
+                Err(error) if error.code == crate::runtime_assets::RUNTIME_PROFILE_ABSENT_CODE => {
+                    return Err(error);
+                }
+                _ => {}
+            }
+        }
         let runtime_bytes = read_bounded_protected_file(
             &runtime_profile,
             MAX_PROFILE_BYTES as u64,

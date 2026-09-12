@@ -8,7 +8,7 @@ use mactype_service_contract::{
 use mactype_service_host::{
     CompositeHealthPublisher, FileHealthPublisher, HealthPublisher, InitializedRuntime,
     RuntimeDriver, RuntimeHealthReporter, RuntimeInitializer, ScmState, ServiceRuntime,
-    ServiceStatus, StatusReporter, StopSignal,
+    ServiceStatus, StatusReporter, StopSignal, RUNTIME_PROFILE_ABSENT_CODE,
 };
 
 const PROFILE: &str = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -160,22 +160,149 @@ fn terminal_health_publish_failure_does_not_fail_graceful_stop() {
     assert!(!events.contains(&"health:Failed".to_owned()));
 }
 
+struct ErrorInitializer {
+    code: &'static str,
+}
+
+impl RuntimeInitializer for ErrorInitializer {
+    fn initialize(&self) -> Result<InitializedRuntime, StructuredServiceError> {
+        Err(StructuredServiceError {
+            code: self.code.to_owned(),
+            message: "runtime initialization failed".to_owned(),
+            win32_error: None,
+        })
+    }
+}
+
+#[test]
+fn absent_generated_profile_ends_the_start_with_a_clean_stop() {
+    let recorder = Recorder::default();
+
+    ServiceRuntime::new("0.2.0")
+        .run(
+            &recorder,
+            &recorder,
+            &ErrorInitializer {
+                code: RUNTIME_PROFILE_ABSENT_CODE,
+            },
+            &ImmediateStop,
+        )
+        .unwrap();
+
+    let state = recorder.state.lock().unwrap();
+    assert_eq!(
+        state.events,
+        [
+            "scm:StartPending",
+            "health:Initializing",
+            "health:Unknown",
+            "scm:Stopped",
+        ]
+    );
+    assert_eq!(
+        state.statuses,
+        [
+            ServiceStatus::start_pending(1, 10_000),
+            ServiceStatus::stopped()
+        ]
+    );
+    assert_eq!(
+        state
+            .reports
+            .iter()
+            .map(|report| report.health)
+            .collect::<Vec<_>>(),
+        [HealthState::Initializing, HealthState::Unknown]
+    );
+    let terminal = state.reports.last().unwrap();
+    assert_eq!(terminal.health, HealthState::Unknown);
+    assert_eq!(terminal.active_profile_digest, None);
+    assert_eq!(terminal.readiness, ReadinessReport::not_required());
+    assert_eq!(
+        terminal.injection,
+        mactype_service_contract::InjectionTelemetry::default()
+    );
+    assert_eq!(
+        terminal
+            .last_error
+            .as_ref()
+            .map(|error| error.code.as_str()),
+        Some("runtime-profile-absent")
+    );
+    assert!(terminal.validate().is_ok());
+}
+
+#[test]
+fn invalid_runtime_file_set_still_fails_the_start() {
+    let recorder = Recorder::default();
+
+    assert!(ServiceRuntime::new("0.2.0")
+        .run(
+            &recorder,
+            &recorder,
+            &ErrorInitializer {
+                code: "runtime-file-set-invalid",
+            },
+            &ImmediateStop,
+        )
+        .is_err());
+
+    let state = recorder.state.lock().unwrap();
+    assert_eq!(
+        state.events,
+        [
+            "scm:StartPending",
+            "health:Initializing",
+            "health:Failed",
+            "scm:Stopped",
+        ]
+    );
+    assert_eq!(
+        state.statuses,
+        [
+            ServiceStatus::start_pending(1, 10_000),
+            ServiceStatus::stopped_with_error(1066, 1),
+        ]
+    );
+    assert_eq!(
+        state
+            .reports
+            .iter()
+            .map(|report| report.health)
+            .collect::<Vec<_>>(),
+        [HealthState::Initializing, HealthState::Failed]
+    );
+    assert_eq!(state.reports.last().unwrap().health, HealthState::Failed);
+    assert_eq!(
+        state
+            .reports
+            .last()
+            .unwrap()
+            .last_error
+            .as_ref()
+            .map(|error| error.code.as_str()),
+        Some("runtime-file-set-invalid")
+    );
+    assert_eq!(
+        state.statuses.last(),
+        Some(&ServiceStatus::stopped_with_error(1066, 1))
+    );
+    assert!(!state.events.contains(&"scm:Running".to_owned()));
+    assert!(!state.events.contains(&"health:Ready".to_owned()));
+}
+
 #[test]
 fn initialization_failure_never_reports_running_or_ready() {
-    struct FailedInitializer;
-    impl RuntimeInitializer for FailedInitializer {
-        fn initialize(&self) -> Result<InitializedRuntime, StructuredServiceError> {
-            Err(StructuredServiceError {
-                code: "profile-invalid".to_owned(),
-                message: "profile could not be opened".to_owned(),
-                win32_error: Some(13),
-            })
-        }
-    }
-
     let recorder = Recorder::default();
     assert!(ServiceRuntime::new("0.2.0")
-        .run(&recorder, &recorder, &FailedInitializer, &ImmediateStop)
+        .run(
+            &recorder,
+            &recorder,
+            &ErrorInitializer {
+                code: "profile-invalid",
+            },
+            &ImmediateStop,
+        )
         .is_err());
     let state = recorder.state.lock().unwrap();
     assert!(state.events.contains(&"health:Failed".to_owned()));
