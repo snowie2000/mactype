@@ -109,19 +109,48 @@ fn service_binary_matches_protected_contract(protected_root: &Path, binary: &Pat
             .eq_ignore_ascii_case("mactype-service.exe")
 }
 
-pub fn service_configuration_matches_owned_contract(
+pub fn service_identity_matches_owned_contract(
     protected_root: &Path,
     observed: &ObservedServiceConfiguration<'_>,
 ) -> bool {
     observed.service_type == SERVICE_WIN32_OWN_PROCESS
-        && observed.start_type == SERVICE_AUTO_START
-        && observed.error_control == SERVICE_ERROR_NORMAL
         && observed.account.eq_ignore_ascii_case("LocalSystem")
-        && observed.display_name == DISPLAY_NAME
-        && observed.load_order_group.is_empty()
-        && observed.tag_id == 0
-        && observed.dependencies.is_empty()
         && service_image_matches_protected_contract(protected_root, observed.image_path)
+}
+
+pub fn service_configuration_drift(
+    observed: &ObservedServiceConfiguration<'_>,
+) -> Vec<&'static str> {
+    let mut drift = Vec::new();
+    if observed.start_type != SERVICE_AUTO_START {
+        drift.push("start-type");
+    }
+    if observed.error_control != SERVICE_ERROR_NORMAL {
+        drift.push("error-control");
+    }
+    if observed.display_name != DISPLAY_NAME {
+        drift.push("display-name");
+    }
+    if !observed.load_order_group.is_empty() {
+        drift.push("load-order-group");
+    }
+    // A tag orders a service inside its load-order group; without a group Windows keeps the
+    // stale value and offers no way to zero it, so it only counts as drift alongside a group.
+    if observed.tag_id != 0 && !observed.load_order_group.is_empty() {
+        drift.push("tag");
+    }
+    if !observed.dependencies.is_empty() {
+        drift.push("dependencies");
+    }
+    drift
+}
+
+pub fn service_configuration_matches_owned_contract(
+    protected_root: &Path,
+    observed: &ObservedServiceConfiguration<'_>,
+) -> bool {
+    service_identity_matches_owned_contract(protected_root, observed)
+        && service_configuration_drift(observed).is_empty()
 }
 
 fn safe_version_component(version: &str) -> bool {
@@ -135,7 +164,11 @@ fn safe_version_component(version: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::validate_service_binary;
+    use super::{
+        service_configuration_drift, service_configuration_matches_owned_contract,
+        service_identity_matches_owned_contract, validate_service_binary,
+        ObservedServiceConfiguration,
+    };
 
     #[test]
     fn service_binary_must_belong_to_the_exact_protected_generation_layout() {
@@ -153,5 +186,58 @@ mod tests {
 
         assert!(validate_service_binary(&protected_root, &protected_binary).is_ok());
         assert!(validate_service_binary(&protected_root, &foreign_binary).is_err());
+    }
+
+    #[test]
+    fn exact_configuration_is_identity_with_no_drift() {
+        let base = tempfile::tempdir_in(std::env::current_dir().unwrap()).unwrap();
+        let root = base.path().join("Service");
+        let binary = root.join("bin").join("0.2.0").join("mactype-service.exe");
+        std::fs::create_dir_all(binary.parent().unwrap()).unwrap();
+        std::fs::write(&binary, b"service").unwrap();
+        let image = format!(r#""{}" --service"#, binary.display());
+        let exact = ObservedServiceConfiguration {
+            service_type: 0x10,
+            start_type: 2,
+            error_control: 1,
+            image_path: &image,
+            account: "localsystem",
+            display_name: "MacType Control Center Service",
+            load_order_group: "",
+            tag_id: 0,
+            dependencies: &[],
+        };
+
+        assert!(service_identity_matches_owned_contract(&root, &exact));
+        assert!(service_configuration_drift(&exact).is_empty());
+        assert!(service_configuration_matches_owned_contract(&root, &exact));
+    }
+
+    #[test]
+    fn drift_fields_are_reported_in_contract_order() {
+        let dependencies = ["RpcSs".to_owned()];
+        let observed = ObservedServiceConfiguration {
+            service_type: 0x10,
+            start_type: 3,
+            error_control: 0,
+            image_path: "unused in drift classification",
+            account: "LocalSystem",
+            display_name: "Foreign Display",
+            load_order_group: "group",
+            tag_id: 7,
+            dependencies: &dependencies,
+        };
+
+        assert_eq!(
+            service_configuration_drift(&observed),
+            [
+                "start-type",
+                "error-control",
+                "display-name",
+                "load-order-group",
+                "tag",
+                "dependencies"
+            ]
+        );
     }
 }

@@ -706,6 +706,34 @@ impl ServiceHandle {
         Ok(())
     }
 
+    /// Restores error control and clears the load-order group and dependencies.
+    pub fn restore_owned_mutable_configuration(&self) -> io::Result<()> {
+        let empty_group = wide_null("");
+        let empty_dependencies = multi_string(&[]);
+        // SAFETY: the handle is live; the empty group string and dependency
+        // multi-string outlive the call. Null pointers preserve image, account,
+        // password, display name, and the existing tag value.
+        if unsafe {
+            ChangeServiceConfigW(
+                self.0.as_raw(),
+                SERVICE_NO_CHANGE,
+                SERVICE_NO_CHANGE,
+                SERVICE_ERROR_NORMAL,
+                null(),
+                empty_group.as_ptr(),
+                null_mut(),
+                empty_dependencies.as_ptr(),
+                null(),
+                null(),
+                null(),
+            )
+        } == 0
+        {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(())
+    }
+
     pub fn set_optional_description(&self, description: Option<&str>) -> io::Result<()> {
         if let Some(description) = description {
             validate_strings(std::iter::once(description))?;

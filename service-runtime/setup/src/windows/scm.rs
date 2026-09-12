@@ -13,11 +13,12 @@ use mactype_service_platform::{
 };
 
 use configuration::{
-    observed_configuration, service_configuration_matches_owned_contract as owns_config,
+    observed_configuration, service_identity_matches_owned_contract as owns_config,
 };
 #[cfg(feature = "ci-test-adapter")]
 pub use configuration::{
-    service_configuration_matches_owned_contract, service_image_matches_protected_contract,
+    service_configuration_drift, service_configuration_matches_owned_contract,
+    service_identity_matches_owned_contract, service_image_matches_protected_contract,
     ObservedServiceConfiguration,
 };
 
@@ -59,8 +60,7 @@ impl ServiceManager {
         let config = service.config()?;
         if !owns_config(&self.protected_root, &observed_configuration(&config)) {
             return Err(SetupError::Runtime(
-                "the fixed service name has a foreign configuration; refusing to mutate it"
-                    .to_owned(),
+                "the fixed service name has a foreign identity; refusing to mutate it".to_owned(),
             ));
         }
         Ok(())

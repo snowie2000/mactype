@@ -11,7 +11,11 @@ use windows_sys::Win32::Foundation::{
     ERROR_INVALID_PARAMETER, ERROR_SERVICE_MARKED_FOR_DELETE, WAIT_ABANDONED,
 };
 
-use super::configuration::{configure_metadata, quoted_image_path, validate_service_binary};
+use super::configuration::{
+    configure_metadata, observed_configuration, quoted_image_path, service_configuration_drift,
+    service_configuration_matches_owned_contract, service_identity_matches_owned_contract,
+    validate_service_binary,
+};
 use super::health::wait_for_ready_health;
 use super::{ServiceManager, DISPLAY_NAME, HEALTH_TIMEOUT, STATE_TIMEOUT};
 use crate::storage::read_bounded_regular_file;
@@ -225,11 +229,31 @@ impl ServiceManager {
             .open_service(RECONFIGURE_ACCESS)?
             .ok_or_else(|| SetupError::Runtime("the open service is not installed".to_owned()))?;
         self.ensure_owned(&service)?;
+        let before = service.config()?;
+        let repaired_fields = service_configuration_drift(&observed_configuration(&before));
         let image_path = quoted_image_path(service_binary)?;
         service.set_image_and_display_name(&image_path, DISPLAY_NAME)?;
+        service.restore_owned_mutable_configuration()?;
         configure_metadata(&service).map_err(|error| {
             error.at_machine_path("configure service recovery metadata", service_binary)
-        })
+        })?;
+        let after = service.config()?;
+        let observed_after = observed_configuration(&after);
+        if !service_identity_matches_owned_contract(&self.protected_root, &observed_after) {
+            return Err(SetupError::Runtime(
+                "service reconfiguration left an identity mismatch".to_owned(),
+            ));
+        }
+        if !service_configuration_matches_owned_contract(&self.protected_root, &observed_after) {
+            return Err(SetupError::Runtime(format!(
+                "service reconfiguration left configuration drift: {}",
+                service_configuration_drift(&observed_after).join(",")
+            )));
+        }
+        if !repaired_fields.is_empty() {
+            crate::event_log::service_configuration_repaired(&repaired_fields);
+        }
+        Ok(())
     }
 
     pub fn start_and_wait_ready(&self) -> Result<(), SetupError> {

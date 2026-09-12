@@ -25,7 +25,8 @@ pub use storage::SetupError;
 
 #[cfg(all(windows, feature = "ci-test-adapter"))]
 pub use windows::scm::{
-    service_configuration_matches_owned_contract, service_image_matches_protected_contract,
+    service_configuration_drift, service_configuration_matches_owned_contract,
+    service_identity_matches_owned_contract, service_image_matches_protected_contract,
     ObservedServiceConfiguration,
 };
 

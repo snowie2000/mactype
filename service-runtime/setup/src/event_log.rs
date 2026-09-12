@@ -64,6 +64,16 @@ pub(crate) fn rollback_completed(command: &str) {
     );
 }
 
+pub(crate) fn service_configuration_repaired(fields: &[&str]) {
+    write(
+        EventSeverity::Notice,
+        "service-configuration-repaired",
+        BTreeMap::from([("fields".to_owned(), fields.join(","))]),
+        None,
+        &[],
+    );
+}
+
 fn write(
     severity: EventSeverity,
     code: &str,
