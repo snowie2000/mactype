@@ -414,6 +414,7 @@ export function ExecutionPage({ ciSmoke = false, onReady }: { ciSmoke?: boolean;
               </div>
             )}
             {service?.backend === "foreign" && <p className="warning-text">{t("execution.serviceForeign")}</p>}
+            {service?.configurationDrift && <p className="warning-text">{t("execution.serviceConfigurationDriftDescription")}</p>}
           </div>
           <div className="service-actions">
             <button className="button secondary" disabled={!executionView.canInstall} onClick={() => void manageService("install")} type="button">{serviceBusy === "install" ? t("execution.serviceWorking") : t("execution.serviceInstall")}</button>

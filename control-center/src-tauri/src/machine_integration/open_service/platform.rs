@@ -4,6 +4,10 @@ pub(super) use health::read_health_for_scm_process;
 use health::{read_health, read_persisted_health};
 
 use super::{
+    identity::{
+        core_service_capabilities, core_service_configuration_drift, owned_core_service_identity,
+        ObservedCoreServiceConfiguration,
+    },
     windows::{machine_roots, RuntimePointer},
     *,
 };
@@ -104,7 +108,7 @@ pub(super) fn query() -> SystemServiceStatus {
     let protected = configured
         .as_deref()
         .is_some_and(|path| is_protected_service_binary(&service_root, path));
-    let owned_configuration = owned_core_service_configuration(&ObservedCoreServiceConfiguration {
+    let observed = ObservedCoreServiceConfiguration {
         service_type: configuration.service_type,
         start_type: configuration.start_type,
         error_control: configuration.error_control,
@@ -114,8 +118,8 @@ pub(super) fn query() -> SystemServiceStatus {
         tag_id: configuration.tag_id,
         dependencies_empty: configuration.dependencies.is_empty(),
         protected_image: protected,
-    });
-    if !owned_configuration {
+    };
+    if !owned_core_service_identity(&observed) {
         return SystemServiceStatus {
             backend: ServiceBackend::Foreign,
             installation: InstallationState::Invalid,
@@ -124,6 +128,7 @@ pub(super) fn query() -> SystemServiceStatus {
             binary_path,
             win32_error: None,
             active_profile_digest: None,
+            configuration_drift: false,
             can_install: false,
             can_remove: false,
             can_start: false,
@@ -132,6 +137,7 @@ pub(super) fn query() -> SystemServiceStatus {
             can_upgrade: false,
         };
     }
+    let configuration_drift = core_service_configuration_drift(&observed);
     let installation = match (configured.as_ref(), expected.as_ref(), bundled.as_ref()) {
         (Some(configured), Ok(expected), Ok(bundled)) => {
             classify_owned_installation(configured, expected, bundled)
@@ -161,7 +167,7 @@ pub(super) fn query() -> SystemServiceStatus {
             .then_some(selected.report.active_profile_digest)
             .flatten()
     });
-    let stable = matches!(runtime, RuntimeState::Running | RuntimeState::Stopped);
+    let capabilities = core_service_capabilities(runtime, installation, configuration_drift);
     SystemServiceStatus {
         backend: ServiceBackend::OpenSource,
         installation,
@@ -170,12 +176,13 @@ pub(super) fn query() -> SystemServiceStatus {
         binary_path,
         win32_error: None,
         active_profile_digest,
+        configuration_drift,
         can_install: false,
-        can_remove: stable,
-        can_start: runtime == RuntimeState::Stopped && installation == InstallationState::Current,
-        can_stop: runtime == RuntimeState::Running,
-        can_repair: stable && installation == InstallationState::Current,
-        can_upgrade: stable && installation == InstallationState::Outdated,
+        can_remove: capabilities.can_remove,
+        can_start: capabilities.can_start,
+        can_stop: capabilities.can_stop,
+        can_repair: capabilities.can_repair,
+        can_upgrade: capabilities.can_upgrade,
     }
 }
 
@@ -243,6 +250,7 @@ fn inaccessible(error: u32, binary_path: Option<String>) -> SystemServiceStatus 
         binary_path,
         win32_error: Some(error),
         active_profile_digest: None,
+        configuration_drift: false,
         can_install: false,
         can_remove: false,
         can_start: false,

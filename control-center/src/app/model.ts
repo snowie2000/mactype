@@ -138,6 +138,7 @@ export type ServiceHealthState = "unknown" | "initializing" | "ready" | "degrade
 export interface SystemServiceStatus {
   backend: ServiceBackend;
   installation: InstallationState;
+  configurationDrift: boolean;
   runtime: ServiceRuntimeState;
   health: ServiceHealthState;
   binaryPath: string | null;

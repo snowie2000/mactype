@@ -348,6 +348,8 @@
   "execution.serviceState.unknown": "狀態不明",
   "execution.serviceRegistryConflict": "偵測到 AppInit 登錄模式，因此已封鎖服務安裝與啟動。",
   "execution.serviceForeign": "發現名稱相同但設定不同的服務。將不會變更該服務。",
+  "execution.serviceConfigurationDriftTitle": "服務登錄資訊已變更",
+  "execution.serviceConfigurationDriftDescription": "啟動類型等服務登錄資訊與預期設定不符。修復或更新服務即可還原原有設定。",
   "execution.serviceInstall": "安裝服務",
   "execution.serviceStart": "啟動服務",
   "execution.serviceRemove": "移除服務",

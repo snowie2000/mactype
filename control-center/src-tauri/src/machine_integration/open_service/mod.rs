@@ -20,9 +20,8 @@ use broker_result::{
 };
 use file_guard::{read_bounded_regular_file, reject_reparse_chain};
 use identity::{
-    classify_owned_installation, configured_service_binary, is_protected_service_binary,
-    owned_core_service_configuration, same_path, select_service_health, validated_reveal_binary,
-    LiveHealthReport, ObservedCoreServiceConfiguration,
+    classify_owned_installation, configured_service_binary, is_protected_service_binary, same_path,
+    select_service_health, validated_reveal_binary, LiveHealthReport,
 };
 #[cfg(test)]
 use legacy_status::legacy_migration_available;
@@ -310,6 +309,7 @@ fn absent_status() -> SystemServiceStatus {
         binary_path: None,
         win32_error: None,
         active_profile_digest: None,
+        configuration_drift: false,
         can_install: true,
         can_remove: false,
         can_start: false,

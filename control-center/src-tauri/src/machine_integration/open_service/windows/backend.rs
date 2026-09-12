@@ -162,6 +162,7 @@ mod tests {
             binary_path: Some("protected-service.exe".to_owned()),
             win32_error: None,
             active_profile_digest: digest.map(str::to_owned),
+            configuration_drift: false,
             can_install: false,
             can_remove: true,
             can_start: false,

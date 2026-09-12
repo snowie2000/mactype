@@ -216,6 +216,7 @@ export function galleryExecutionStatus(query: GalleryQuery): ExecutionStatus {
     systemService: {
       backend: serviceBackend,
       installation: serviceInstallation,
+      configurationDrift: false,
       runtime: serviceRuntime,
       // The backend reads live health and the active generation only from a
       // running service; a stopped one keeps at most a persisted degraded or
@@ -304,6 +305,7 @@ function withGalleryLegacyTrayPolicy(
     systemInjectionActive,
     systemService: {
       ...service,
+      configurationDrift: false,
       canInstall: mutationAllowed && service.installation === "absent",
       canRemove: mutationAllowed && (service.installation === "current" || service.installation === "outdated"),
       canStart: mutationAllowed && service.installation === "current" && service.runtime === "stopped",
@@ -355,6 +357,7 @@ function runningGalleryService(current: SystemServiceStatus): SystemServiceStatu
     ...current,
     backend: "open-source",
     installation: "current",
+    configurationDrift: false,
     runtime: "running",
     health: "ready",
     activeProfileDigest: expectedGalleryDigest,
@@ -377,6 +380,7 @@ export function transitionGalleryExecutionStatus(
       systemInjectionActive: false,
       systemService: {
         ...current.systemService,
+        configurationDrift: false,
         runtime: "stopped",
         health: "unknown",
         activeProfileDigest: null,
@@ -391,6 +395,7 @@ export function transitionGalleryExecutionStatus(
       systemInjectionActive: false,
       systemService: {
         ...current.systemService,
+        configurationDrift: false,
         installation: "absent",
         runtime: "stopped",
         health: "unknown",

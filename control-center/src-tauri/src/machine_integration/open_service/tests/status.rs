@@ -2,6 +2,10 @@ use super::super::*;
 use crate::machine_integration::legacy_mactray::{
     LegacyServiceStatus, ServicePresence, ServiceRuntimeState,
 };
+use crate::machine_integration::open_service::identity::{
+    core_service_capabilities, core_service_configuration_drift, owned_core_service_identity,
+    ObservedCoreServiceConfiguration,
+};
 
 #[test]
 fn absent_service_never_claims_system_injection() {
@@ -60,31 +64,104 @@ fn bundled_manifest_version_drives_outdated_classification() {
 }
 
 #[test]
-fn status_ownership_rejects_every_core_service_identity_collision() {
-    let owned = |error_control, display: &str, group: &str, tag, dependencies_empty| {
-        owned_core_service_configuration(&ObservedCoreServiceConfiguration {
-            service_type: 0x10,
-            start_type: 2,
-            error_control,
-            account: "LocalSystem",
-            display_name: display,
-            load_order_group: group,
-            tag_id: tag,
-            dependencies_empty,
-            protected_image: true,
-        })
+fn status_separates_core_service_identity_from_configuration_drift() {
+    let exact = ObservedCoreServiceConfiguration {
+        service_type: 0x10,
+        start_type: 2,
+        error_control: 1,
+        account: "LocalSystem",
+        display_name: "MacType Control Center Service",
+        load_order_group: "",
+        tag_id: 0,
+        dependencies_empty: true,
+        protected_image: true,
     };
-    assert!(owned(1, "MacType Control Center Service", "", 0, true));
-    assert!(!owned(0, "MacType Control Center Service", "", 0, true));
-    assert!(!owned(1, "Foreign Display", "", 0, true));
-    assert!(!owned(
-        1,
-        "MacType Control Center Service",
-        "group",
-        1,
-        true
-    ));
-    assert!(!owned(1, "MacType Control Center Service", "", 0, false));
+    assert!(owned_core_service_identity(&exact));
+    assert!(!core_service_configuration_drift(&exact));
+
+    for drift in [
+        ObservedCoreServiceConfiguration {
+            start_type: 3,
+            ..exact
+        },
+        ObservedCoreServiceConfiguration {
+            error_control: 0,
+            ..exact
+        },
+        ObservedCoreServiceConfiguration {
+            display_name: "Foreign Display",
+            load_order_group: "group",
+            tag_id: 1,
+            dependencies_empty: false,
+            ..exact
+        },
+    ] {
+        assert!(owned_core_service_identity(&drift));
+        assert!(core_service_configuration_drift(&drift));
+    }
+
+    for foreign in [
+        ObservedCoreServiceConfiguration {
+            service_type: 0x20,
+            ..exact
+        },
+        ObservedCoreServiceConfiguration {
+            account: "LocalService",
+            ..exact
+        },
+        ObservedCoreServiceConfiguration {
+            protected_image: false,
+            ..exact
+        },
+    ] {
+        assert!(!owned_core_service_identity(&foreign));
+    }
+}
+
+#[test]
+fn service_capability_matrix_treats_drift_as_repairable_owned_state() {
+    let flags = |runtime, installation, drift| {
+        let capabilities = core_service_capabilities(runtime, installation, drift);
+        (
+            capabilities.can_remove,
+            capabilities.can_start,
+            capabilities.can_stop,
+            capabilities.can_repair,
+            capabilities.can_upgrade,
+        )
+    };
+
+    assert_eq!(
+        flags(RuntimeState::Stopped, InstallationState::Current, false),
+        (true, true, false, true, false)
+    );
+    assert_eq!(
+        flags(RuntimeState::Stopped, InstallationState::Current, true),
+        (true, false, false, true, false)
+    );
+    assert_eq!(
+        flags(RuntimeState::Running, InstallationState::Current, true),
+        (true, false, true, true, false)
+    );
+    assert_eq!(
+        flags(RuntimeState::Stopped, InstallationState::Outdated, true),
+        (true, false, false, false, true)
+    );
+    assert_eq!(
+        flags(RuntimeState::Running, InstallationState::Outdated, false),
+        (true, false, true, false, true)
+    );
+    for runtime in [
+        RuntimeState::StartPending,
+        RuntimeState::StopPending,
+        RuntimeState::Paused,
+        RuntimeState::Unknown,
+    ] {
+        assert_eq!(
+            flags(runtime, InstallationState::Current, true),
+            (false, false, false, false, false)
+        );
+    }
 }
 
 #[test]

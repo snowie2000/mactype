@@ -44,6 +44,7 @@ pub(super) fn classify_owned_installation(
     }
 }
 
+#[derive(Clone, Copy)]
 pub(super) struct ObservedCoreServiceConfiguration<'a> {
     pub(super) service_type: u32,
     pub(super) start_type: u32,
@@ -56,18 +57,47 @@ pub(super) struct ObservedCoreServiceConfiguration<'a> {
     pub(super) protected_image: bool,
 }
 
-pub(super) fn owned_core_service_configuration(
+pub(super) fn owned_core_service_identity(observed: &ObservedCoreServiceConfiguration<'_>) -> bool {
+    observed.service_type == 0x10
+        && observed.account.eq_ignore_ascii_case("LocalSystem")
+        && observed.protected_image
+}
+
+pub(super) fn core_service_configuration_drift(
     observed: &ObservedCoreServiceConfiguration<'_>,
 ) -> bool {
-    observed.service_type == 0x10
-        && observed.start_type == 2
-        && observed.error_control == 1
-        && observed.account.eq_ignore_ascii_case("LocalSystem")
-        && observed.display_name == "MacType Control Center Service"
-        && observed.load_order_group.is_empty()
-        && observed.tag_id == 0
-        && observed.dependencies_empty
-        && observed.protected_image
+    observed.start_type != 2
+        || observed.error_control != 1
+        || observed.display_name != "MacType Control Center Service"
+        || !observed.load_order_group.is_empty()
+        || (observed.tag_id != 0 && !observed.load_order_group.is_empty())
+        || !observed.dependencies_empty
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) struct CoreServiceCapabilities {
+    pub(super) can_remove: bool,
+    pub(super) can_start: bool,
+    pub(super) can_stop: bool,
+    pub(super) can_repair: bool,
+    pub(super) can_upgrade: bool,
+}
+
+pub(super) fn core_service_capabilities(
+    runtime: RuntimeState,
+    installation: InstallationState,
+    configuration_drift: bool,
+) -> CoreServiceCapabilities {
+    let stable = matches!(runtime, RuntimeState::Running | RuntimeState::Stopped);
+    CoreServiceCapabilities {
+        can_remove: stable,
+        can_start: runtime == RuntimeState::Stopped
+            && installation == InstallationState::Current
+            && !configuration_drift,
+        can_stop: runtime == RuntimeState::Running,
+        can_repair: stable && installation == InstallationState::Current,
+        can_upgrade: stable && installation == InstallationState::Outdated,
+    }
 }
 
 pub(super) struct SelectedHealth {

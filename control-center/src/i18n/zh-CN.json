@@ -348,6 +348,8 @@
   "execution.serviceState.unknown": "状态未知",
   "execution.serviceRegistryConflict": "检测到 AppInit 注册表模式，已阻止安装或启动服务。",
   "execution.serviceForeign": "发现同名但配置不同的服务。该服务不会被更改。",
+  "execution.serviceConfigurationDriftTitle": "服务注册信息已更改",
+  "execution.serviceConfigurationDriftDescription": "启动类型等服务注册信息与预期设置不符。修复或更新服务即可恢复原有设置。",
   "execution.serviceInstall": "安装服务",
   "execution.serviceStart": "启动服务",
   "execution.serviceRemove": "删除服务",

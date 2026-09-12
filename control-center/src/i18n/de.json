@@ -348,6 +348,8 @@
   "execution.serviceState.unknown": "Unbekannter Status",
   "execution.serviceRegistryConflict": "Der AppInit-Registrierungsmodus ist aktiv. Installation und Start des Dienstes sind daher gesperrt.",
   "execution.serviceForeign": "Ein gleichnamiger Dienst weist eine andere Konfiguration auf. Er wird nicht geändert.",
+  "execution.serviceConfigurationDriftTitle": "Die Dienstregistrierung wurde geändert",
+  "execution.serviceConfigurationDriftDescription": "Einstellungen der Dienstregistrierung wie der Starttyp weichen von den vorgesehenen Werten ab. Reparieren oder aktualisieren Sie den Dienst, um sie wiederherzustellen.",
   "execution.serviceInstall": "Dienst installieren",
   "execution.serviceStart": "Dienst starten",
   "execution.serviceRemove": "Dienst entfernen",

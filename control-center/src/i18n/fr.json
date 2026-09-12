@@ -348,6 +348,8 @@
   "execution.serviceState.unknown": "État inconnu",
   "execution.serviceRegistryConflict": "Le mode de registre AppInit est actif : l’installation et le démarrage du service sont bloqués.",
   "execution.serviceForeign": "Un service portant le même nom présente une configuration différente. Il ne sera pas modifié.",
+  "execution.serviceConfigurationDriftTitle": "Les paramètres d’enregistrement du service ont changé",
+  "execution.serviceConfigurationDriftDescription": "Les paramètres d’enregistrement du service, comme le type de démarrage, diffèrent des valeurs prévues. Réparez ou mettez à jour le service pour les rétablir.",
   "execution.serviceInstall": "Installer le service",
   "execution.serviceStart": "Démarrer le service",
   "execution.serviceRemove": "Supprimer le service",

@@ -348,6 +348,8 @@
   "execution.serviceState.unknown": "حالة غير معروفة",
   "execution.serviceRegistryConflict": "وضع سجل AppInit نشط، لذلك مُنع تثبيت الخدمة وبدء تشغيلها.",
   "execution.serviceForeign": "توجد خدمة بالاسم نفسه ولكن بتكوين مختلف. لن يتم تغييرها.",
+  "execution.serviceConfigurationDriftTitle": "تغيّرت إعدادات تسجيل الخدمة",
+  "execution.serviceConfigurationDriftDescription": "تختلف إعدادات تسجيل الخدمة، مثل نوع بدء التشغيل، عن القيم المطلوبة. أصلح الخدمة أو حدّثها لاستعادة هذه الإعدادات.",
   "execution.serviceInstall": "تثبيت الخدمة",
   "execution.serviceStart": "بدء الخدمة",
   "execution.serviceRemove": "إزالة الخدمة",

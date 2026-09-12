@@ -348,6 +348,8 @@
   "execution.serviceState.unknown": "状態不明",
   "execution.serviceRegistryConflict": "AppInit レジストリモードが検出されたため、サービスのインストールと開始を禁止しました。",
   "execution.serviceForeign": "同名ですが構成が異なるサービスが見つかりました。このサービスは変更されません。",
+  "execution.serviceConfigurationDriftTitle": "サービスの登録情報が変更されています",
+  "execution.serviceConfigurationDriftDescription": "スタートアップの種類など、サービスの登録情報が本来の設定と異なります。サービスを修復または更新すると元に戻ります。",
   "execution.serviceInstall": "サービスをインストール",
   "execution.serviceStart": "サービスを開始",
   "execution.serviceRemove": "サービスを削除",

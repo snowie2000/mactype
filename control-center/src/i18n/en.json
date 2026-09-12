@@ -348,6 +348,8 @@
   "execution.serviceState.unknown": "Unknown state",
   "execution.serviceRegistryConflict": "AppInit registry mode is active, so service installation and startup are blocked.",
   "execution.serviceForeign": "A service with the same name has a different configuration. It will not be changed.",
+  "execution.serviceConfigurationDriftTitle": "Service registration settings have changed",
+  "execution.serviceConfigurationDriftDescription": "Service registration settings, such as the startup type, differ from the expected values. Repair or update the service to restore them.",
   "execution.serviceInstall": "Install service",
   "execution.serviceStart": "Start service",
   "execution.serviceRemove": "Remove service",

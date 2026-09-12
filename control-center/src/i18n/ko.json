@@ -348,6 +348,8 @@
   "execution.serviceState.unknown": "상태 알 수 없음",
   "execution.serviceRegistryConflict": "AppInit 레지스트리 모드가 감지되어 서비스 설치와 시작을 차단했습니다.",
   "execution.serviceForeign": "이름은 같지만 구성이 다른 서비스를 발견했습니다. 해당 서비스는 변경하지 않습니다.",
+  "execution.serviceConfigurationDriftTitle": "서비스 등록 정보가 변경되어 있습니다",
+  "execution.serviceConfigurationDriftDescription": "시작 유형 같은 서비스 등록 정보가 기준과 다릅니다. 복구하거나 업데이트하면 원래 설정으로 돌아옵니다.",
   "execution.serviceInstall": "서비스 설치",
   "execution.serviceStart": "서비스 시작",
   "execution.serviceRemove": "서비스 제거",
