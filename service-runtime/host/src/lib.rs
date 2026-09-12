@@ -53,7 +53,7 @@ pub use observer::{
     TargetLiveness, FALLBACK_PROCESS_CREATION_QUERY, PROCESS_CREATION_QUERY,
 };
 pub use orchestration_runtime::initialize_process_orchestration;
-pub use profile_runtime::ProtectedProfileInitializer;
+pub use profile_runtime::{ProtectedProfileInitializer, ACTIVE_PROFILE_ABSENT_CODE};
 pub use runtime::{
     HealthPublisher, HostError, InitializedRuntime, RuntimeDriver, RuntimeHealthReporter,
     RuntimeInitializer, ServiceRuntime, StopSignal,

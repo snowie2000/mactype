@@ -13,6 +13,8 @@ use crate::protected_path::{
 };
 use crate::{InitializedRuntime, RuntimeInitializer};
 
+pub const ACTIVE_PROFILE_ABSENT_CODE: &str = "active-profile-absent";
+
 pub struct ProtectedProfileInitializer {
     paths: MachinePaths,
 }
@@ -30,18 +32,27 @@ impl RuntimeInitializer for ProtectedProfileInitializer {
             return Err(activation_recovery_required());
         }
         validate_runtime_activation_receipt(&self.paths)?;
-        let pointer_bytes = read_bounded_protected_file(
-            self.paths.active_profile(),
-            MAX_POINTER_BYTES,
-            (
-                "active-profile-unavailable",
-                "the protected active profile pointer could not be read",
-            ),
-            (
-                "active-profile-invalid",
-                "the protected active profile pointer is not a bounded regular file",
-            ),
-        )?;
+        let active_profile = self.paths.active_profile();
+        reject_reparse(active_profile)?;
+        let pointer_bytes =
+            read_bounded_regular_file(active_profile, MAX_POINTER_BYTES).map_err(|error| {
+                if error.kind() == io::ErrorKind::NotFound {
+                    service_error(
+                        ACTIVE_PROFILE_ABSENT_CODE,
+                        "no profile has been published yet, so the service stays stopped until setup publishes one",
+                    )
+                } else if error.kind() == io::ErrorKind::InvalidData {
+                    service_error(
+                        "active-profile-invalid",
+                        "the protected active profile pointer is not a bounded regular file",
+                    )
+                } else {
+                    service_error(
+                        "active-profile-unavailable",
+                        "the protected active profile pointer could not be read",
+                    )
+                }
+            })?;
         let pointer: GenerationPointer = serde_json::from_slice(&pointer_bytes).map_err(|_| {
             service_error(
                 "active-profile-invalid",

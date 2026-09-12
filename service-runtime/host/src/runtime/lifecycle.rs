@@ -7,9 +7,18 @@ use super::{
     HealthPublisher, HostError, RuntimeHealthReporter, RuntimeInitializer, ServiceRuntime,
     StopSignal,
 };
-use crate::{ServiceStatus, StatusReporter, RUNTIME_PROFILE_ABSENT_CODE};
+use crate::{
+    ServiceStatus, StatusReporter, ACTIVE_PROFILE_ABSENT_CODE, RUNTIME_PROFILE_ABSENT_CODE,
+};
 
 const ERROR_SERVICE_SPECIFIC_ERROR: u32 = 1066;
+
+fn is_supported_stopped_state(error: &StructuredServiceError) -> bool {
+    matches!(
+        error.code.as_str(),
+        ACTIVE_PROFILE_ABSENT_CODE | RUNTIME_PROFILE_ABSENT_CODE
+    )
+}
 
 impl ServiceRuntime<'_> {
     pub fn run(
@@ -46,7 +55,7 @@ impl ServiceRuntime<'_> {
 
         let mut initialized = match initializer.initialize() {
             Ok(initialized) => initialized,
-            Err(error) if error.code == RUNTIME_PROFILE_ABSENT_CODE => {
+            Err(error) if is_supported_stopped_state(&error) => {
                 return self.report_supported_stop(status, health, &error);
             }
             Err(error) => {

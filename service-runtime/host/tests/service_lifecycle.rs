@@ -8,7 +8,8 @@ use mactype_service_contract::{
 use mactype_service_host::{
     CompositeHealthPublisher, FileHealthPublisher, HealthPublisher, InitializedRuntime,
     RuntimeDriver, RuntimeHealthReporter, RuntimeInitializer, ScmState, ServiceRuntime,
-    ServiceStatus, StatusReporter, StopSignal, RUNTIME_PROFILE_ABSENT_CODE,
+    ServiceStatus, StatusReporter, StopSignal, ACTIVE_PROFILE_ABSENT_CODE,
+    RUNTIME_PROFILE_ABSENT_CODE,
 };
 
 const PROFILE: &str = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -175,61 +176,75 @@ impl RuntimeInitializer for ErrorInitializer {
 }
 
 #[test]
-fn absent_generated_profile_ends_the_start_with_a_clean_stop() {
-    let recorder = Recorder::default();
+fn absent_profile_states_end_the_start_with_a_clean_stop() {
+    for code in [ACTIVE_PROFILE_ABSENT_CODE, RUNTIME_PROFILE_ABSENT_CODE] {
+        let recorder = Recorder::default();
 
-    ServiceRuntime::new("0.2.0")
-        .run(
-            &recorder,
-            &recorder,
-            &ErrorInitializer {
-                code: RUNTIME_PROFILE_ABSENT_CODE,
-            },
-            &ImmediateStop,
-        )
-        .unwrap();
+        ServiceRuntime::new("0.2.0")
+            .run(
+                &recorder,
+                &recorder,
+                &ErrorInitializer { code },
+                &ImmediateStop,
+            )
+            .unwrap();
 
-    let state = recorder.state.lock().unwrap();
-    assert_eq!(
-        state.events,
-        [
-            "scm:StartPending",
-            "health:Initializing",
-            "health:Unknown",
-            "scm:Stopped",
-        ]
-    );
-    assert_eq!(
-        state.statuses,
-        [
-            ServiceStatus::start_pending(1, 10_000),
-            ServiceStatus::stopped()
-        ]
-    );
-    assert_eq!(
-        state
-            .reports
-            .iter()
-            .map(|report| report.health)
-            .collect::<Vec<_>>(),
-        [HealthState::Initializing, HealthState::Unknown]
-    );
-    let terminal = state.reports.last().unwrap();
-    assert_eq!(terminal.health, HealthState::Unknown);
-    assert_eq!(terminal.active_profile_digest, None);
-    assert_eq!(terminal.readiness, ReadinessReport::not_required());
-    assert_eq!(
-        terminal.injection,
-        mactype_service_contract::InjectionTelemetry::default()
-    );
-    assert_eq!(
-        terminal
-            .last_error
-            .as_ref()
-            .map(|error| error.code.as_str()),
-        Some("runtime-profile-absent")
-    );
-    assert!(terminal.validate().is_ok());
+        let state = recorder.state.lock().unwrap();
+        assert_eq!(
+            state.events,
+            [
+                "scm:StartPending",
+                "health:Initializing",
+                "health:Unknown",
+                "scm:Stopped",
+            ],
+            "{code}"
+        );
+        assert_eq!(
+            state.statuses,
+            [
+                ServiceStatus::start_pending(1, 10_000),
+                ServiceStatus::stopped()
+            ],
+            "{code}"
+        );
+        assert_eq!(
+            state
+                .reports
+                .iter()
+                .map(|report| report.health)
+                .collect::<Vec<_>>(),
+            [HealthState::Initializing, HealthState::Unknown],
+            "{code}"
+        );
+        let terminal = state.reports.last().unwrap();
+        assert_eq!(terminal.health, HealthState::Unknown, "{code}");
+        assert_eq!(terminal.active_profile_digest, None, "{code}");
+        assert_eq!(
+            terminal.readiness,
+            ReadinessReport::not_required(),
+            "{code}"
+        );
+        assert_eq!(
+            terminal.injection,
+            mactype_service_contract::InjectionTelemetry::default(),
+            "{code}"
+        );
+        assert_eq!(
+            terminal
+                .last_error
+                .as_ref()
+                .map(|error| error.code.as_str()),
+            Some(code)
+        );
+        assert!(terminal.validate().is_ok(), "{code}");
+        assert!(!state.events.contains(&"scm:Running".to_owned()), "{code}");
+        assert!(!state.events.contains(&"health:Ready".to_owned()), "{code}");
+        assert!(
+            !state.events.contains(&"health:Failed".to_owned()),
+            "{code}"
+        );
+    }
 }
 
 #[test]

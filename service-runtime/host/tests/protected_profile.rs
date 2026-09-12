@@ -4,7 +4,8 @@ use mactype_service_contract::{
     ComponentReadiness, GenerationPointer, MachinePaths, ProfileCatalog, SourceMetadata,
 };
 use mactype_service_host::{
-    ProtectedProfileInitializer, RuntimeInitializer, RUNTIME_PROFILE_ABSENT_CODE,
+    ProtectedProfileInitializer, RuntimeInitializer, ACTIVE_PROFILE_ABSENT_CODE,
+    RUNTIME_PROFILE_ABSENT_CODE,
 };
 
 fn paths() -> (tempfile::TempDir, MachinePaths) {
@@ -150,9 +151,7 @@ fn initializer_reports_the_verified_protected_active_profile_digest() {
 #[test]
 fn initializer_reports_an_absent_generated_runtime_profile() {
     let (_base, paths) = paths();
-    let bytes = b"[General]
-HintingMode=0
-";
+    let bytes = b"[General]\r\nHintingMode=0\r\n";
     install_active_profile(&paths, bytes);
     let runtime = install_active_runtime(&paths, bytes);
     fs::remove_file(runtime.join("MacType.ini")).unwrap();
@@ -311,5 +310,76 @@ fn initializer_does_not_claim_ready_without_an_active_generation() {
         .initialize()
         .err()
         .expect("missing active profile must fail initialization");
+    assert_eq!(error.code, ACTIVE_PROFILE_ABSENT_CODE);
+}
+
+#[test]
+fn initializer_reports_an_absent_active_profile_pointer() {
+    let (_base, paths) = paths();
+    install_active_runtime(
+        &paths,
+        b"[General]
+HintingMode=0
+",
+    );
+
+    let error = ProtectedProfileInitializer::new(paths)
+        .initialize()
+        .err()
+        .expect("nothing has been published, so the start must end as a supported stop");
+
+    assert_eq!(error.code, ACTIVE_PROFILE_ABSENT_CODE);
+}
+
+#[test]
+fn initializer_keeps_a_dangling_active_profile_pointer_unavailable() {
+    let (_base, paths) = paths();
+    let bytes = b"[General]
+HintingMode=0
+";
+    install_active_profile(&paths, bytes);
+    install_active_runtime(&paths, bytes);
+    let mut catalog = ProfileCatalog::new();
+    let generation = catalog
+        .publish_machine_profile(
+            bytes,
+            SourceMetadata {
+                display_name: "test".to_owned(),
+            },
+        )
+        .unwrap();
+    fs::remove_file(
+        paths
+            .profile_generations()
+            .join(generation.directory_name())
+            .join("profile.ini"),
+    )
+    .unwrap();
+
+    let error = ProtectedProfileInitializer::new(paths)
+        .initialize()
+        .err()
+        .expect("a dangling pointer is a broken installation");
+
     assert_eq!(error.code, "active-profile-unavailable");
+}
+
+#[test]
+fn profile_activation_journal_takes_priority_over_an_absent_active_pointer() {
+    let (_base, paths) = paths();
+    install_active_runtime(
+        &paths,
+        b"[General]
+HintingMode=0
+",
+    );
+    fs::create_dir_all(paths.profile_activation_journal().parent().unwrap()).unwrap();
+    fs::write(paths.profile_activation_journal(), b"pending").unwrap();
+
+    let error = ProtectedProfileInitializer::new(paths)
+        .initialize()
+        .err()
+        .expect("a pending activation journal must fail closed");
+
+    assert_eq!(error.code, "activation-recovery-required");
 }
