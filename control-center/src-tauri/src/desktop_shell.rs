@@ -24,6 +24,30 @@ pub(crate) fn install(
     startup_gate: single_instance::StartupGate,
 ) -> Result<(), Box<dyn Error>> {
     install_tray(app)?;
+    #[cfg(windows)]
+    {
+        if let Some(window) = app.get_webview_window("main") {
+            match window.hwnd() {
+                Ok(hwnd) => install_end_session_hook(hwnd.0 as isize, "main"),
+                Err(error) => crate::diagnostics::record_end_session_hook_failed(
+                    "main",
+                    "obtain-hwnd",
+                    &error.to_string(),
+                ),
+            }
+        }
+        if let Some(tray) = app.tray_by_id("main") {
+            if let Err(error) = tray.with_inner_tray_icon(|tray| {
+                install_end_session_hook(tray.window_handle() as isize, "tray")
+            }) {
+                crate::diagnostics::record_end_session_hook_failed(
+                    "tray",
+                    "access-inner-tray",
+                    &error.to_string(),
+                );
+            }
+        }
+    }
     crate::diagnostics::record_app_started();
     start_event_log_watcher(app.handle().clone());
     if app::starts_in_tray() {
@@ -52,6 +76,20 @@ pub(crate) fn handle_window_event(window: &Window<Wry>, event: &WindowEvent) {
             api.prevent_close();
             let _ = window.hide();
         }
+    }
+}
+
+#[cfg(windows)]
+fn install_end_session_hook(hwnd: isize, window: &str) {
+    if let Err(error) = mactype_service_platform::install_end_session_exit_hook(
+        hwnd,
+        crate::diagnostics::record_session_ending,
+    ) {
+        crate::diagnostics::record_end_session_hook_failed(
+            window,
+            "install-subclass",
+            &error.to_string(),
+        );
     }
 }
 

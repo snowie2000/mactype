@@ -20,7 +20,13 @@ pub(crate) async fn open_preview_studio(app: AppHandle) -> Result<(), String> {
     // WebView2 creation deadlocks in a synchronous Windows IPC command.
     tauri::async_runtime::spawn_blocking(move || {
         let _guard = STUDIO_LIFECYCLE.lock().map_err(|error| error.to_string())?;
-        open_studio_window(&app)
+        let (completed, receiver) = std::sync::mpsc::channel();
+        let main_thread_app = app.clone();
+        app.run_on_main_thread(move || {
+            let _ = completed.send(open_studio_window(&main_thread_app));
+        })
+        .map_err(|error| error.to_string())?;
+        receiver.recv().map_err(|error| error.to_string())?
     })
     .await
     .map_err(|error| error.to_string())?
@@ -33,7 +39,7 @@ fn open_studio_window(app: &AppHandle) -> Result<(), String> {
         return window.set_focus().map_err(|error| error.to_string());
     }
 
-    WebviewWindowBuilder::new(
+    let window = WebviewWindowBuilder::new(
         app,
         STUDIO_WINDOW_LABEL,
         WebviewUrl::App("index.html?window=preview-studio".into()),
@@ -45,8 +51,28 @@ fn open_studio_window(app: &AppHandle) -> Result<(), String> {
     .resizable(true)
     .center()
     .build()
-    .map(|_| ())
-    .map_err(|error| error.to_string())
+    .map_err(|error| error.to_string())?;
+    #[cfg(windows)]
+    match window.hwnd() {
+        Ok(hwnd) => {
+            if let Err(error) = mactype_service_platform::install_end_session_exit_hook(
+                hwnd.0 as isize,
+                crate::diagnostics::record_session_ending,
+            ) {
+                crate::diagnostics::record_end_session_hook_failed(
+                    STUDIO_WINDOW_LABEL,
+                    "install-subclass",
+                    &error.to_string(),
+                );
+            }
+        }
+        Err(error) => crate::diagnostics::record_end_session_hook_failed(
+            STUDIO_WINDOW_LABEL,
+            "obtain-hwnd",
+            &error.to_string(),
+        ),
+    }
+    Ok(())
 }
 
 #[tauri::command]

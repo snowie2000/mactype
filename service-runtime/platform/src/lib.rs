@@ -13,6 +13,7 @@
 
 mod clipboard;
 mod com;
+mod end_session;
 mod environment;
 mod event;
 mod file;
@@ -38,6 +39,7 @@ mod wts;
 
 pub use clipboard::set_clipboard_unicode_text;
 pub use com::{ComApartment, ComThreading};
+pub use end_session::{end_session_action, install_end_session_exit_hook, EndSessionAction};
 pub use environment::expand_environment_strings;
 pub use event::ManualResetEvent;
 pub use file::{

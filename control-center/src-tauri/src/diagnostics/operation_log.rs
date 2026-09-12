@@ -6,9 +6,11 @@ use mactype_service_contract::event_log::{
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    fs,
+    fs::{self, OpenOptions},
+    io::Write as _,
     path::{Path, PathBuf},
     sync::atomic::{AtomicBool, Ordering},
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 const LOG_FILE_NAME: &str = "control-center.log";
@@ -179,6 +181,56 @@ pub(crate) fn record_control_center_event(
     {
         report_write_error(&error);
     }
+}
+
+pub(super) fn record_session_ending() -> Result<PathBuf, String> {
+    record_session_ending_at(&super::log_root()?)
+}
+
+fn record_session_ending_at(root: &Path) -> Result<PathBuf, String> {
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| error.to_string())?
+        .as_millis();
+    let record = EventRecord::new(
+        u64::try_from(timestamp).map_err(|error| error.to_string())?,
+        EventSeverity::Info,
+        EventArea::ControlCenter,
+        "session-ending",
+        BTreeMap::from([("reason".to_owned(), "wm-endsession".to_owned())]),
+        None,
+        EventSource::ControlCenter,
+    );
+    append_synchronously_at(root, &record)
+}
+
+fn append_synchronously_at(root: &Path, record: &EventRecord) -> Result<PathBuf, String> {
+    let mut line = serde_json::to_vec(record).map_err(|error| error.to_string())?;
+    line.push(b'\n');
+    let path = root.join(LOG_FILE_NAME);
+
+    // EventLogWriter's process-wide append mutex may already be held during termination.
+    fs::create_dir_all(root).map_err(|error| error.to_string())?;
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .map_err(|error| error.to_string())?;
+    let current = file.metadata().map_err(|error| error.to_string())?.len();
+    if current != 0 {
+        line.insert(0, b'\n');
+    }
+    let incoming = u64::try_from(line.len()).map_err(|error| error.to_string())?;
+    if current
+        .checked_add(incoming)
+        .map_or(true, |total| total > MAX_EVENT_LOG_BYTES)
+    {
+        return Err("event record exceeds the event-log byte limit".to_owned());
+    }
+    file.write_all(&line).map_err(|error| error.to_string())?;
+    file.flush().map_err(|error| error.to_string())?;
+    file.sync_data().map_err(|error| error.to_string())?;
+    Ok(path)
 }
 
 fn report_write_error(error: &str) {
@@ -366,4 +418,64 @@ fn extract_numeric_code(value: &str, marker: &str) -> Option<u32> {
     (!digits.is_empty())
         .then(|| std::str::from_utf8(&digits).ok()?.parse().ok())
         .flatten()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{env, time::SystemTime};
+
+    fn unique_root(name: &str) -> PathBuf {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|duration| duration.as_nanos())
+            .unwrap_or_default();
+        env::temp_dir().join(format!("mactype-{name}-{}-{unique}", std::process::id()))
+    }
+
+    #[test]
+    fn session_ending_record_is_synced_as_an_info_event() {
+        let root = unique_root("session-ending-log");
+
+        record_session_ending_at(&root).unwrap();
+
+        let events = read_all_at(&root);
+        assert_eq!(events.len(), 1);
+        let event = &events[0];
+        assert_eq!(event.severity, EventSeverity::Info);
+        assert_eq!(event.area, EventArea::ControlCenter);
+        assert_eq!(event.code, "session-ending");
+        assert_eq!(event.source, EventSource::ControlCenter);
+        assert_eq!(
+            event.params.get("reason").map(String::as_str),
+            Some("wm-endsession")
+        );
+        let disk = fs::read_to_string(root.join(LOG_FILE_NAME)).unwrap();
+        assert_eq!(disk.lines().count(), 1);
+        let decoded: EventRecord = serde_json::from_str(disk.trim_end()).unwrap();
+        assert_eq!(decoded, *event);
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn synchronous_writer_skips_a_full_log_without_rotation() {
+        let root = unique_root("session-ending-full-log");
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join(LOG_FILE_NAME);
+        fs::write(&path, vec![b'x'; MAX_EVENT_LOG_BYTES as usize]).unwrap();
+        let record = EventRecord::new(
+            7,
+            EventSeverity::Info,
+            EventArea::ControlCenter,
+            "session-ending",
+            BTreeMap::from([("reason".to_owned(), "wm-endsession".to_owned())]),
+            None,
+            EventSource::ControlCenter,
+        );
+
+        assert!(append_synchronously_at(&root, &record).is_err());
+        assert_eq!(fs::metadata(&path).unwrap().len(), MAX_EVENT_LOG_BYTES);
+        assert!(!PathBuf::from(format!("{}.1", path.display())).exists());
+        let _ = fs::remove_dir_all(root);
+    }
 }

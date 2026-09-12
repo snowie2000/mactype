@@ -276,6 +276,23 @@ pub(crate) fn copy_diagnostics(state: State<'_, PreviewState>) -> Result<(), Str
     copy_to_clipboard(&report)
 }
 
+pub(crate) fn record_session_ending() {
+    let _ = operation_log::record_session_ending();
+}
+
+pub(crate) fn record_end_session_hook_failed(window: &str, stage: &str, error: &str) {
+    operation_log::record_control_center_event(
+        EventSeverity::Warning,
+        EventArea::ControlCenter,
+        "end-session-hook-failed",
+        BTreeMap::from([
+            ("window".to_owned(), window.to_owned()),
+            ("stage".to_owned(), stage.to_owned()),
+            ("error".to_owned(), error.to_owned()),
+        ]),
+    );
+}
+
 pub(crate) fn record_app_started() {
     operation_log::record_control_center_event(
         EventSeverity::Info,
