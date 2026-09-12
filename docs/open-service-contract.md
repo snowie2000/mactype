@@ -13,7 +13,7 @@ This document is the normative machine-runtime contract. In product language, **
 
 ## Runtime and profile generations
 
-A runtime generation is immutable and selected by `current.json`. A profile generation is the SHA-256-addressed `generations\<digest>\profile.ini` selected by `active.json`. Setup validates fixed filenames and hashes before activation, writes a durable recovery journal, switches the pointer atomically, and clears the journal only after success. Startup fails closed while recovery is pending or the generated DLL-adjacent `MacType.ini` differs from the active profile bytes, but the exact fixed runtime with only that generated profile absent reports terminal `Unknown` health with `runtime-profile-absent` and a clean stopped status.
+A runtime generation is immutable and selected by `current.json`. A profile generation is the SHA-256-addressed `generations\<digest>\profile.ini` selected by `active.json`. Setup validates fixed filenames and hashes before activation, writes a durable recovery journal, switches the pointer atomically, and clears the journal only after success. Startup fails closed while recovery is pending or the generated DLL-adjacent `MacType.ini` differs from the active profile bytes, but the exact fixed runtime with only that generated profile absent reports terminal `Unknown` health with `runtime-profile-absent` and a clean stopped status; an absent `active.json` before any profile publication reports the same result with `active-profile-absent`, while a dangling pointer still fails closed.
 
 ## Observation and injection
 
