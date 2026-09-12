@@ -11,6 +11,12 @@ This document is the normative machine-runtime contract. In product language, **
 - LocalSystem executes only files below `%ProgramFiles%\MacType Control Center\Service` and reads active profiles only below `%ProgramData%\MacType\ControlCenter`.
 - No production command accepts an arbitrary service name, executable, DLL, command line, or profile path.
 
+## Fixed SCM registration
+
+The production service name is `MacTypeControlCenter`. Its ownership identity is the quoted fixed service binary below the protected `Service\bin\<version>\` layout followed by ` --service`, the `SERVICE_WIN32_OWN_PROCESS` service type, and the LocalSystem account (case-insensitive). A different image, service type, or account is foreign and cannot be mutated by the fixed setup broker.
+
+The fixed configuration is automatic start, normal error control, display name `MacType Control Center Service`, no load order group, tag zero, and no dependencies. Differences in these fields are `ServiceConfigurationDrift`, not foreign identity. An owned service remains eligible for maintenance and profile publication; Control Center blocks starting it while drift remains and offers repair or upgrade. Both restore and read back the fixed configuration through `reconfigure`. The captured-configuration comparison between preflight and mutation remains an exact tamper check, including configuration fields.
+
 ## Runtime and profile generations
 
 A runtime generation is immutable and selected by `current.json`. A profile generation is the SHA-256-addressed `generations\<digest>\profile.ini` selected by `active.json`. Setup validates fixed filenames and hashes before activation, writes a durable recovery journal, switches the pointer atomically, and clears the journal only after success. Startup fails closed while recovery is pending or the generated DLL-adjacent `MacType.ini` differs from the active profile bytes, but the exact fixed runtime with only that generated profile absent reports terminal `Unknown` health with `runtime-profile-absent` and a clean stopped status; an absent `active.json` before any profile publication reports the same result with `active-profile-absent`, while a dangling pointer still fails closed.
@@ -41,7 +47,7 @@ Migration is explicit and reversible:
 6. retain the protected backup so failure can restore both services and the original running state;
 7. remove the 레거시 서비스 only in a separate explicitly confirmed operation.
 
-AppInit conflict, a foreign service configuration, an invalid protected path, missing architecture evidence, or false Ready cancels the operation and invokes rollback.
+AppInit conflict, a foreign service identity, an invalid protected path, missing architecture evidence, or false Ready cancels the operation and invokes rollback.
 
 ## M01–M22 evidence ledger
 

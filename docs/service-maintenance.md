@@ -15,6 +15,12 @@ The 신식 서비스 recovery policy retries after 5 seconds and then 30 seconds
 
 Because of that flag, a requested stop must never report a nonzero exit code, or recovery would resurrect a service the operator deliberately stopped. When the protected runtime contains the five fixed binaries and only the generated DLL-adjacent `MacType.ini` is absent, startup treats it as the supported stopped state. A missing `active.json`, when no profile has been published yet, ends the same way with `last_error.code=active-profile-absent`; a dangling pointer or pending activation journal still fails closed. In either stopped state, the service publishes terminal `Unknown` health, records one Info `service-start-skipped` event, and reports a clean `SERVICE_STOPPED`. This prevents boot and explicit-start recovery loops while an installation has no published profile, for example a fresh install before the first profile is published. Any other runtime file-set mismatch still fails with exit codes 1066/1 and remains eligible for recovery retries. Once the stop event is signalled, an error raised while winding down is carried in the terminal `Unknown` health snapshot's `last_error` and the service still reports a clean `SERVICE_STOPPED`. For the same reason the driver loop tolerates up to twenty consecutive health-publication failures: periodic telemetry is observability, and losing it must not end a run that is still injecting correctly.
 
+## Service identity and configuration drift
+
+Ownership requires three facts: ImagePath is the quoted fixed service binary below the protected `Service\bin\<version>\` layout followed by ` --service`, the service type is `SERVICE_WIN32_OWN_PROCESS`, and the account is LocalSystem (case-insensitive). Start type, error control, display name, load order group, tag, and dependencies are configuration, not identity.
+
+A change to those configuration fields leaves the service owned. Control Center shows 복구 필요 for a current installation or 업데이트 필요 for an outdated installation, keeps stop available for a running service, and blocks start until the configuration is restored. `repair` and `upgrade` call `reconfigure` to restore the fixed configuration and verify it by reading SCM back. A raw `sc config`, such as changing the start type to demand, no longer strands the installation as foreign or makes the next installer upgrade skip it. A foreign image, service type, or account still prevents ownership. If SCM retains a nonzero tag after the group is cleared, read-back rejects the repair and names `tag`; `ChangeServiceConfigW` has no input parameter that assigns an explicit tag value.
+
 ## Build and local non-mutating checks
 
 ```powershell
@@ -50,7 +56,7 @@ Reboot, multi-session, AppInit, and migration remain `UNKNOWN` until their dispa
 - `rollback` changes the active profile generation and keeps the displaced generation as the next rollback target.
 - `restore-runtime` uses the protected migration runtime pin; it is not a general version selector.
 - If an activation or repair journal exists, every mutating verb first runs durable recovery. Do not delete journals manually.
-- A foreign SCM configuration is not repairable by this program. Preserve it and report the exact mismatch.
+- A foreign SCM identity is not repairable by this program. Preserve it and report the exact mismatch; configuration drift on an owned service is repairable.
 
 ## Incident handling
 
