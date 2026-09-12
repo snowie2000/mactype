@@ -7,13 +7,13 @@ This runbook covers the **신식 서비스** (`MacTypeControlCenter`) and its is
 1. Query SCM state, ImagePath, account, start mode, and PID. Do not equate `Running` with Ready.
 2. Read the bounded protected `%ProgramFiles%\MacType Control Center\Service\health.json` snapshot or the versioned health pipe.
 3. Require protocol 1, `health=ready`, four Ready components, an active profile digest, and no `lastError` before reporting system integration active.
-4. Compare `current.json`, `active.json`, and the DLL-adjacent `MacType.ini`. A recovery journal or byte mismatch is a repair condition, not a cosmetic warning.
+4. Compare `current.json`, `active.json`, and the DLL-adjacent `MacType.ini`. A recovery journal or byte mismatch is a repair condition, not a cosmetic warning. A runtime whose only missing file is the generated `MacType.ini` is reported as `runtime-profile-absent` with terminal `Unknown` health and a clean stop, not as a failure.
 
 The setup interface has fixed verbs only: `install`, `upgrade`, `repair`, `remove`, `start`, `stop`, `publish-profile`, `rollback`, and `restore-runtime`. Never add a service-name or path override for operator convenience.
 
 The 신식 서비스 recovery policy retries after 5 seconds and then 30 seconds. `SERVICE_FAILURE_ACTIONS_FLAG` enables those actions for non-crash `SERVICE_STOPPED` errors with a nonzero exit code, including initialization failures.
 
-Because of that flag, a requested stop must never report a nonzero exit code, or recovery would resurrect a service the operator deliberately stopped. Once the stop event is signalled, an error raised while winding down is carried in the terminal `Unknown` health snapshot's `last_error` and the service still reports a clean `SERVICE_STOPPED`. For the same reason the driver loop tolerates up to twenty consecutive health-publication failures: periodic telemetry is observability, and losing it must not end a run that is still injecting correctly.
+Because of that flag, a requested stop must never report a nonzero exit code, or recovery would resurrect a service the operator deliberately stopped. When the protected runtime contains the five fixed binaries and only the generated DLL-adjacent `MacType.ini` is absent, startup treats it as the supported stopped state. It publishes terminal `Unknown` health with `last_error.code=runtime-profile-absent`, records one Info `service-start-skipped` event, and reports a clean `SERVICE_STOPPED`. This prevents boot and explicit-start recovery loops while an installation has no published profile, for example a fresh install before the first profile is published. Any other runtime file-set mismatch still fails with exit codes 1066/1 and remains eligible for recovery retries. Once the stop event is signalled, an error raised while winding down is carried in the terminal `Unknown` health snapshot's `last_error` and the service still reports a clean `SERVICE_STOPPED`. For the same reason the driver loop tolerates up to twenty consecutive health-publication failures: periodic telemetry is observability, and losing it must not end a run that is still injecting correctly.
 
 ## Build and local non-mutating checks
 
