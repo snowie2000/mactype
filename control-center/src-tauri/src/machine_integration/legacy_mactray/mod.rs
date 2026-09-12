@@ -151,26 +151,6 @@ pub(crate) fn restore_running_state_after_migration(
     }
 }
 
-/// Whether a legacy "MacType" SCM service exists in any form. A present service —
-/// owned, compatible, foreign, or mid-deletion — must not coexist with a freshly
-/// started new service (double injection); an inaccessible one is fail-closed.
-/// Only a definitively Absent service allows generic new-service activation.
-#[cfg(all(test, windows))]
-pub(crate) fn legacy_service_present() -> Result<bool, String> {
-    match status(false).presence {
-        ServicePresence::Absent => Ok(false),
-        ServicePresence::Owned
-        | ServicePresence::CompatibleUnquoted
-        | ServicePresence::Foreign
-        | ServicePresence::DeletePending => Ok(true),
-        ServicePresence::Inaccessible => Err(
-            "a legacy MacType service is present but its state is inaccessible; resolve it before \
-             changing the new service"
-                .to_owned(),
-        ),
-    }
-}
-
 const SERVICE_DISABLED_START_TYPE: u32 = 4;
 
 fn retired_owned_service(
