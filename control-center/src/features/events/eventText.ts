@@ -7,18 +7,21 @@ import { catalogs, type I18nValue, type Locale, type MessageKey } from "../../i1
 export function eventTitle(t: I18nValue["t"], locale: Locale, event: EventRecord): string {
   const key = `event.${event.code}` as MessageKey;
   const eventParams = event.params ?? {};
-  if (key in catalogs[locale]) return t(key, localizedParams(t, locale, eventParams));
+  if (key in catalogs[locale]) return t(key, localizedParams(t, locale, event));
   const params = Object.entries(eventParams).map(([name, value]) => `${name}=${value}`).join(" ");
   return params ? `${event.code} (${params})` : event.code;
 }
 
-/* Parameters with a closed vocabulary (the health state) are shown in the
-   reader's language; every other parameter is a name or a code and stays as
-   the backend wrote it. */
-function localizedParams(t: I18nValue["t"], locale: Locale, params: Record<string, string>): Record<string, string> {
-  const stateKey = `event.state.${params.state ?? ""}` as MessageKey;
-  if (params.state === undefined || !(stateKey in catalogs[locale])) return params;
-  return { ...params, state: t(stateKey) };
+/* Closed-vocabulary state and reason parameters are localised only when the
+   catalog knows them; unknown backend values retain their original spelling. */
+function localizedParams(t: I18nValue["t"], locale: Locale, event: EventRecord): Record<string, string> {
+  const params = { ...event.params };
+  const vocabulary = { state: "state", reason: "reason", ...(event.code === "helper-broker-failed" ? { code: "reason" } : {}) };
+  for (const [name, prefix] of Object.entries(vocabulary)) {
+    const key = `event.${prefix}.${params[name] ?? ""}` as MessageKey;
+    if (params[name] !== undefined && key in catalogs[locale]) params[name] = t(key);
+  }
+  return params;
 }
 
 export function severityLabel(t: I18nValue["t"], severity: EventSeverity): string {

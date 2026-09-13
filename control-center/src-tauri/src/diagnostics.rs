@@ -147,9 +147,10 @@ pub(crate) fn diagnostic_report(state: State<'_, PreviewState>) -> Result<String
     }
     for status in source_statuses(&paths) {
         report.push_str(&format!(
-            "eventSource={} path={} readable={} bytes={}\n",
+            "eventSource={} path={} present={} readable={} bytes={}\n",
             source_name(status.source),
             status.path,
+            status.present,
             status.readable,
             status.bytes
         ));
@@ -170,6 +171,10 @@ pub(crate) struct EventFilter {
 pub(crate) struct EventSourceStatus {
     source: EventSource,
     path: String,
+    /// The file exists. A writer that has never had anything to record leaves
+    /// no file behind, and the UI lists only files that exist.
+    present: bool,
+    /// The file exists and this process can open it for reading.
     readable: bool,
     bytes: u64,
 }
@@ -363,6 +368,7 @@ fn source_statuses(paths: &[PathBuf]) -> Vec<EventSourceStatus> {
         .enumerate()
         .map(|(index, path)| {
             let metadata = fs::metadata(path);
+            let present = metadata.as_ref().is_ok_and(|metadata| metadata.is_file());
             EventSourceStatus {
                 source: match index {
                     0 => EventSource::ControlCenter,
@@ -370,7 +376,8 @@ fn source_statuses(paths: &[PathBuf]) -> Vec<EventSourceStatus> {
                     _ => EventSource::ServiceSetup,
                 },
                 path: path.to_string_lossy().into_owned(),
-                readable: fs::File::open(path).is_ok(),
+                present,
+                readable: present && fs::File::open(path).is_ok(),
                 bytes: metadata.map_or(0, |metadata| metadata.len()),
             }
         })
@@ -409,6 +416,27 @@ fn area_name(area: EventArea) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_source_file_that_was_never_written_is_absent_not_unreadable() {
+        let root = env::temp_dir().join(format!("mactype-source-status-{}", std::process::id()));
+        fs::create_dir_all(&root).unwrap();
+        let written = root.join("control-center.log");
+        fs::write(&written, "{}\n").unwrap();
+        let never_written = root.join("service-host.log");
+        let directory = root.join("service-setup.log");
+        fs::create_dir_all(&directory).unwrap();
+
+        let statuses = source_statuses(&[written, never_written, directory]);
+        assert_eq!(statuses.len(), 3);
+        assert!(statuses[0].present && statuses[0].readable);
+        assert_eq!(statuses[0].bytes, 3);
+        assert!(!statuses[1].present && !statuses[1].readable);
+        assert_eq!(statuses[1].bytes, 0);
+        // A directory standing where the log file belongs is not a log file.
+        assert!(!statuses[2].present && !statuses[2].readable);
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn diagnostic_export_is_atomic_and_preserves_unicode() {

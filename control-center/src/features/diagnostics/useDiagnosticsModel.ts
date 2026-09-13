@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { InstallationStatus } from "../../app/model";
-import { copyDiagnostics, exportDiagnostics, loadDiagnosticLogs, openLogFolder } from "../../app/tauri";
+import { copyDiagnostics, exportDiagnostics, openLogFolder } from "../../app/tauri";
 import { useI18n, type I18nValue } from "../../i18n/i18n";
 
 export type DiagnosticsOperation = "export" | "copy" | "folder" | "relocate" | "reconnect";
@@ -27,8 +27,6 @@ export function findingValue(t: I18nValue["t"], value: string): string {
 
 export function useDiagnosticsModel({ status, onReconnect, onRelocate }: DiagnosticsModelOptions) {
   const { t } = useI18n();
-  const [operationLogs, setOperationLogs] = useState<ReadonlyArray<string>>([]);
-  const [logsExpanded, setLogsExpanded] = useState(false);
   const [operation, setOperation] = useState<DiagnosticsOperation | null>(null);
   const [completed, setCompleted] = useState<{ kind: DiagnosticsOperation; detail: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -59,16 +57,6 @@ export function useDiagnosticsModel({ status, onReconnect, onRelocate }: Diagnos
     }
   };
 
-  useEffect(() => {
-    let active = true;
-    void loadDiagnosticLogs().then((entries) => {
-      if (active) setOperationLogs(entries);
-    }).catch((caught: unknown) => {
-      if (active) setError(caught instanceof Error ? caught.message : String(caught));
-    });
-    return () => { active = false; };
-  }, []);
-
   const findings = status.findings.map((finding) => ({
     key: finding.label,
     label: findingLabel(t, finding.label, finding.value),
@@ -80,11 +68,8 @@ export function useDiagnosticsModel({ status, onReconnect, onRelocate }: Diagnos
     completed,
     error,
     findings,
-    logsExpanded,
     operation,
-    operationLogs,
     run,
-    setLogsExpanded,
     status,
     t,
   };

@@ -88,10 +88,18 @@ function galleryEvents(): ReadonlyArray<EventRecord> {
     { v: 1, ts: now - 25 * 60 * minute, severity: "info", area: "service", code: "service-installed", params: {}, detail: null, source: "control-center" },
     { v: 1, ts: now - 25 * 60 * minute + 8_000, severity: "info", area: "service", code: "service-started", params: { version: "0.1.0" }, detail: null, source: "service-host" },
     { v: 1, ts: now - 24 * 60 * minute, severity: "info", area: "injection", code: "injection-summary", params: { injected: "14", failed: "0", skipped: "3" }, detail: null, source: "service-host" },
+    { v: 1, ts: now - 11 * 60 * minute, severity: "warning", area: "injection", code: "injection-failed", params: { process: "vgtray.exe", reason: "protected-process" }, detail: null, source: "service-host" },
+    { v: 1, ts: now - 10 * 60 * minute, severity: "warning", area: "injection", code: "injection-failed", params: { process: "vgtray.exe", reason: "protected-process" }, detail: null, source: "service-host" },
+    { v: 1, ts: now - 10 * 60 * minute + 30_000, severity: "warning", area: "injection", code: "injection-failed", params: { process: "firefox.exe", reason: "module-load-failed" }, detail: null, source: "service-host" },
     { v: 1, ts: now - 9 * 60 * minute, severity: "warning", area: "injection", code: "injection-failed", params: { process: "vgtray.exe", reason: "protected-process" }, detail: "helper disposition: protected-process-light (PPL) refused module load; exact identity pid=4180 creation=133700000000000000", source: "service-host" },
     { v: 1, ts: now - 8 * 60 * minute, severity: "notice", area: "service", code: "service-health-changed", params: { state: "degraded", code: "observer-restarted" }, detail: "WMI process-creation subscription was re-established after a transient RPC failure (0x800706BA).", source: "service-host" },
     { v: 1, ts: now - 8 * 60 * minute + 30_000, severity: "info", area: "service", code: "service-health-changed", params: { state: "ready" }, detail: null, source: "service-host" },
     { v: 1, ts: now - 3 * 60 * minute, severity: "error", area: "setup", code: "operation-failed", params: { operation: "upgrade", stage: "installation-preflight", rollback: "not-applicable" }, detail: "installation-preflight: the installed Control Center does not match the running executable\nfinalState=legacy=Absent/Stopped/win32=None; modern=Current/Running/Ready/win32=None; receipt=unavailable", source: "control-center" },
+    { v: 1, ts: now - 55 * minute, severity: "info", area: "injection", code: "injection-summary", params: { injected: "12", failed: "1", skipped: "2" }, detail: null, source: "service-host" },
+    { v: 1, ts: now - 40 * minute, severity: "error", area: "injection", code: "helper-broker-failed", params: { architecture: "x64", code: "renderer-evidence-thread-failed" }, detail: "pid=26172 creation_time=134336993656899217 win32=Some(5)", source: "service-host" },
+    { v: 1, ts: now - 35 * minute, severity: "info", area: "injection", code: "injection-summary", params: { injected: "8", failed: "0", skipped: "1" }, detail: null, source: "service-host" },
+    { v: 1, ts: now - 25 * minute, severity: "error", area: "control-center", code: "panic", params: { thread: "main", message: "cannot move state from Destroyed", location: "tao-0.35.3/src/platform_impl/windows/event_loop/runner.rs:371:25" }, detail: "0: gallery::event_loop::runner\n1: gallery::application::run", source: "control-center" },
+    { v: 1, ts: now - 20 * minute, severity: "info", area: "injection", code: "injection-summary", params: { injected: "6", failed: "0", skipped: "0" }, detail: null, source: "service-host" },
     { v: 1, ts: now - 12 * minute, severity: "info", area: "preview", code: "preview-helper-connected", params: { architecture: "x86", coreVersion: "1.2025.6.9" }, detail: null, source: "control-center" },
     { v: 1, ts: now - 60_000, severity: "info", area: "profile", code: "profile-verified", params: { profile: "Default.ini" }, detail: null, source: "control-center" },
     /* The backend omits empty params and a missing detail on the wire; this
@@ -249,15 +257,16 @@ export const browserGalleryAdapter: ControlCenterRuntimeAdapter = {
 
   loadEventLogSummary(): Promise<EventLogSummary> {
     const events = galleryEvents();
+    const query = new URLSearchParams(window.location.search);
     return Promise.resolve({
       total: events.length,
       warnings: events.filter((event) => event.severity === "warning").length,
       errors: events.filter((event) => event.severity === "error").length,
       newestTs: events.at(-1)?.ts ?? null,
       sources: [
-        { source: "control-center", path: "C:\\Users\\Gallery\\AppData\\Local\\MacType\\ControlCenter\\logs\\control-center.log", readable: true, bytes: 18_432 },
-        { source: "service-host", path: "C:\\ProgramData\\MacType\\ControlCenter\\logs\\service-host.log", readable: true, bytes: 61_204 },
-        { source: "service-setup", path: "C:\\ProgramData\\MacType\\ControlCenter\\logs\\service-setup.log", readable: !new URLSearchParams(window.location.search).has("events-unreadable"), bytes: 2_310 },
+        { source: "control-center", path: "C:\\Users\\Gallery\\AppData\\Local\\MacType\\ControlCenter\\logs\\control-center.log", present: true, readable: true, bytes: 18_432 },
+        { source: "service-host", path: "C:\\ProgramData\\MacType\\ControlCenter\\logs\\service-host.log", present: true, readable: true, bytes: 61_204 },
+        { source: "service-setup", path: "C:\\ProgramData\\MacType\\ControlCenter\\logs\\service-setup.log", present: !query.has("events-absent"), readable: !query.has("events-unreadable"), bytes: 2_310 },
       ],
     });
   },

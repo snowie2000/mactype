@@ -47,3 +47,43 @@ On `WM_ENDSESSION(TRUE)`, subclasses on the main, Preview Studio, and hidden tra
 ## Maintenance notes
 
 Cross-module contracts belong in this architecture document, `docs/control-center-ci.md`, or `docs/legacy-behavior-notes.md` rather than being repeated beside each implementation. Source comments are reserved for local invariants and platform or compatibility traps that are easy to violate while editing. Generated files retain only their generated-file warning; routine control flow and temporary implementation history should remain uncommented.
+
+
+## Standalone preview and event timeline
+
+The Preview Studio is a second Tauri window. The main Tuner publishes its current
+and saved values through the existing application event boundary. The Studio can
+compare those values with a selected profile or a separate plain-GDI helper,
+without applying a profile to the system. Rendering remains in the existing
+preview helper; the renderer DLL is unchanged. Exports are validated PNG bytes
+written atomically to the user-selected file.
+
+The helper-owned native window supports localized sample, size ladder, Windows
+comparison and listing controls, integer zoom, loupe, topmost, text editing, and
+PNG save/copy. The save dialog does not block helper IPC. Unsolicited self-hide
+state uses its reserved response kind and cannot satisfy an outstanding render
+request. Main and detached windows share main's existing light/dark appearance.
+
+Diagnostics always displays the common service/setup/Control Center event timeline
+with localized summaries and expandable technical detail. It also localizes the
+`panic` and `end-session-hook-failed` event codes. The log-file disclosure omits a
+source whose `present` field is false; a missing field from an older backend is
+treated as present. An existing unreadable file still appears with its status.
+
+Three view options hide apply summaries (`injection-summary`), collapse repeated
+apply failures, or hide routine app and preview events (`app-started`,
+`preview-helper-connected`, `profile-verified`). All default to off and persist per
+user under `mactype-control-center.event-view`. They affect only the display and
+never change log files. Collapsing keeps the newest failure for each matching
+process name (case-insensitive) and reason, with a repeat-count badge. Counts
+include only events matching the severity, area, and search filters. Resetting
+those filters does not reset the view options.
+
+Titles localize the `reason` of `injection-failed` and the `code` of
+`helper-broker-failed` through `event.reason.*` catalog keys. Unknown values retain
+the backend spelling, and raw parameters and detail remain in each row's
+disclosure.
+
+Document errors and preview render errors have separate ownership: a good redraw
+does not recover a failed profile mutation. Native window lifecycle tests run in
+the Windows Tauri smoke gate in addition to the browser gallery.

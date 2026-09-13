@@ -8,20 +8,22 @@ interface EventTimelineProps {
   log: EventLogModel;
   /* The filter toolbar can be hidden in compact summaries. */
   filters?: boolean;
+  viewOptions?: boolean;
   /* Dense layout drops the day headings and shows one line per event. */
   dense?: boolean;
 }
 
-export function EventTimeline({ log, filters = true, dense = false }: EventTimelineProps) {
+export function EventTimeline({ log, filters = true, viewOptions = true, dense = false }: EventTimelineProps) {
   const { locale, t } = useI18n();
   const groups = groupEventsByDay(log.visible, locale);
 
   return (
     <div className="event-timeline" data-dense={dense} data-testid="event-timeline">
       {filters && <EventFilters log={log} />}
+      {viewOptions && <EventViewOptions log={log} dense={dense} />}
       {log.error && <p className="inline-error">{log.error}</p>}
       {!log.loading && log.visible.length === 0 && (
-        <p className="event-empty">{log.filtered ? t("events.noMatches") : t("events.empty")}</p>
+        <p className="event-empty">{log.filtered ? t("events.noMatches") : log.viewHidesEverything ? t("events.viewHidesAll") : t("events.empty")}</p>
       )}
       {groups.map((group) => (
         <section className="event-day" key={group.day}>
@@ -37,16 +39,17 @@ export function EventTimeline({ log, filters = true, dense = false }: EventTimel
 
 function EventRow({ event, log }: { event: EventRecord; log: EventLogModel }) {
   const { locale, t } = useI18n();
+  const count = log.repeatCount(event);
   const key = log.eventKey(event);
   const open = log.expanded === key;
   const detailId = `event-detail-${event.ts}-${event.code}`;
   const technical = Object.entries(event.params ?? {}).map(([name, value]) => `${name}=${value}`).join("  ");
   return (
-    <li className="event-row" data-area={event.area} data-severity={event.severity} data-source={event.source}>
+    <li className="event-row" data-code={event.code} data-area={event.area} data-severity={event.severity} data-source={event.source}>
       <span aria-label={severityLabel(t, event.severity)} className="event-dot" role="img" />
       <time className="event-time" dateTime={new Date(event.ts).toISOString()}>{eventTime(event.ts, locale)}</time>
       <span className="event-area">{areaLabel(t, event.area)}</span>
-      <p className="event-title">{eventTitle(t, locale, event)}</p>
+      <p className="event-title">{eventTitle(t, locale, event)}{count > 1 && <> <span className="event-repeat">{t("events.repeatCount", { count })}</span></>}</p>
       <button aria-controls={detailId} aria-expanded={open} aria-label={t("events.detail")} className="event-disclosure" onClick={() => log.setExpanded(open ? null : key)} type="button"><ChevronDown aria-hidden="true" size={14} /></button>
       {open && (
         <div className="event-detail" id={detailId}>
@@ -83,12 +86,30 @@ export function EventFilters({ log }: { log: EventLogModel }) {
   );
 }
 
+export function EventViewOptions({ log, dense }: { log: EventLogModel; dense?: boolean }) {
+  const { t } = useI18n();
+  return (
+    <div className="event-view-options" role="group" aria-label={t("events.viewOptions")} data-dense={dense}>
+      {(["hideInjectionSummary", "collapseRepeatedFailures", "hideRoutine"] as const).map((id) => {
+        const text = t(`events.${id}`);
+        return (
+          <span className="event-view-option" data-option={id} key={id}>
+            <label className="switch-control"><input aria-label={text} checked={log.view[id]} onChange={(event) => log.setViewOption(id, event.target.checked)} role="switch" type="checkbox" /><span aria-hidden="true">{text}</span></label>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 export function EventSourceList({ log }: { log: EventLogModel }) {
   const { t } = useI18n();
   if (!log.summary) return null;
+  const sources = log.summary.sources.filter((source) => source.present !== false);
+  if (sources.length === 0) return <p className="event-empty event-sources-empty">{t("events.noLogFiles")}</p>;
   return (
     <dl className="event-sources">
-      {log.summary.sources.map((source) => (
+      {sources.map((source) => (
         <div data-readable={source.readable} key={source.source}>
           <dt>{sourceLabel(t, source.source)}</dt>
           <dd><code title={source.path}>{source.path}</code><span>{source.readable ? t("events.sourceReadable", { size: Math.round(source.bytes / 1024) }) : t("events.sourceUnreadable")}</span></dd>

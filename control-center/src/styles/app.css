@@ -457,11 +457,12 @@ code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 .diagnostic-list code { font-variant-numeric: tabular-nums; }
-.log-view > div { display: grid; grid-template-columns: 72px 112px minmax(0, 1fr); gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); }
-.log-view > div:last-child { border-bottom: 0; }
-.log-view time, .log-view span { color: var(--color-muted); font-family: Consolas, monospace; font-size: 12px; }
-.log-view p { white-space: pre-wrap; }
-.log-view [data-severity="warning"] { box-shadow: inset 3px 0 var(--color-warning); }
+.diagnostic-events { padding: var(--space-4); }
+.event-source-disclosure { border-top: 1px solid var(--color-border); padding: var(--space-3) var(--space-4); }
+.event-source-disclosure > summary { color: var(--color-muted); font-size: 12px; cursor: pointer; }
+.event-view-options { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+.event-view-option .switch-control span { font-size: 12px; color: var(--color-muted); }
+.event-repeat { display: inline-block; color: var(--color-muted); font-size: 11px; border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 6px; margin-inline-start: 6px; }
 
 @media (max-width: 767px) {
   .app-shell { display: block; min-height: calc(100vh - var(--titlebar-height)); }
@@ -546,8 +547,6 @@ code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; }
   .process-picker-tools .button { width: 100%; }
   .process-picker-row { flex-wrap: wrap; }
   .manual-actions, .registered-heading { align-items: stretch; flex-direction: column; }
-  .log-view > div { grid-template-columns: 64px minmax(0, 1fr); }
-  .log-view p { grid-column: 1 / -1; }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
@@ -610,7 +609,3 @@ code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; }
    rather than breaking a label across lines. */
 .settings-workspace[data-preview-docked="true"] .preview-footer { flex-wrap: wrap; justify-content: flex-start; gap: var(--space-2); }
 .settings-workspace[data-preview-docked="true"] .preview-footer > * { flex: 0 0 auto; white-space: nowrap; }
-
-.diagnostic-events { padding: 16px; }
-.event-source-disclosure, .event-legacy-disclosure { border-top: 1px solid var(--color-border); padding-block: 12px; }
-.event-source-disclosure > summary, .event-legacy-disclosure > summary { color: var(--color-muted); cursor: pointer; font-size: 12px; }

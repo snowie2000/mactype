@@ -1506,22 +1506,19 @@ test("overview offers a Service shortcut only when the service needs attention",
   await expect(page.locator("[data-overview-service]").getByRole("button", { name: "Service" })).toBeVisible();
 });
 
-test("diagnostics owns installation controls and keeps recent logs collapsed by default", async ({ page }) => {
+test("diagnostics owns installation controls and always shows the localized event timeline", async ({ page }) => {
   await page.goto("/?view=diagnostics&gallery=1&lang=ko", { waitUntil: "networkidle" });
   await expect(page.getByRole("heading", { name: "설치 구성" })).toBeVisible();
   await page.getByRole("button", { name: "설치 위치 다시 찾기" }).click();
   await expect(page.locator('[data-operation="relocate"]')).toBeVisible();
   await page.getByRole("button", { name: "다시 연결" }).click();
   await expect(page.locator('[data-operation="reconnect"]')).toBeVisible();
-  await expect(page.getByRole("log")).toHaveCount(0);
+  await expect(page.getByRole("log")).toBeVisible();
+  await expect(page.getByRole("log")).toContainText("프로필 Default.ini 적용을 마쳤습니다.");
+  await expect(page.getByRole("log")).not.toContainText("operation=migrate-from-legacy");
   const actions = page.locator("[data-log-disclosure-actions]");
-  const positions = await actions.getByRole("button").evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().x));
-  expect(positions[0]).toBeLessThan(positions[1]);
-  await actions.getByRole("button", { name: "펼치기" }).click();
-  await expect(page.getByRole("log")).toContainText("operation=migrate-from-legacy");
-  await expect(page.getByRole("log")).toContainText("rollback=completed");
-  await actions.getByRole("button", { name: "접기" }).click();
-  await expect(page.getByRole("log")).toHaveCount(0);
+  await expect(actions.getByRole("button")).toHaveCount(1);
+  await expect(actions.getByRole("button", { name: "로그 폴더 열기" })).toBeVisible();
 
   await page.getByRole("button", { name: "진단 파일 내보내기" }).click();
   await expect(page.locator('[data-operation="export"]')).toContainText("diagnostics-gallery.txt");
@@ -1529,6 +1526,61 @@ test("diagnostics owns installation controls and keeps recent logs collapsed by 
   await expect(page.locator('[data-operation="copy"]')).toBeVisible();
   await page.getByRole("button", { name: "로그 폴더 열기" }).click();
   await expect(page.locator('[data-operation="folder"]')).toContainText("ControlCenter");
+});
+
+test("event view options hide summaries, persist, and collapse repeated failures", async ({ page }) => {
+  await page.goto("/?view=diagnostics&gallery=1&lang=ko", { waitUntil: "networkidle" });
+  const summaries = page.locator('.event-row[data-code="injection-summary"]');
+  await expect(summaries).toHaveCount(4);
+  await expect(page.getByTestId("event-timeline")).toContainText("최근 1분 동안");
+  const hideSummaries = page.getByRole("switch", { name: "적용 요약 숨기기" });
+  for (const option of ["hideInjectionSummary", "collapseRepeatedFailures", "hideRoutine"]) {
+    await expect(page.locator(`.event-view-option[data-option="${option}"] .switch-control > span`)).toBeVisible();
+  }
+  await page.locator('.event-view-option[data-option="hideInjectionSummary"] .switch-control > span').click();
+  await expect(summaries).toHaveCount(0);
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(hideSummaries).toBeChecked();
+  await expect(summaries).toHaveCount(0);
+  await hideSummaries.uncheck();
+  await expect(summaries).toHaveCount(4);
+  const repeated = page.locator('.event-row[data-code="injection-failed"]').filter({ hasText: "vgtray.exe" });
+  await expect(repeated).toHaveCount(3);
+  const collapse = page.getByRole("switch", { name: "반복된 적용 실패 접기" });
+  await collapse.check();
+  await expect(repeated).toHaveCount(1);
+  await expect(repeated.locator(".event-repeat")).toHaveText("3회 반복");
+  await expect(page.locator('.event-row[data-code="injection-failed"]').filter({ hasText: "firefox.exe" })).toHaveCount(1);
+  await collapse.uncheck();
+  await expect(repeated).toHaveCount(3);
+  const routine = page.locator('.event-row[data-code="app-started"], .event-row[data-code="preview-helper-connected"], .event-row[data-code="profile-verified"]');
+  await expect(routine).toHaveCount(3);
+  await page.getByRole("switch", { name: "앱 실행·미리보기 기록 숨기기" }).check();
+  await expect(routine).toHaveCount(0);
+  await page.evaluate(() => localStorage.removeItem("mactype-control-center.event-view"));
+});
+
+test("event log sources omit absent files but report existing unreadable files", async ({ page }) => {
+  await page.goto("/?view=diagnostics&gallery=1&lang=ko&events-absent=1", { waitUntil: "networkidle" });
+  await page.locator("details.event-source-disclosure > summary").click();
+  await expect(page.locator(".event-sources > div")).toHaveCount(2);
+  await expect(page.locator(".event-sources")).not.toContainText("서비스 설치");
+  await page.goto("/?view=diagnostics&gallery=1&lang=ko", { waitUntil: "networkidle" });
+  await page.locator("details.event-source-disclosure > summary").click();
+  await expect(page.locator(".event-sources > div")).toHaveCount(3);
+  await page.goto("/?view=diagnostics&gallery=1&lang=ko&events-unreadable=1", { waitUntil: "networkidle" });
+  await page.locator("details.event-source-disclosure > summary").click();
+  await expect(page.locator(".event-sources > div").nth(2)).toContainText("읽을 수 없음");
+});
+
+test("diagnostics event titles localize activation reasons, broker failures, and panics", async ({ page }) => {
+  await page.goto("/?view=diagnostics&gallery=1&lang=ko", { waitUntil: "networkidle" });
+  const timeline = page.getByTestId("event-timeline");
+  await expect(timeline).toContainText("firefox.exe에 적용하지 못했습니다 (모듈을 불러오지 못함).");
+  await expect(timeline).toContainText("x64 앱에 MacType을 적용하지 못했습니다(렌더러 확인 스레드 실패).");
+  await expect(timeline).toContainText("Control Center가 예기치 않게 중단되었습니다");
+  await expect(timeline).not.toContainText("module-load-failed");
+  await expect(timeline).not.toContainText("renderer-evidence-thread-failed");
 });
 
 test("language setting switches every supported locale and persists", async ({ page }, testInfo) => {
