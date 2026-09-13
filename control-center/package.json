@@ -1,0 +1,40 @@
+{
+  "name": "mactype-control-center",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "generate:settings": "node ../scripts/generate-settings.mjs",
+    "dev": "vite",
+    "preview": "vite preview",
+    "build": "pnpm generate:settings && tsc -b && vite build",
+    "lint": "eslint . --max-warnings 0",
+    "test:i18n": "node ../scripts/ci/Test-I18n.mjs",
+    "test:settings": "node ../scripts/ci/Test-SettingsCoverage.mjs",
+    "test:gallery": "playwright test -c ../tests/frontend-gallery/playwright.config.ts",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-dialog": "2.7.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@playwright/test": "^1.49.1",
+    "@tauri-apps/cli": "^2.0.0",
+    "@types/react": "^19.0.3",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.14.0",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.18.2",
+    "vite": "^6.0.5"
+  },
+  "packageManager": "pnpm@11.7.0"
+}

@@ -1,0 +1,81 @@
+@font-face {
+  /* Korean UI subset of Pretendard Variable (SIL OFL 1.1). Regenerate with
+     scripts/generate-ko-font-subset.py; ko-glyphs.txt lists the covered characters. */
+  font-family: "Pretendard KO UI";
+  src: url("../assets/fonts/pretendard-ko-ui.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Latin-only primaries: the :lang() overrides below supply the CJK families,
+     or font-synthesis: none silently cancels bold for every fallback glyph. */
+  font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  color: var(--color-foreground);
+  background: var(--color-canvas);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --color-canvas: #F3F5F7;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #E9EDF1;
+  --color-foreground: #17212B;
+  --color-muted: #5A6773;
+  --color-border: #C9D1D8;
+  --color-border-strong: #8C99A5;
+  --color-primary: #0067C0;
+  --color-on-primary: #FFFFFF;
+  --color-focus: #005FB8;
+  --color-success: #18794E;
+  --color-warning: #9A6700;
+  --color-destructive: #C42B1C;
+  --color-preview: #EEF1F4;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --radius-control: 4px;
+  --nav-width: 220px;
+  --titlebar-height: 40px;
+  --control-height: 40px;
+  --settings-index-width: 196px;
+  --settings-control-width: 232px;
+  --opacity-disabled: 0.46;
+  --motion-fast: 120ms;
+  --motion-normal: 180ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --shadow-window: 0 8px 24px rgba(15, 23, 31, 0.14);
+}
+
+/* Chromium and WebView2 never select Malgun Gothic's Bold cut — explicit stack entry or
+   system fallback, weight 600 or 700, CSS.getPlatformFontsForNode always reports the
+   Regular face — and synthetic bold stays forbidden, so bold Hangul comes from the bundled
+   Pretendard subset with real variable weights. Yu Gothic UI, Microsoft YaHei UI, and
+   Microsoft JhengHei UI resolve 600/700 to their true SemiBold/Bold cuts, so naming them
+   explicitly is enough for ja/zh. Glyphs outside the subset fall through to Malgun Gothic. */
+:root:lang(ko) { font-family: "Segoe UI Variable Text", "Segoe UI", "Pretendard KO UI", "Malgun Gothic", sans-serif; }
+:root:lang(ja) { font-family: "Segoe UI Variable Text", "Segoe UI", "Yu Gothic UI", "Meiryo UI", sans-serif; }
+:root:lang(zh-CN) { font-family: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", sans-serif; }
+:root:lang(zh-TW) { font-family: "Segoe UI Variable Text", "Segoe UI", "Microsoft JhengHei UI", sans-serif; }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #11161B;
+  --color-surface: #192027;
+  --color-surface-subtle: #222B33;
+  --color-foreground: #E8EDF2;
+  --color-muted: #9AA8B5;
+  --color-border: #34414C;
+  --color-border-strong: #566673;
+  --color-primary: #4CA6E8;
+  --color-on-primary: #07131C;
+  --color-focus: #75BDF0;
+  --color-success: #51B88B;
+  --color-warning: #E4B84D;
+  --color-destructive: #FF7B6E;
+  --color-preview: #0D1115;
+}

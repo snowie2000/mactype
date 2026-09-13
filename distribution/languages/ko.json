@@ -1,0 +1,8 @@
+{
+  "language": "한국어",
+  "productName": "MacType Control Center",
+  "profileName": "Control Center 기본값",
+  "modeManual": "수동 실행",
+  "modeTray": "Control Center 트레이",
+  "systemModeWarning": "기존 서비스와 AppInit 모드는 감지하지만 변경하지 않습니다."
+}

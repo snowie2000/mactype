@@ -1,0 +1,37 @@
+[package]
+name = "mactype-service-host"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "mactype-service"
+path = "src/main.rs"
+
+[lib]
+name = "mactype_service_host"
+path = "src/lib.rs"
+
+[features]
+default = []
+ci-test-adapter = ["mactype-service-contract/ci-test-adapter", "mactype-service-platform/ci-test-adapter"]
+
+[dependencies]
+mactype-service-contract = { path = "../contract" }
+
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
+
+[target.'cfg(windows)'.dependencies]
+mactype-service-platform = { path = "../platform" }
+# Constants only (error codes, service states, file attributes, machine
+# types); every Win32 call goes through mactype-service-platform.
+windows-sys = { workspace = true, features = [
+  "Win32_Foundation",
+  "Win32_Storage_FileSystem",
+  "Win32_System_Services",
+  "Win32_System_SystemInformation",
+] }

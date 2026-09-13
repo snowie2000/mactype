@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "probeKind": "console",
+  "role": "standalone",
+  "treeLevel": 0,
+  "pid": 9708,
+  "parentPid": 34132,
+  "sessionId": 1,
+  "architecture": "x64",
+  "processMachine": "native",
+  "nativeMachine": "x64",
+  "integrity": "medium",
+  "startedAt": "2026-07-16T07:33:37.840Z",
+  "observedAt": "2026-07-16T07:33:41.300Z",
+  "waitMilliseconds": 3000,
+  "mactypeModuleLoaded": true,
+  "mactypeModulePath": "C:\\Program Files\\MacType\\MacType64.Core.dll",
+  "mactypeVersion": "1.20659.1.2",
+  "versionSource": "DllGetVersion",
+  "loadObservedAt": "2026-07-16T07:33:38.267Z",
+  "renderFingerprint": "sha256:63a0524c3a2f1981139a40a456f3dc06c2c11b8c0a1f6630c951537948215aaa",
+  "render": {
+    "width": 320,
+    "height": 96,
+    "pixelFormat": "BGRA8-top-down",
+    "font": "Segoe UI",
+    "text": "MacType probe 0123456789 Aa 中 あ"
+  },
+  "modules": [
+    {"name": "MacType64.Core.dll", "path": "C:\\Program Files\\MacType\\MacType64.Core.dll", "version": "1.20659.1.2", "versionSource": "DllGetVersion", "firstObservedAt": "2026-07-16T07:33:38.267Z"},
+    {"name": "MacType64.dll", "path": "C:\\Program Files\\MacType\\MacType64.dll", "version": "1.2025.609.1", "versionSource": "file-version", "firstObservedAt": "2026-07-16T07:33:38.267Z"}
+  ]
+}

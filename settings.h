@@ -736,6 +736,7 @@ public:
 		case ATTR_ShadowOffset:
 			pSettings->m_nShadow[1] = nValue;
 			pSettings->m_nShadow[0] = nValue;
+			break;
 		case ATTR_Fontlink:
 			if (!!pSettings->m_bFontLink != !!nValue)
 			{
@@ -747,6 +748,15 @@ public:
 			break;	
 		case ATTR_FontLoader:
 			pSettings->m_nFontLoader = nValue;
+			break;
+		case ATTR_HookChildProcess:
+			pSettings->m_bHookChildProcesses = !!nValue;
+			break;
+		case ATTR_FontSubstitute:
+			pSettings->m_nFontSubstitutes = nValue;
+			break;
+		case ATTR_DirectWrite:
+			pSettings->m_bDirectWrite = !!nValue;
 			break;
 		case ATTR_LcdFilterWeight:
 			if (!nValue)
@@ -878,8 +888,18 @@ public:
 			return pSettings->EnableShadow()? pSettings->m_nShadow[0] : 1;
 		case ATTR_Fontlink:
 			return pSettings->m_bFontLink;
+		case ATTR_HookChildProcess:
+			return pSettings->m_bHookChildProcesses;
+		case ATTR_FontLoader:
+			return pSettings->m_nFontLoader;
+		case ATTR_FontSubstitute:
+			return pSettings->m_nFontSubstitutes;
+		case ATTR_DirectWrite:
+			return pSettings->m_bDirectWrite;
 		case ATTR_LcdFilterWeight:
 			return pSettings->m_bUseCustomLcdFilter? (int)pSettings->m_arrLcdFilterWeights:NULL;
+		case ATTR_PixelLayout:
+			return pSettings->m_bUseCustomPixelLayout? (int)pSettings->m_arrPixelLayout:NULL;
 		default:
 			return 0;
 		}	

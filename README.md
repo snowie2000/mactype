@@ -55,8 +55,6 @@ Known issues
 
 - If you want to use MacType-patch together with MacType official release, remember to add DirectWrite=0 to your profile or you will have mysterious problems
 
-- If you're running 64 bit Windows, antimalware/antivirus software may conflict with MacType, because it sees MacType trying to modify running software. One possible workaround is to try running in Service Mode (recommended), or add HookChildProcesses=0 to your profile. See https://github.com/snowie2000/mactype/wiki/HookChildProcesses for an explanation
-
 - Office 2013 does not use DirectWrite or GDI (it uses its own custom rendering), so Office 2013 doesn't work with MacType. If this bothers you you can use Office 2010 which uses GDI or Office 2016+ which uses DirectWrite.
 
 - WPS has a built in defense that **UNLOADS** MacType automatically. The latest version has a workaround [here](https://github.com/snowie2000/mactype/wiki/WPS) thanks to wmjordan.
@@ -71,5 +69,10 @@ We have a detailed guide on how you can enable the registry mode manually in [wi
 How to build
 -------------
 
-Check how to build [document](https://github.com/snowie2000/mactype/blob/directwrite/doc/HOWTOBUILD.md)
+Check the [build document](./doc/HOWTOBUILD.md) for both the MacType core and the Tauri Control Center.
+
+Control Center design maintenance
+-------------
+
+To change the Control Center interface without touching Rust, start with the [design maintenance guide](./docs/design-maintenance.md).
 

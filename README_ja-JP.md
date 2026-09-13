@@ -54,9 +54,6 @@ http://www.mactype.net にアクセスして右下の隅にご注目ください
 
 - MacType-patch を MacType 公式ビルドと一緒に使用したい場合は、プロファイルに｢DirectWrite=0｣を追加することを忘れないでください。この操作を忘れると動作に問題が発生します。
 
-- 64 ビットの Windows を使用している場合、マルウェアまたはウィルス対策ソフトで MacType が競合する可能性があります。これは、MacType が実行中のソフトウェアを変更しようと認識するために発生します。回避策としてはサービスモード (推奨) で実行するか、プロファイルに｢HookChildProcesses=0｣を追加してください。<br>
-詳細な説明は https://github.com/snowie2000/mactype/wiki/HookChildProcesses を参照してください。
-
 - Office 2013 は DirectWrite または GDI を使用していません (独自のカスタムレンダリングを使用しています)。そのため、Office 2013 で MacType は動作しません。これが気になる方は、GDI を使用している Office 2010 か DirectWrite を使用している Office 2016 以降を使用してください。 
 
 - WPS には MacType を自動的に **アンロード** する防御機能が組み込まれています。最新のバージョンでは、wmjordan の協力により[こちら](https://github.com/snowie2000/mactype/wiki/WPS)の回避策が用意されています。

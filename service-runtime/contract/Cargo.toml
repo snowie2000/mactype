@@ -1,0 +1,15 @@
+[package]
+name = "mactype-service-contract"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[features]
+default = []
+ci-test-adapter = []
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true

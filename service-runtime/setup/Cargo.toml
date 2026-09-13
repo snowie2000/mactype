@@ -1,0 +1,42 @@
+[package]
+name = "mactype-service-setup"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+name = "mactype_service_setup"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mactype-service-setup"
+path = "src/main.rs"
+
+[features]
+default = []
+ci-test-adapter = ["mactype-service-contract/ci-test-adapter", "mactype-service-platform/ci-test-adapter"]
+
+[dependencies]
+mactype-service-contract = { path = "../contract" }
+
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+
+[dev-dependencies]
+mactype-service-host = { path = "../host" }
+tempfile = "3"
+
+# Every Win32 call goes through the platform crate; windows-sys stays only
+# for the constants (access masks, error codes, service types) that the
+# policy code compares against.
+[target.'cfg(windows)'.dependencies]
+mactype-service-platform = { path = "../platform" }
+windows-sys = { workspace = true, features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_Storage_FileSystem",
+  "Win32_System_Services",
+  "Win32_System_Threading",
+] }
