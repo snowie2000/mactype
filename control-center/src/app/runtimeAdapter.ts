@@ -79,15 +79,6 @@ export interface ControlCenterRuntimeAdapter {
   setNativePreview(visible: boolean, options?: NativePreviewOptions): Promise<NativePreviewState>;
   /** Calls the listener when the native window changes state on its own (Escape, close); returns an unsubscribe. */
   subscribeNativePreview(listener: (state: NativePreviewState) => void): () => void;
-  openPreviewStudio(): Promise<void>;
-  reportPreviewStudioReady(): Promise<void>;
-  closePreviewStudio(): Promise<void>;
-  pickPngExportPath(filterName: string, defaultName: string): Promise<string | null>;
-  writePreviewExport(path: string, pngBase64: string): Promise<string>;
-  /** Cross-window messages between the main window and the preview studio. */
-  emitStudioMessage(channel: string, payload: unknown): Promise<void>;
-  subscribeStudioMessage<T>(channel: string, listener: (payload: T) => void): () => void;
-  windowLabel(): string;
   previewImageUrl(path: string): string;
   loadPreviewDiagnostics(): Promise<ReadonlyArray<string>>;
   forcePreviewCrashForCi(): Promise<void>;

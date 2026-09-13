@@ -1,7 +1,5 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { PreviewStudioApp } from "./studio/PreviewStudioApp";
-import "./styles/studio.css";
 import { App } from "./app/App";
 import { loadThemePreference } from "./app/themePreference";
 import { I18nProvider } from "./i18n/I18nProvider";
@@ -19,6 +17,6 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <I18nProvider>{new URLSearchParams(window.location.search).get("window") === "preview-studio" ? <PreviewStudioApp /> : <App initialTheme={initialTheme} />}</I18nProvider>
+    <I18nProvider><App initialTheme={initialTheme} /></I18nProvider>
   </StrictMode>,
 );

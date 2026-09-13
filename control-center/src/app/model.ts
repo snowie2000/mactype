@@ -4,7 +4,6 @@ export interface LaunchContext {
   view: ViewId;
   ciSmoke: boolean;
   trayStart: boolean;
-  previewStudioSmoke?: boolean;
 }
 
 export interface InstallationStatus {

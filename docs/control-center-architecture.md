@@ -42,21 +42,14 @@ The 레거시 서비스 is detected through a strict official-layout adapter. It
 
 The official single-instance plugin is registered before every other Tauri plugin. On Windows, a pre-Tauri per-session startup mutex serializes cold starts until the first process has created its IPC window and completed setup, closing the plugin's mutex-to-window race. Later launches send their arguments to the existing process, which shows, unminimizes, and focuses the main window. The privileged service broker exits before this gate and therefore never participates in GUI instance arbitration.
 
-On `WM_ENDSESSION(TRUE)`, subclasses on the main, Preview Studio, and hidden tray windows synchronously record the Info event `control-center` / `session-ending` with `reason=wm-endsession`, then exit the process with code 0 before tao 0.35.3 can enter its `Destroyed` state and continue dispatching messages. The window subclass leaves `WM_QUERYENDSESSION` and canceled `WM_ENDSESSION(FALSE)` messages unchanged. This applies to Windows session shutdown and Restart Manager shutdown alike; remove or amend the application-side workaround once Tauri ships tao >= 0.37.
+On `WM_ENDSESSION(TRUE)`, subclasses on the main and hidden tray windows synchronously record the Info event `control-center` / `session-ending` with `reason=wm-endsession`, then exit the process with code 0 before tao 0.35.3 can enter its `Destroyed` state and continue dispatching messages. The window subclass leaves `WM_QUERYENDSESSION` and canceled `WM_ENDSESSION(FALSE)` messages unchanged. This applies to Windows session shutdown and Restart Manager shutdown alike; remove or amend the application-side workaround once Tauri ships tao >= 0.37.
 
 ## Maintenance notes
 
 Cross-module contracts belong in this architecture document, `docs/control-center-ci.md`, or `docs/legacy-behavior-notes.md` rather than being repeated beside each implementation. Source comments are reserved for local invariants and platform or compatibility traps that are easy to violate while editing. Generated files retain only their generated-file warning; routine control flow and temporary implementation history should remain uncommented.
 
 
-## Standalone preview and event timeline
-
-The Preview Studio is a second Tauri window. The main Tuner publishes its current
-and saved values through the existing application event boundary. The Studio can
-compare those values with a selected profile or a separate plain-GDI helper,
-without applying a profile to the system. Rendering remains in the existing
-preview helper; the renderer DLL is unchanged. Exports are validated PNG bytes
-written atomically to the user-selected file.
+## Native preview window and event timeline
 
 The helper-owned native window supports localized sample, size ladder, Windows
 comparison and listing controls, integer zoom, loupe, topmost, text editing, and

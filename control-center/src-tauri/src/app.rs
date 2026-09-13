@@ -17,7 +17,6 @@ pub(crate) struct LaunchContext {
     view: String,
     ci_smoke: bool,
     tray_start: bool,
-    preview_studio_smoke: bool,
 }
 
 fn requested_view() -> String {
@@ -135,18 +134,12 @@ pub(crate) fn starts_in_tray() -> bool {
     env::args().any(|argument| argument == "--tray")
 }
 
-pub(crate) fn preview_studio_smoke() -> bool {
-    env::var_os("MACTYPE_CI_SMOKE_FILE").is_some()
-        && env::args().any(|argument| argument == "--ci-preview-studio")
-}
-
 #[tauri::command]
 pub(crate) fn launch_context() -> LaunchContext {
     LaunchContext {
         view: requested_view(),
         ci_smoke: env::var_os("MACTYPE_CI_SMOKE_FILE").is_some(),
         tray_start: starts_in_tray(),
-        preview_studio_smoke: preview_studio_smoke(),
     }
 }
 

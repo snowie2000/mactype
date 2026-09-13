@@ -7,7 +7,7 @@ function readTheme(): ThemePreference {
 
 /* The applied theme as `html[data-theme]` carries it, kept current when the
    user toggles it. Preview canvases read this so their default colours match
-   the window they sit in, in the main window and in the studio alike. */
+   the window they sit in. */
 export function useAppTheme(): ThemePreference {
   const [theme, setTheme] = useState<ThemePreference>(readTheme);
   useEffect(() => {

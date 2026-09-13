@@ -228,38 +228,6 @@ export function subscribeNativePreview(listener: (state: NativePreviewState) => 
   return getRuntimeAdapter().subscribeNativePreview(listener);
 }
 
-export async function openPreviewStudio(): Promise<void> {
-  return getRuntimeAdapter().openPreviewStudio();
-}
-
-export async function reportPreviewStudioReady(): Promise<void> {
-  return getRuntimeAdapter().reportPreviewStudioReady();
-}
-
-export async function closePreviewStudio(): Promise<void> {
-  return getRuntimeAdapter().closePreviewStudio();
-}
-
-export async function pickPngExportPath(filterName: string, defaultName: string): Promise<string | null> {
-  return getRuntimeAdapter().pickPngExportPath(filterName, defaultName);
-}
-
-export async function writePreviewExport(path: string, pngBase64: string): Promise<string> {
-  return getRuntimeAdapter().writePreviewExport(path, pngBase64);
-}
-
-export async function emitStudioMessage(channel: string, payload: unknown): Promise<void> {
-  return getRuntimeAdapter().emitStudioMessage(channel, payload);
-}
-
-export function subscribeStudioMessage<T>(channel: string, listener: (payload: T) => void): () => void {
-  return getRuntimeAdapter().subscribeStudioMessage(channel, listener);
-}
-
-export function windowLabel(): string {
-  return getRuntimeAdapter().windowLabel();
-}
-
 export function previewImageUrl(path: string): string {
   return getRuntimeAdapter().previewImageUrl(path);
 }

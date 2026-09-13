@@ -76,9 +76,6 @@ function galleryPreviewImage(request: PreviewRequest): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-/* Cross-window messages in the browser gallery stay inside one document. */
-const galleryStudioBus = new EventTarget();
-
 function galleryEvents(): ReadonlyArray<EventRecord> {
   const now = Date.now();
   const minute = 60_000;
@@ -411,43 +408,6 @@ export const browserGalleryAdapter: ControlCenterRuntimeAdapter = {
     };
     window.addEventListener("gallery-native-preview-state", handler);
     return () => window.removeEventListener("gallery-native-preview-state", handler);
-  },
-
-  openPreviewStudio(): Promise<void> {
-    if (new URLSearchParams(window.location.search).has("studio-open-error")) return Promise.reject(new Error("Preview Studio could not open"));
-    window.sessionStorage.setItem("gallery-preview-studio", "open");
-    return Promise.resolve();
-  },
-
-  reportPreviewStudioReady: () => Promise.resolve(),
-
-  closePreviewStudio(): Promise<void> {
-    window.sessionStorage.setItem("gallery-preview-studio", "closed");
-    return Promise.resolve();
-  },
-
-  pickPngExportPath(_filterName: string, defaultName: string): Promise<string | null> {
-    return Promise.resolve(`C:\\Users\\Gallery\\Pictures\\${defaultName}`);
-  },
-
-  writePreviewExport(path: string): Promise<string> {
-    window.sessionStorage.setItem("gallery-preview-export", path);
-    return Promise.resolve(path);
-  },
-
-  emitStudioMessage(channel: string, payload: unknown): Promise<void> {
-    galleryStudioBus.dispatchEvent(new CustomEvent(channel, { detail: payload }));
-    return Promise.resolve();
-  },
-
-  subscribeStudioMessage<T>(channel: string, listener: (payload: T) => void): () => void {
-    const handler = (event: Event) => listener((event as CustomEvent<T>).detail);
-    galleryStudioBus.addEventListener(channel, handler);
-    return () => galleryStudioBus.removeEventListener(channel, handler);
-  },
-
-  windowLabel(): string {
-    return new URLSearchParams(window.location.search).get("window") === "preview-studio" ? "preview-studio" : "main";
   },
 
   previewImageUrl(path: string): string {
