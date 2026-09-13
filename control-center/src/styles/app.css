@@ -177,7 +177,7 @@ code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; }
 [dir="rtl"] .wizard-progress svg { transform: rotate(180deg); }
 .checkbox-row { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) 0; color: var(--color-muted); }
 .settings-workspace { display: grid; grid-template-rows: minmax(160px, 1fr) auto; min-width: 0; min-height: 0; overflow: hidden; }
-.settings-form { min-width: 0; min-height: 0; padding: var(--space-2) 0 0 var(--space-5); overflow-x: hidden; overflow-y: auto; }
+.settings-form { min-width: 0; min-height: 0; padding: var(--space-2) 0 0 var(--space-5); overflow-x: hidden; overflow-y: auto; container: settings-form / inline-size; }
 .settings-form .section-heading { padding: var(--space-2) 0; }
 .setting-row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--settings-control-width); align-items: center; gap: var(--space-6); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
 .setting-row > * { min-width: 0; }
@@ -282,6 +282,19 @@ code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; }
 .list-editor select { width: 100%; padding-inline: var(--space-2); }
 .list-editor-empty { display: grid; min-height: 48px; margin: var(--space-1) 0; padding: var(--space-2); place-items: center; border: 1px dashed var(--color-border-strong); border-radius: var(--radius-control); color: var(--color-muted); font-size: 12px; }
 .list-editor .inline-error { margin-top: 0; }
+
+/* The collection editors follow the settings column, not the window: with a
+   docked preview the column is about 500px, which is narrower than a
+   six-field row or two list editors side by side. */
+@container settings-form (max-width: 660px) {
+  .individual-row { grid-template-columns: minmax(0, 1fr) var(--control-height); }
+  .individual-row > strong { grid-column: 1 / -1; }
+  .individual-row > div { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .font-picker-row { grid-template-columns: minmax(0, 1fr); }
+}
+@container settings-form (max-width: 600px) {
+  .list-grid { grid-template-columns: minmax(0, 1fr); }
+}
 .list-add-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .list-add-row input { flex: 1; min-width: 0; padding-inline: var(--space-2); font-family: Consolas, "Cascadia Mono", monospace; font-size: 12px; }
 .list-add-row .button { flex: 0 0 auto; white-space: nowrap; }
