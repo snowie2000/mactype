@@ -431,6 +431,27 @@ BOOL AddEasyHookEnv()
 	return true;
 }
 
+// GDI+ is normally loaded after MacType is injected, so load it here (only when
+// font substitution is enabled) and hook its font-family creation entry points.
+static void HookGdiplusFontCreation() {
+	HMODULE gdip = GetModuleHandle(L"gdiplus.dll");
+	if (!gdip) {
+		gdip = LoadLibrary(L"gdiplus.dll");
+	}
+	if (!gdip)
+		return;
+	void* pFamilyFromName = GetProcAddress(gdip, "GdipCreateFontFamilyFromName");
+	void* pFontFromLogfontW = GetProcAddress(gdip, "GdipCreateFontFromLogfontW");
+	if (pFamilyFromName) {
+		*(DWORD_PTR*)&ORIG_GdipCreateFontFamilyFromName = (DWORD_PTR)pFamilyFromName;
+		hook_demand_GdipCreateFontFamilyFromName();
+	}
+	if (pFontFromLogfontW) {
+		*(DWORD_PTR*)&ORIG_GdipCreateFontFromLogfontW = (DWORD_PTR)pFontFromLogfontW;
+		hook_demand_GdipCreateFontFromLogfontW();
+	}
+}
+
 void HookFontCreation() {
 	HMODULE gdi32 = GetModuleHandle(L"gdi32full.dll");	// prefer to hook deeply
 	if (!gdi32) {
@@ -448,6 +469,7 @@ void HookFontCreation() {
 		hook_demand_CreateFontIndirectExW();
 		hook_demand_CreateFontIndirectW();
 	}
+	HookGdiplusFontCreation();
 }
 
 extern FT_Int * g_charmapCache;

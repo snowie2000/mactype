@@ -285,6 +285,10 @@ HOOK_MANUALLY(GpStatus, GdipDrawString, (
 			  GDIPCONST GpBrush        *brush
 			  ))*/
 
+// GDI+ font name substitution (applies [FontSubstitutes] to GDI+ / .NET System.Drawing)
+HOOK_MANUALLY(int, GdipCreateFontFamilyFromName, (const WCHAR* name, void* fontCollection, void** FontFamily), (name, fontCollection, FontFamily))
+HOOK_MANUALLY(int, GdipCreateFontFromLogfontW, (HDC hdc, const LOGFONTW* logfont, void** font), (hdc, logfont, font))
+
 HOOK_MANUALLY(HRESULT, CreateWicBitmapRenderTarget, (
 	ID2D1Factory* This,
 	IWICBitmap* target,
