@@ -1706,20 +1706,41 @@ BOOL WINAPI IMPL_MySetProcessMitigationPolicy(
 
 
 //HFONT dummy=NULL;
-/*
+// GDI+ font substitution.
+// GDI+ (and .NET System.Drawing, which is built on it) resolves font families by name
+// without going through CreateFontIndirect, so [FontSubstitutes] never applied to it.
+// Only the family name is replaced; rendering is still done by GDI+ itself.
 int WINAPI IMPL_GdipCreateFontFamilyFromName(const WCHAR *name, void *fontCollection, void **FontFamily)
 {
-	LOGFONT lf={};
-	memset(&lf, 0, sizeof lf);
-	StringCchCopy(lf.lfFaceName, LF_FACESIZE, name);
-	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	if (pSettings->CopyForceFont(lf, lf))
-	{
-		//dummy = CreateFont(1,0,0,0,0,0,0,0,DEFAULT_CHARSET,0,0,0,0,lf.lfFaceName);
-		return ORIG_GdipCreateFontFamilyFromName(lf.lfFaceName, fontCollection, FontFamily);
+	// Private font collections are left untouched.
+	if (name && !fontCollection) {
+		const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+		LOGFONT lf = {};
+		lf.lfCharSet = DEFAULT_CHARSET;
+		StringCchCopy(lf.lfFaceName, LF_FACESIZE, name);
+		if (!pSettings->IsFontExcluded(lf.lfFaceName) && pSettings->CopyForceFont(lf, lf)) {
+			int status = ORIG_GdipCreateFontFamilyFromName(lf.lfFaceName, fontCollection, FontFamily);
+			if (status == 0)	// Ok
+				return status;
+			// substitute font not usable from GDI+: fall back to the original name
+		}
 	}
 	return ORIG_GdipCreateFontFamilyFromName(name, fontCollection, FontFamily);
-}*/
+}
+
+int WINAPI IMPL_GdipCreateFontFromLogfontW(HDC hdc, const LOGFONTW *logfont, void **font)
+{
+	if (logfont) {
+		const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+		LOGFONTW lf = *logfont;
+		if (!pSettings->IsFontExcluded(lf.lfFaceName) && pSettings->CopyForceFont(lf, lf)) {
+			int status = ORIG_GdipCreateFontFromLogfontW(hdc, &lf, font);
+			if (status == 0)
+				return status;
+		}
+	}
+	return ORIG_GdipCreateFontFromLogfontW(hdc, logfont, font);
+}
 
 
 DWORD WINAPI IMPL_GetFontData(_In_ HDC     hdc,
