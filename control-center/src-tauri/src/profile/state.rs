@@ -7,7 +7,7 @@ impl ProfileState {
             if document.is_dirty() {
                 return Err("save profile changes before applying them to MacType".to_owned());
             }
-            Ok((document.path().to_path_buf(), document.encoded()?))
+            Ok((document.path().to_path_buf(), document.runtime_encoded()?))
         })
     }
 

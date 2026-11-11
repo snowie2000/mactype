@@ -58,6 +58,11 @@ impl ProfileDocument {
         Ok(bytes)
     }
 
+    /// The bytes the runtime reads for this document; see `runtime_text`.
+    pub(super) fn runtime_encoded(&self) -> Result<Vec<u8>, String> {
+        super::runtime_text::runtime_profile_bytes(self.encoded()?)
+    }
+
     pub(super) fn export_to(&self, destination: &Path) -> Result<(), String> {
         let parent = destination
             .parent()

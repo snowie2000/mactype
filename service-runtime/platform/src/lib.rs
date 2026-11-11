@@ -24,6 +24,7 @@ mod handle;
 mod job;
 mod known_folders;
 mod launch;
+mod locale;
 mod module_inventory;
 mod mutex;
 mod pipe;
@@ -58,6 +59,7 @@ pub use known_folders::{KnownFolder, known_folder_path, system_directory};
 pub use launch::{
     ProcessLaunch, StandardHandles, SuspendedChild, anonymous_pipe, null_device, read_bounded,
 };
+pub use locale::system_ansi_code_page;
 pub use module_inventory::{ModulePresence, process_module_presence};
 pub use mutex::{MutexAcquisition, NamedMutex};
 pub use pipe::{

@@ -13,6 +13,7 @@ mod document;
 mod identity;
 mod legacy;
 mod mutation;
+mod runtime_text;
 mod state;
 mod storage;
 
@@ -24,6 +25,7 @@ mod tests;
 pub(crate) use identity::source_profile_reference;
 pub(crate) use legacy::user_profile_root;
 pub(crate) use legacy::{bundled_default_profile_at, legacy_alternative_file_bytes};
+pub(crate) use runtime_text::runtime_profile_bytes;
 
 #[cfg(test)]
 pub(crate) fn profile_state_with_unsaved_setting(

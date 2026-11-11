@@ -129,6 +129,7 @@ pub(super) fn prepare_runtime_at(
     if profile_bytes.is_empty() {
         return Err("runtime profile must not be empty".to_owned());
     }
+    let profile_bytes = &crate::profile::runtime_profile_bytes(profile_bytes.to_vec())?;
     if profile_bytes.len() > mactype_service_contract::MAX_PROFILE_BYTES {
         return Err(format!(
             "runtime profile exceeds its {}-byte limit",

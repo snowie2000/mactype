@@ -216,7 +216,7 @@ fn run_profile_payload(
     if bytes.is_empty() {
         return Err("designated run profile must not be empty".to_owned());
     }
-    Ok((path, bytes))
+    Ok((path, crate::profile::runtime_profile_bytes(bytes)?))
 }
 
 fn run_profile_publication(
@@ -767,6 +767,32 @@ mod tests {
             status.run_profile_publication,
             RunProfilePublication::Pending
         );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn legacy_code_page_run_profile_is_published_as_the_runtime_bytes() {
+        let root = test_root("publication-legacy-code-page");
+        let profile = root.join("Run.ini");
+        fs::create_dir_all(&root).unwrap();
+        let (legacy, _, _) =
+            encoding_rs::EUC_KR.encode("[FontSubstitutes]\r\n맑은 고딕=Pretendard\r\n");
+        fs::write(&profile, &legacy).unwrap();
+
+        let (_, payload) = run_profile_payload(None, Some(&profile)).unwrap();
+        assert_eq!(&payload[..3], &[0xEF, 0xBB, 0xBF]);
+        let published = mactype_service_contract::GenerationId::from_profile_bytes(&payload);
+        let raw = mactype_service_contract::GenerationId::from_profile_bytes(&legacy);
+
+        assert_eq!(
+            run_profile_publication(None, Some(&profile), Some(published.as_str())),
+            RunProfilePublication::Published
+        );
+        assert_eq!(
+            run_profile_publication(None, Some(&profile), Some(raw.as_str())),
+            RunProfilePublication::Pending
+        );
+        assert_eq!(fs::read(&profile).unwrap(), legacy.as_ref());
         fs::remove_dir_all(root).unwrap();
     }
 
