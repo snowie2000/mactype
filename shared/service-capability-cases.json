@@ -1,0 +1,397 @@
+[
+  {
+    "name": "absent-service",
+    "input": {
+      "runtime": "stopped",
+      "installation": "absent",
+      "configurationDrift": false,
+      "backend": "none",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "absent",
+        "state": "stopped"
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": true,
+      "canRemove": false,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": false,
+      "systemModesSupported": true,
+      "migrationAvailable": false
+    }
+  },
+  {
+    "name": "stopped-current-package-ready",
+    "input": {
+      "runtime": "stopped",
+      "installation": "current",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "owned",
+        "state": "stopped"
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": true,
+      "canStart": true,
+      "canStop": false,
+      "canRepair": true,
+      "canUpgrade": false,
+      "systemModesSupported": true,
+      "migrationAvailable": true
+    }
+  },
+  {
+    "name": "stopped-outdated",
+    "input": {
+      "runtime": "stopped",
+      "installation": "outdated",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "absent",
+        "state": "stopped"
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": true,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": true,
+      "systemModesSupported": true,
+      "migrationAvailable": false
+    }
+  },
+  {
+    "name": "running-current",
+    "input": {
+      "runtime": "running",
+      "installation": "current",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "absent",
+        "state": "stopped"
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": true,
+      "canStart": false,
+      "canStop": true,
+      "canRepair": true,
+      "canUpgrade": false,
+      "systemModesSupported": true,
+      "migrationAvailable": false
+    }
+  },
+  {
+    "name": "running-current-with-drift",
+    "input": {
+      "runtime": "running",
+      "installation": "current",
+      "configurationDrift": true,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "absent",
+        "state": "stopped"
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": true,
+      "canStart": false,
+      "canStop": true,
+      "canRepair": true,
+      "canUpgrade": false,
+      "systemModesSupported": true,
+      "migrationAvailable": false
+    }
+  },
+  {
+    "name": "foreign-backend",
+    "input": {
+      "runtime": "running",
+      "installation": "invalid",
+      "configurationDrift": false,
+      "backend": "foreign",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "owned",
+        "state": "stopped",
+        "migrationAvailable": true
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": false,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": false,
+      "systemModesSupported": false,
+      "migrationAvailable": true
+    }
+  },
+  {
+    "name": "inaccessible-installation",
+    "input": {
+      "runtime": "unknown",
+      "installation": "inaccessible",
+      "configurationDrift": false,
+      "backend": "none",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "owned",
+        "state": "stopped",
+        "migrationAvailable": true
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": false,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": false,
+      "systemModesSupported": false,
+      "migrationAvailable": true
+    }
+  },
+  {
+    "name": "delete-pending",
+    "input": {
+      "runtime": "unknown",
+      "installation": "delete-pending",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "absent",
+        "state": "stopped"
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": false,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": false,
+      "systemModesSupported": false,
+      "migrationAvailable": false
+    }
+  },
+  {
+    "name": "stopped-current-package-not-installed",
+    "input": {
+      "runtime": "stopped",
+      "installation": "current",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "owned",
+        "state": "stopped"
+      },
+      "managementPackage": "not-installed"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": false,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": false,
+      "systemModesSupported": false,
+      "migrationAvailable": true
+    }
+  },
+  {
+    "name": "stopped-current-package-incomplete",
+    "input": {
+      "runtime": "stopped",
+      "installation": "current",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "owned",
+        "state": "stopped"
+      },
+      "managementPackage": "incomplete"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": false,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": false,
+      "systemModesSupported": false,
+      "migrationAvailable": true
+    }
+  },
+  {
+    "name": "stopped-current-package-untrusted",
+    "input": {
+      "runtime": "stopped",
+      "installation": "current",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "owned",
+        "state": "stopped"
+      },
+      "managementPackage": "untrusted"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": false,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": false,
+      "systemModesSupported": false,
+      "migrationAvailable": true
+    }
+  },
+  {
+    "name": "registry-mode-detected",
+    "input": {
+      "runtime": "stopped",
+      "installation": "current",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": true,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "owned",
+        "state": "stopped"
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": false,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": false,
+      "systemModesSupported": false,
+      "migrationAvailable": false
+    }
+  },
+  {
+    "name": "legacy-tray-conflict-present",
+    "input": {
+      "runtime": "stopped",
+      "installation": "current",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "detected",
+      "legacy": {
+        "presence": "owned",
+        "state": "stopped",
+        "migrationAvailable": true
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": false,
+      "canStart": false,
+      "canStop": false,
+      "canRepair": false,
+      "canUpgrade": false,
+      "systemModesSupported": true,
+      "migrationAvailable": true
+    }
+  },
+  {
+    "name": "legacy-migration-available",
+    "input": {
+      "runtime": "stopped",
+      "installation": "current",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "compatible-unquoted",
+        "state": "stopped",
+        "migrationAvailable": true
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": true,
+      "canStart": true,
+      "canStop": false,
+      "canRepair": true,
+      "canUpgrade": false,
+      "systemModesSupported": true,
+      "migrationAvailable": true
+    }
+  },
+  {
+    "name": "legacy-migration-unavailable",
+    "input": {
+      "runtime": "stopped",
+      "installation": "current",
+      "configurationDrift": false,
+      "backend": "open-source",
+      "registryModeDetected": false,
+      "legacyTrayConflict": "clear",
+      "legacy": {
+        "presence": "owned",
+        "state": "stop-pending",
+        "migrationAvailable": false
+      },
+      "managementPackage": "ready"
+    },
+    "expected": {
+      "canInstall": false,
+      "canRemove": true,
+      "canStart": true,
+      "canStop": false,
+      "canRepair": true,
+      "canUpgrade": false,
+      "systemModesSupported": true,
+      "migrationAvailable": false
+    }
+  }
+]

@@ -71,5 +71,10 @@ We have a detailed guide on how you can enable the registry mode manually in [wi
 How to build
 -------------
 
-Check how to build [document](https://github.com/snowie2000/mactype/blob/directwrite/doc/HOWTOBUILD.md)
+Check the [build document](./doc/HOWTOBUILD.md) for both the MacType core and the Tauri Control Center.
+
+Control Center design maintenance
+-------------
+
+To change the Control Center interface without touching Rust, start with the [design maintenance guide](./docs/design-maintenance.md).
 

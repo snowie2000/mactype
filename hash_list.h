@@ -11,8 +11,10 @@ class CHashedStringList
 {
 public:
 	void Add(TCHAR * String, TCHAR * Value);
-	void Delete(TCHAR * String);
+	// Entries are never replaced or erased; pointers remain valid until destruction.
 	TCHAR * Find(TCHAR * String);
+	CHashedStringList(const CHashedStringList&) = delete;
+	CHashedStringList& operator=(const CHashedStringList&) = delete;
 	CHashedStringList() : m_bCaseSense(false){}
 	CHashedStringList(BOOL bCaseSensative) : m_bCaseSense(bCaseSensative){}
 	~CHashedStringList(){
@@ -25,5 +27,6 @@ public:
 protected:
 private:
 	strmap stringmap;
+	SRWLOCK m_lock = SRWLOCK_INIT;
 	BOOL m_bCaseSense;
 };

@@ -79,58 +79,29 @@ BOOL IsValidDC(HDC hdc)
 
 BOOL IsProcessExcluded()
 {
-//	if (GetModuleHandle(NULL) == GetModuleHandle(_T("gdi++.exe"))) {
-//		return TRUE;
-//	}
-
 	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
-	if (pSettings->IsInclude()) {
-		if (pSettings->IsProcessIncluded()) {
-			return FALSE;
-		}
-		return TRUE;
-	}
-
-	if (pSettings->IsProcessExcluded()) {
-		return TRUE;
-	}
-	return FALSE;
+	const auto lists = pSettings->Admission();
+	if (lists->useInclude)
+		return !pSettings->IsProcessIncluded(*lists);
+	return pSettings->IsProcessExcluded(*lists);
 }
 
 BOOL IsProcessUnload()
 {
-//	if (GetModuleHandle(NULL) == GetModuleHandle(_T("gdi++.exe"))) {
-//		return TRUE;
-//	}
-
 	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
-	if (pSettings->IsInclude()) {
-		if (pSettings->IsProcessIncluded()) {
-			return FALSE;
-		}
-		return TRUE;
-	}
-
-	if (pSettings->IsProcessUnload()) {
-		return TRUE;
-	}
-	return FALSE;
+	const auto lists = pSettings->Admission();
+	if (lists->useInclude)
+		return !pSettings->IsProcessIncluded(*lists);
+	return pSettings->IsProcessUnload(*lists);
 }
 
 BOOL IsExeUnload(LPCTSTR lpApp)
 {
 	const CGdippSettings* pSettings = CGdippSettings::GetInstanceNoInit();
-	if (pSettings->IsInclude()) {
-		if (pSettings->IsExeInclude(lpApp)) {
-			return FALSE;
-		}
-		return TRUE;
-	}
-
-	if (pSettings->IsExeUnload(lpApp)) {
-		return TRUE;
-	}
-	return FALSE;
+	const auto lists = pSettings->Admission();
+	if (lists->useInclude)
+		return !pSettings->IsExeInclude(lpApp, *lists);
+	return pSettings->IsExeUnload(lpApp, *lists);
 }
 
 //切り上げ除算
@@ -1143,14 +1114,9 @@ BOOL WINAPI IMPL_ExtTextOutW(HDC hdc, int nXStart, int nYStart, UINT fuOptions, 
 		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	CGdippSettings* pSettings = CGdippSettings::GetInstance(); //获得一个配置文件实例
 
-	// check if per-display rendering is enabled
-	if (pSettings->DisplayAffinity().size()) {
-		set<int>& aff = pSettings->DisplayAffinity();
-		int id = DisplayFromDC(hdc);
-		if (id >= 0 && aff.find(id) == aff.end()) {
-			// display is not in the list, we should drop rendering for it.
-			return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
-		}
+	const auto admission = pSettings->Admission();
+	if (!admission->AllowsDisplay([hdc] { return DisplayFromDC(hdc); })) {
+		return ORIG_ExtTextOutW(hdc, nXStart, nYStart, fuOptions, lprc, lpString, cbString, lpDx);
 	}
 
 	CAutoVectorPtr<INT> newdx;

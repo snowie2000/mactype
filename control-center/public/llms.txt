@@ -1,0 +1,10 @@
+# MacType Control Center
+
+MacType Control Center is a Windows desktop utility for inspecting a MacType installation and editing rendering profiles.
+
+## Public source
+
+- [MacType source repository](https://github.com/snowie2000/mactype)
+- The application does not expose a public web service.
+- The browser surface is packaged inside Tauri and runs locally.
+- System changes and privileged operations are outside the current preview build.

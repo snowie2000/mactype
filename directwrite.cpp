@@ -1,6 +1,9 @@
 #include "directwrite.h"
 #include "settings.h"
 #include "dynCodeHelper.h"
+#include <mutex>
+#include <string>
+#include <vector>
 
 void MyDebug(const TCHAR * sz, ...)
 {
@@ -1382,7 +1385,7 @@ bool hookDirectWrite(IUnknown ** factory)	//此函数需要改进以判断是否
 		HOOK(pDWriteFactory, GetGdiInterop, 17);
 		const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 		// Windows8/8.1 is too buggy, GDIinterpo doesn't work correctly
-		if (!pSettings->IsWindows81() && !pSettings->IsWindows8() && pSettings->DelayedInited() && pSettings->GetFontSubstitutesInfo().GetSize())
+		if (!pSettings->IsWindows81() && !pSettings->IsWindows8() && pSettings->DelayedInited() && pSettings->HasFontSubstitutes())
 			hookFontCreation(pDWriteFactory);
 		MyDebug(L"DW1 hooked");
 
@@ -1675,6 +1678,108 @@ HRESULT WINAPI IMPL_DWriteFontFaceReference_CreateFontFaceWithSimulations(
 	return ret;
 }
 
+static bool ReadPreferredFamilyName(IDWriteLocalizedStrings* names, std::wstring& family)
+{
+	if (names->GetCount() == 0)
+		return false;
+	UINT32 index = 0;
+	BOOL exists = FALSE;
+	if (FAILED(names->FindLocaleName(L"en-us", &index, &exists)) || !exists)
+		index = 0;
+	UINT32 length = 0;
+	if (FAILED(names->GetStringLength(index, &length)))
+		return false;
+	std::vector<WCHAR> buffer(static_cast<size_t>(length) + 1);
+	if (FAILED(names->GetString(index, buffer.data(), length + 1)))
+		return false;
+	family.assign(buffer.data(), length);
+	return !family.empty();
+}
+
+// A replacement such as "Pretendard Medium" is a GDI family name. The system
+// collection holds that face only under its DirectWrite family ("Pretendard",
+// weight 500), so a text format built on the GDI name finds no family and
+// DirectWrite falls back per character. GDI interop maps the replacement
+// LOGFONT to the DirectWrite family and weight that hold the same face.
+static bool TranslateGdiFamily(IDWriteFactory* factory, LOGFONT const& replacement,
+	std::wstring& family, DWRITE_FONT_WEIGHT& weight)
+{
+	CComPtr<IDWriteGdiInterop> interop;
+	CComPtr<IDWriteFont> font;
+	CComPtr<IDWriteFontFamily> fontFamily;
+	CComPtr<IDWriteLocalizedStrings> names;
+	if (FAILED(factory->GetGdiInterop(&interop)) || interop == NULL ||
+		FAILED(interop->CreateFontFromLOGFONT(&replacement, &font)) || font == NULL ||
+		FAILED(font->GetFontFamily(&fontFamily)) || fontFamily == NULL ||
+		FAILED(fontFamily->GetFamilyNames(&names)) || names == NULL ||
+		!ReadPreferredFamilyName(names, family))
+		return false;
+	weight = font->GetWeight();
+	// GDI would embolden this face; a text format cannot carry a simulation,
+	// so it keeps the requested weight instead.
+	if ((font->GetSimulations() & DWRITE_FONT_SIMULATIONS_BOLD) != 0 &&
+		replacement.lfWeight > static_cast<LONG>(weight))
+		weight = static_cast<DWRITE_FONT_WEIGHT>(replacement.lfWeight);
+	return true;
+}
+
+struct FactoryFamilyTranslation
+{
+	std::wstring gdiFamily;
+	LONG gdiWeight;
+	bool italic;
+	std::wstring family;
+	DWRITE_FONT_WEIGHT weight;
+};
+
+struct FactoryFamilyTranslationCache
+{
+	std::mutex mutex;
+	std::vector<FactoryFamilyTranslation> entries;
+};
+
+static const size_t kFactoryFamilyTranslationLimit = 64;
+
+// Never destroyed: hooked threads can still translate while the CRT tears
+// down file-scope objects on unload.
+static FactoryFamilyTranslationCache& GetFactoryFamilyTranslationCache()
+{
+	static FactoryFamilyTranslationCache* cache = new FactoryFamilyTranslationCache;
+	return *cache;
+}
+
+static bool LookupFactoryFamily(IDWriteFactory* factory, LOGFONT const& replacement,
+	std::wstring& family, DWRITE_FONT_WEIGHT& weight)
+{
+	FactoryFamilyTranslationCache& cache = GetFactoryFamilyTranslationCache();
+	bool const italic = replacement.lfItalic != 0;
+	{
+		std::lock_guard<std::mutex> lock(cache.mutex);
+		for (size_t i = 0; i < cache.entries.size(); ++i) {
+			FactoryFamilyTranslation const& entry = cache.entries[i];
+			if (entry.gdiWeight == replacement.lfWeight && entry.italic == italic &&
+				entry.gdiFamily == replacement.lfFaceName) {
+				family = entry.family;
+				weight = entry.weight;
+				return true;
+			}
+		}
+	}
+	if (!TranslateGdiFamily(factory, replacement, family, weight))
+		return false;
+	FactoryFamilyTranslation entry;
+	entry.gdiFamily = replacement.lfFaceName;
+	entry.gdiWeight = replacement.lfWeight;
+	entry.italic = italic;
+	entry.family = family;
+	entry.weight = weight;
+	std::lock_guard<std::mutex> lock(cache.mutex);
+	if (cache.entries.size() >= kFactoryFamilyTranslationLimit)
+		cache.entries.clear();
+	cache.entries.push_back(entry);
+	return true;
+}
+
 HRESULT  WINAPI IMPL_CreateTextFormat(IDWriteFactory* self,
 	__in_z WCHAR const* fontFamilyName,
 	__maybenull IDWriteFontCollection* fontCollection,
@@ -1687,11 +1792,27 @@ HRESULT  WINAPI IMPL_CreateTextFormat(IDWriteFactory* self,
 {
 	LOGFONT lf = { 0 };
 	StringCchCopy(lf.lfFaceName, LF_FACESIZE, fontFamilyName);
+	lf.lfWeight = fontWeight;
+	lf.lfItalic = fontStyle != DWRITE_FONT_STYLE_NORMAL;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
-	if (pSettings->CopyForceFont(lf, lf))
-		return ORIG_CreateTextFormat(self, lf.lfFaceName, fontCollection, fontWeight, fontStyle, fontStretch, fontSize, localeName, textFormat);
-	else
+	if (!pSettings->CopyForceFont(lf, lf))
 		return ORIG_CreateTextFormat(self, fontFamilyName, fontCollection, fontWeight, fontStyle, fontStretch, fontSize, localeName, textFormat);
+
+	// Interop answers from the system collection, which is what a nullptr
+	// collection means. An explicit collection keeps its own naming model.
+	if (fontCollection == NULL) {
+		try {
+			std::wstring family;
+			DWRITE_FONT_WEIGHT weight = fontWeight;
+			if (LookupFactoryFamily(self, lf, family, weight))
+				return ORIG_CreateTextFormat(self, family.c_str(), fontCollection, weight, fontStyle, fontStretch, fontSize, localeName, textFormat);
+		}
+		catch (...) {
+		}
+	}
+	// Interop could not map the face, or the collection is explicit: keep the
+	// GDI name as before.
+	return ORIG_CreateTextFormat(self, lf.lfFaceName, fontCollection, fontWeight, fontStyle, fontStretch, fontSize, localeName, textFormat);
 }
 
 void WINAPI IMPL_D2D1RenderTarget_DrawGlyphRun1(

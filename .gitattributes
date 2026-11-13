@@ -1,0 +1,6 @@
+control-center/src/generated/settings.ts text eol=lf
+control-center/src/generated/nativePreview.ts text eol=lf
+control-center/src-tauri/src/generated_settings.rs text eol=lf
+control-center/src-tauri/gen/schemas/*.json text eol=lf
+preview-helper/include/generated_settings.h text eol=lf
+preview-helper/include/generated_native_preview.h text eol=lf

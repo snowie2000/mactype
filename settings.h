@@ -8,6 +8,8 @@
 #include <freetype/ftmodapi.h>
 #include <IniParser/ParseIni.h>
 #include "json.hpp"
+#include "control_message.h"
+#include "settings_snapshot.h"
 #include <thread>
 
 using json = nlohmann::json;
@@ -167,7 +169,14 @@ private:
 	WCHAR DefaultFontLink[FF_DECORATIVE + 1][LF_FACESIZE + 1];	//存放对应字体类型的默认链接
 public:
 	CFontLinkInfo();
+	CFontLinkInfo(const CFontLinkInfo&) = delete;
+	CFontLinkInfo& operator=(const CFontLinkInfo&) = delete;
 	~CFontLinkInfo();
+	// Legacy clear() retains defaults when a registry rebuild returns early.
+	void CopyDefaultsFrom(const CFontLinkInfo& previous) {
+		memcpy(AllowDefaultLink, previous.AllowDefaultLink, sizeof(AllowDefaultLink));
+		memcpy(DefaultFontLink, previous.DefaultFontLink, sizeof(DefaultFontLink));
+	}
 	void init();
 	void clear();
 	const bool IsAllowFontLink(BYTE aCharset) const { return AllowDefaultLink[aCharset]; }
@@ -268,10 +277,10 @@ private:
 	bool m_bIsWinXPorLater			: 1;
 	bool m_bRunFromGdiExe			: 1;
 	bool m_bIsInclude				: 1;
-	bool m_bDelayedInit				: 1;
 //	bool m_bIsHDBench				: 1;
 //	bool m_bHaveNewerFreeType		: 1;
 	bool							: 0;
+	bool m_bDelayedInit;
 	bool m_bUseCustomLcdFilter;	// use custom lcdfilter
 	bool m_bUseCustomPixelLayout;
 
@@ -339,6 +348,12 @@ private:
 	ModuleHashMap	m_arrUnloadModule;
 	ModuleHashMap	m_arrUnFontSubModule;
 	IndividualArray	m_arrIndividual;
+	std::shared_ptr<const settings_snapshot::AdmissionLists> m_admissionLists =
+		std::make_shared<const settings_snapshot::AdmissionLists>();
+	std::shared_ptr<const settings_snapshot::FontFilterLists> m_fontFilterLists =
+		std::make_shared<const settings_snapshot::FontFilterLists>();
+	void PublishAdmissionLists();
+	void PublishFontFilterLists();
 
 	// 指定フォント
 	LOGFONT m_lfForceFont;
@@ -376,8 +391,10 @@ private:
 	void DelayedInit();
 	int	_GetAlternativeProfileName(LPTSTR lpszName, LPCTSTR lpszFile);
 
-	CFontLinkInfo m_fontlinkinfo;
-	CFontSubstitutesInfo m_FontSubstitutesInfo;
+	std::shared_ptr<const CFontLinkInfo> m_fontLinks =
+		std::make_shared<const CFontLinkInfo>();
+	std::shared_ptr<const CFontSubstitutesInfo> m_fontSubstitutes =
+		std::make_shared<const CFontSubstitutesInfo>();
 
 	CGdippSettings()
 		: m_bHookChildProcesses(false)
@@ -481,7 +498,10 @@ public:
 
 	bool EnableShadow()  const { return m_bEnableShadow; }
 	const int* GetShadowParams() const { return m_nShadow; }
-	bool DelayedInited() const { return m_bDelayedInit; }	// return the delayedinit status
+	bool DelayedInited() const {
+		CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
+		return m_bDelayedInit;
+	}	// return the delayedinit status
 
 // OS version comparsion for magic code
 	bool IsWindows8() const { return m_dwOSMajorVer == 6 && m_dwOSMinorVer == 2; }
@@ -499,7 +519,8 @@ public:
 	const int* GetTuneTableR() const { return m_nTuneTableR; }
 	const int* GetTuneTableG() const { return m_nTuneTableG; }
 	const int* GetTuneTableB() const { return m_nTuneTableB; }
-	set<int>& DisplayAffinity() { return m_nDisplayAffinity; }
+	std::shared_ptr<const settings_snapshot::AdmissionLists> Admission() const
+		{ return std::atomic_load(&m_admissionLists); }
 
 	bool LoadSettings(HINSTANCE hModule);
 
@@ -507,18 +528,18 @@ public:
 	bool IsFontExcluded(LPCWSTR lpFaceName) const;
 
 	//Snowie!!
-	bool IsProcessUnload() const;
-	bool IsExeUnload(LPCTSTR lpApp) const;
-	bool IsExeInclude(LPCTSTR lpApp) const;
+	bool IsProcessUnload(const settings_snapshot::AdmissionLists& lists) const;
+	bool IsExeUnload(LPCTSTR lpApp, const settings_snapshot::AdmissionLists& lists) const;
+	bool IsExeInclude(LPCTSTR lpApp, const settings_snapshot::AdmissionLists& lists) const;
 	void AddFontExclude(LPCWSTR lpFaceName);	//点阵字体直接自动添加到此列表
-	bool IsProcessExcluded() const;
-	bool IsProcessIncluded() const;
-	const CFontSettings& FindIndividual(LPCTSTR lpFaceName) const;
+	bool IsProcessExcluded(const settings_snapshot::AdmissionLists& lists) const;
+	bool IsProcessIncluded(const settings_snapshot::AdmissionLists& lists) const;
+	CFontSettings FindIndividual(LPCTSTR lpFaceName) const;
 
-	const CFontLinkInfo& GetFontLinkInfo() const
-		{ _ASSERTE(m_bDelayedInit); return m_fontlinkinfo; }
-	const CFontSubstitutesInfo& GetFontSubstitutesInfo() const
-		{ _ASSERTE(m_bDelayedInit); return m_FontSubstitutesInfo; }
+	std::shared_ptr<const CFontLinkInfo> GetFontLinkInfo() const
+		{ return std::atomic_load(&m_fontLinks); }
+	bool HasFontSubstitutes() const
+		{ return std::atomic_load(&m_fontSubstitutes)->GetSize() != 0; }
 };
 
 class CFontFaceNamesEnumerator
@@ -527,6 +548,7 @@ private:
 	enum {
 		MAXFACENAMES = CFontLinkInfo::FONTMAX * 2 + 1,
 	};
+	std::shared_ptr<const CFontLinkInfo> m_fontLinks;
 	LPCWSTR m_facenames[MAXFACENAMES];
 	int m_pos;
 	int m_endpos;
@@ -736,17 +758,42 @@ public:
 		case ATTR_ShadowOffset:
 			pSettings->m_nShadow[1] = nValue;
 			pSettings->m_nShadow[0] = nValue;
-		case ATTR_Fontlink:
-			if (!!pSettings->m_bFontLink != !!nValue)
+			break;
+		case ATTR_Fontlink: {
+			bool rebuild;
+			std::shared_ptr<const CFontLinkInfo> previous;
 			{
-				pSettings->m_fontlinkinfo.clear();
-				if (nValue)
-					pSettings->m_fontlinkinfo.init();
+				CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
+				rebuild = !!pSettings->m_bFontLink != !!nValue;
+				previous = pSettings->GetFontLinkInfo();
 			}
-			pSettings->m_bFontLink = nValue;
-			break;	
+			std::shared_ptr<CFontLinkInfo> links;
+			if (rebuild) {
+				links = std::make_shared<CFontLinkInfo>();
+				links->CopyDefaultsFrom(*previous);
+				if (nValue)
+					links->init();
+			}
+			{
+				CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
+				if (links)
+					std::atomic_store(&pSettings->m_fontLinks,
+						std::shared_ptr<const CFontLinkInfo>(links));
+				pSettings->m_bFontLink = nValue;
+			}
+			break;
+		}
 		case ATTR_FontLoader:
 			pSettings->m_nFontLoader = nValue;
+			break;
+		case ATTR_HookChildProcess:
+			pSettings->m_bHookChildProcesses = !!nValue;
+			break;
+		case ATTR_FontSubstitute:
+			pSettings->m_nFontSubstitutes = nValue;
+			break;
+		case ATTR_DirectWrite:
+			pSettings->m_bDirectWrite = !!nValue;
 			break;
 		case ATTR_LcdFilterWeight:
 			if (!nValue)
@@ -878,8 +925,18 @@ public:
 			return pSettings->EnableShadow()? pSettings->m_nShadow[0] : 1;
 		case ATTR_Fontlink:
 			return pSettings->m_bFontLink;
+		case ATTR_HookChildProcess:
+			return pSettings->m_bHookChildProcesses;
+		case ATTR_FontLoader:
+			return pSettings->m_nFontLoader;
+		case ATTR_FontSubstitute:
+			return pSettings->m_nFontSubstitutes;
+		case ATTR_DirectWrite:
+			return pSettings->m_bDirectWrite;
 		case ATTR_LcdFilterWeight:
 			return pSettings->m_bUseCustomLcdFilter? (int)pSettings->m_arrLcdFilterWeights:NULL;
+		case ATTR_PixelLayout:
+			return pSettings->m_bUseCustomPixelLayout? (int)pSettings->m_arrPixelLayout:NULL;
 		default:
 			return 0;
 		}	
@@ -910,6 +967,7 @@ public:
 	BOOL WINAPI EnableCache(BOOL bEnable){g_ccbCache = bEnable; return true;};
 	BOOL WINAPI ClearIndividual(){
 		CGdippSettings* pSettings = CGdippSettings::GetInstance();
+		CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
 		pSettings->m_arrIndividual.RemoveAll();
 		m_bDirty = true;
 		return true;
@@ -917,7 +975,6 @@ public:
 	BOOL WINAPI AddIndividual(WCHAR* fontSetting) 
 	{ 
 		CGdippSettings* pSettings = CGdippSettings::GetInstance();
-		IndividualArray& arr = pSettings->m_arrIndividual;
 		LPTSTR p = fontSetting;
 		LOGFONT truefont={0};
 		if (*p) {
@@ -936,6 +993,8 @@ public:
 			}
 			TCHAR buff[LF_FACESIZE+1];				
 			GetFontLocalName(p, buff); //转换字体名
+			CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
+			IndividualArray& arr = pSettings->m_arrIndividual;
 
 			CFontIndividual fi(buff);
 			const CFontSettings& fsCommon = pSettings->m_FontSettings;
@@ -962,29 +1021,31 @@ public:
 		}
 		m_bDirty = true;
 		return true; };
-	BOOL WINAPI DelIndividual(WCHAR* lpFaceName) { 
+	BOOL WINAPI DelIndividual(WCHAR* lpFaceName) {
 		CGdippSettings* pSettings = CGdippSettings::GetInstance();
-		CFontIndividual* p		= pSettings->m_arrIndividual.Begin();
-		CFontIndividual* end	= pSettings->m_arrIndividual.End();
 		StringHashFont hash(lpFaceName);
-
-		for(; p != end; ++p) {
-			if (p->GetHash() == hash) {
-				pSettings->m_arrIndividual.Remove(*p);
-			}
+		CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
+		IndividualArray& arr = pSettings->m_arrIndividual;
+		for (int index = arr.GetSize() - 1; index >= 0; --index) {
+			if (arr[index].GetHash() == hash)
+				arr.RemoveAt(index);
 		}
 		m_bDirty = true;
-		return true;};
+		return true;
+	}
 	void WINAPI LoadSetting(const WCHAR* lpFileName)
 	{
-		CGdippSettings* pSettings = CGdippSettings::GetInstance();
-		ClearIndividual();
-		pSettings->m_FontSubstitutesInfoForDW.RemoveAll();
-		pSettings->m_FontSubstitutesInfo.RemoveAll();
-		pSettings->m_fontlinkinfo.clear();
-		pSettings->LoadAppSettings(lpFileName);
-		pSettings->m_bDelayedInit = false;
-		m_bDirty = true;
+		{
+			CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
+			CGdippSettings* pSettings = const_cast<CGdippSettings*>(CGdippSettings::GetInstanceNoInit());
+			settings_snapshot::ResetFontLists(pSettings->m_fontFilterLists,
+				pSettings->m_fontSubstitutes, pSettings->m_fontLinks);
+			pSettings->m_arrIndividual.RemoveAll();
+			pSettings->m_FontSubstitutesInfoForDW.RemoveAll();
+			pSettings->LoadAppSettings(lpFileName);
+			pSettings->m_bDelayedInit = false;
+			m_bDirty = true;
+		}
 		RefreshAlphaTable();
 		RefreshSetting();
 	}
@@ -996,15 +1057,17 @@ public:
 	};
 	static void WINAPI ReloadConfig()
 	{
-		//CCriticalSectionLock __lock(CCriticalSectionLock::CS_LIBRARY);
-		CGdippSettings* pSettings = CGdippSettings::GetInstance();
-		extern HINSTANCE g_dllInstance;
-		pSettings->m_arrIndividual.RemoveAll();
-		pSettings->m_FontSubstitutesInfoForDW.RemoveAll();
-		pSettings->m_FontSubstitutesInfo.RemoveAll();
-		pSettings->m_fontlinkinfo.clear();
-		pSettings->LoadSettings(g_dllInstance);
-		pSettings->m_bDelayedInit = false;
+		{
+			CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
+			CGdippSettings* pSettings = const_cast<CGdippSettings*>(CGdippSettings::GetInstanceNoInit());
+			settings_snapshot::ResetFontLists(pSettings->m_fontFilterLists,
+				pSettings->m_fontSubstitutes, pSettings->m_fontLinks);
+			extern HINSTANCE g_dllInstance;
+			pSettings->m_arrIndividual.RemoveAll();
+			pSettings->m_FontSubstitutesInfoForDW.RemoveAll();
+			pSettings->LoadSettings(g_dllInstance);
+			pSettings->m_bDelayedInit = false;
+		}
 		RefreshAlphaTable();
 		UpdateLcdFilter();
 		if (g_pFTEngine)
@@ -1065,30 +1128,22 @@ public:
 	LRESULT WINAPI MsgProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 		switch (msg) {
 			case WM_COPYDATA: {
-				COPYDATASTRUCT* data = (COPYDATASTRUCT*)lparam;
-				if (data->cbData && data->lpData) {	// ignore invalid request.
-					string json;
-					json.resize(data->cbData);
-					memcpy((void*)json.c_str(), data->lpData, data->cbData);
-					// now parse the json string
-					auto jsonobj = json::parse(json.begin(), json.end());
-					string command = jsonobj["command"].get<std::string>();
-					// various command dispatch
-					if (command == "loadprofile") {	// load target profile from disk
-						string filename = jsonobj["file"].get<std::string>();
-						if (filename.length()) {
-							this->LoadSetting(to_wide_string(filename).c_str());
-							RedrawCurrentApp();
-						}
+				try {
+					const COPYDATASTRUCT* data = reinterpret_cast<const COPYDATASTRUCT*>(lparam);
+					if (!data)
+						return ERROR_INVALID_DATA;
+					const auto command = renderer::ParseControlMessage(data->lpData, data->cbData);
+					if (command.kind == renderer::ControlMessageKind::ping)
+						return ERROR_SUCCESS;
+					if (command.kind == renderer::ControlMessageKind::loadProfile) {
+						this->LoadSetting(to_wide_string(command.path).c_str());
+						RedrawCurrentApp();
 						return ERROR_SUCCESS;
 					}
-					if (command == "ping") {
-						//__asm db 0xcc;	// cause debugger to break
-						//DebugBreak();
-						return ERROR_SUCCESS;
-					}
+				} catch (...) {
+					return ERROR_INVALID_DATA;
 				}
-				break;
+				return ERROR_INVALID_DATA;
 			}
 			default: {
 				return DefWindowProc(hwnd, msg, wparam, lparam);

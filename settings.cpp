@@ -70,13 +70,10 @@ vector<int> SplitString(LPCTSTR str) {
 }
 
 const wstring GetAppDir() {
-	static wstring AppDir;
-	if (AppDir.length()) {
-		return AppDir;
-	}
+	wstring AppDir;
 	WCHAR name[MAX_PATH] = { 0 };
 
-	int nSize = GetModuleFileName(NULL, name, MAX_PATH + 1);
+	int nSize = GetModuleFileName(NULL, name, countof(name));
 	PathRemoveFileSpec(name);
 	AppDir = wstring(name) + L"\\"; // path should always end with a "\"
 	AppDir = LowerCase(AppDir);
@@ -205,7 +202,10 @@ void CGdippSettings::DelayedInit()
 		AddListFromSection(names.c_str(), m_szFileName, arrFontSubstitutes);
 	else
 		AddListFromSection(_T("FontSubstitutes"), m_szFileName, arrFontSubstitutes);
-	m_FontSubstitutesInfo.init(m_nFontSubstitutes, arrFontSubstitutes);
+	auto substitutes = std::make_shared<CFontSubstitutesInfo>();
+	substitutes->init(m_nFontSubstitutes, arrFontSubstitutes);
+	std::atomic_store(&m_fontSubstitutes,
+		std::shared_ptr<const CFontSubstitutesInfo>(substitutes));
 
 	names = _T("Individual@") + wstring(m_szexeName);
 	if (_IsFreeTypeProfileSectionExists(names.c_str(), NULL))
@@ -215,14 +215,17 @@ void CGdippSettings::DelayedInit()
 
 	AddExcludeListFromSection(_T("Exclude"), NULL, m_arrExcludeFont);
 	AddExcludeListFromSection(_T("Include"), NULL, m_arrIncludeFont);	//I know it's include not exclude, but they share the same logic.
+	PublishFontFilterLists();
 	//WritePrivateProfileString(NULL, NULL, NULL, m_szFileName);
 
 	//m_bDelayedInit = true;
 
-	//FontLink
-	if (FontLink()) {
-		m_fontlinkinfo.init();
-	}
+	// Retained enumerators keep their names while the registry table is rebuilt.
+	auto links = std::make_shared<CFontLinkInfo>();
+	links->CopyDefaultsFrom(*GetFontLinkInfo());
+	if (FontLink())
+		links->init();
+	std::atomic_store(&m_fontLinks, std::shared_ptr<const CFontLinkInfo>(links));
 
 	// check wheteher harmony LCD should be used over ClearType
 	FT_LCDMode_Set(freetype_library, this->HarmonyLCD() ? 1 : 0);
@@ -505,6 +508,7 @@ void CGdippSettings::GetOSVersion() {
 
 bool CGdippSettings::LoadAppSettings(LPCTSTR lpszFile)
 {
+	CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
 	// 各種設定読み込み
 	// INIファイルの例:
 	// [General]
@@ -653,6 +657,7 @@ SKIP:
 		TCHAR sAffinity[260] = { 0 };
 		_GetFreeTypeProfileString(_T("DisplayAffinity"), _T(""), sAffinity, 256, lpszFile);
 		auto displays = SplitString(sAffinity);
+		m_nDisplayAffinity.clear();
 		for (auto id : displays) {
 			m_nDisplayAffinity.insert(id);
 		}
@@ -787,6 +792,7 @@ SKIP:
 		m_bUseCustomLcdFilter = AddLcdFilterFromSection(_T("LcdFilterWeight"), lpszFile, m_arrLcdFilterWeights);
 	
 	m_bUseCustomPixelLayout = AddPixelModeFromSection(_T("PixelLayout"), lpszFile, m_arrPixelLayout);
+	PublishAdmissionLists();
 
 	return true;
 }
@@ -1053,130 +1059,103 @@ bool CGdippSettings::IsFontExcluded(LPCSTR lpFaceName) const
 	return b;
 }
 
+void CGdippSettings::PublishAdmissionLists()
+{
+	auto lists = std::make_shared<settings_snapshot::AdmissionLists>();
+	lists->excludeModules = m_arrExcludeModule;
+	lists->includeModules = m_arrIncludeModule;
+	lists->unloadModules = m_arrUnloadModule;
+	lists->displayAffinity = m_nDisplayAffinity;
+	lists->runFromGdiExe = m_bRunFromGdiExe;
+	lists->useInclude = m_bIsInclude;
+	std::atomic_store(&m_admissionLists,
+		std::shared_ptr<const settings_snapshot::AdmissionLists>(lists));
+}
+
+void CGdippSettings::PublishFontFilterLists()
+{
+	auto lists = std::make_shared<settings_snapshot::FontFilterLists>();
+	lists->excludeFonts = m_arrExcludeFont;
+	lists->includeFonts = m_arrIncludeFont;
+	std::atomic_store(&m_fontFilterLists,
+		std::shared_ptr<const settings_snapshot::FontFilterLists>(lists));
+}
+
 bool CGdippSettings::IsFontExcluded(LPCWSTR lpFaceName) const
 {
-	FontHashMap::const_iterator it = m_arrExcludeFont.find(lpFaceName);
-	bool bExcluded = it != m_arrExcludeFont.end();	// if it's excluded, true
-	if (!bExcluded && m_arrIncludeFont.size() != 0) {	// if it's not excluded, and includefont enabled
-		FontHashMap::const_iterator it = m_arrIncludeFont.find(lpFaceName);
-		bExcluded = it == m_arrIncludeFont.end();	// check if it's included
-	}
-	return bExcluded;
+	const auto lists = std::atomic_load(&m_fontFilterLists);
+	return lists->IsExcluded(lpFaceName);
 }
 
 void CGdippSettings::AddFontExclude(LPCWSTR lpFaceName)
 {
-	if (!IsFontExcluded(lpFaceName))
+	CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
+	const auto current = std::atomic_load(&m_fontFilterLists);
+	if (!current->IsExcluded(lpFaceName)) {
+		auto lists = std::make_shared<settings_snapshot::FontFilterLists>(*current);
+		lists->excludeFonts.insert(lpFaceName);
 		m_arrExcludeFont.insert(lpFaceName);
+		std::atomic_store(&m_fontFilterLists,
+			std::shared_ptr<const settings_snapshot::FontFilterLists>(lists));
+	}
 }
 
-bool CGdippSettings::IsProcessUnload() const
+bool CGdippSettings::IsProcessUnload(const settings_snapshot::AdmissionLists& lists) const
 {
-	if (m_bRunFromGdiExe) {
+	if (lists.runFromGdiExe)
 		return false;
-	}
 	GetEnvironmentVariableW(L"MACTYPE_FORCE_LOAD", NULL, 0);
-	if (GetLastError()!=ERROR_ENVVAR_NOT_FOUND)
+	if (GetLastError() != ERROR_ENVVAR_NOT_FOUND)
 		return false;
-	ModuleHashMap::const_iterator it = m_arrUnloadModule.begin();
-	for(; it != m_arrUnloadModule.end(); ++it) {
-		if (IsFolder(it->c_str())) {
-			// if the user is trying to include a folder instead of a single executable.
-			if (GetAppDir() == LowerCase(*it)) {
-				return true;
-			}
-		}
-		else
-		if (GetModuleHandleW(it->c_str())) {
-			return true;
-		}
-	}
-	return false;
+	return settings_snapshot::MatchesProcess(lists.unloadModules, GetAppDir, false,
+		LowerCase, [](LPCWSTR module) { return GetModuleHandleW(module) != NULL; });
 }
 
-bool CGdippSettings::IsExeUnload(LPCTSTR lpApp) const	//紒E槭欠裨诤诿チ斜?
+bool CGdippSettings::IsExeUnload(LPCTSTR lpApp, const settings_snapshot::AdmissionLists& lists) const
 {
-	if (m_bRunFromGdiExe) {
+	if (lists.runFromGdiExe)
 		return false;
-	}
 	GetEnvironmentVariableW(L"MACTYPE_FORCE_LOAD", NULL, 0);
-	if (GetLastError()!=ERROR_ENVVAR_NOT_FOUND)
+	if (GetLastError() != ERROR_ENVVAR_NOT_FOUND)
 		return false;
-	ModuleHashMap::const_iterator it = m_arrUnloadModule.begin();
-	for(; it != m_arrUnloadModule.end(); ++it) {
-		if (!lstrcmpi(lpApp, it->c_str())) {	//匹配排除蟻E
-			return true;
-		}
-	}
-	return false;
+	return settings_snapshot::MatchesExecutable(lists.unloadModules, lpApp,
+		[](LPCWSTR left, LPCWSTR right) { return lstrcmpiW(left, right) == 0; });
 }
 
-bool CGdippSettings::IsExeInclude(LPCTSTR lpApp) const	//紒E槭欠裨诎酌チ斜?
+bool CGdippSettings::IsExeInclude(LPCTSTR lpApp, const settings_snapshot::AdmissionLists& lists) const
 {
-	if (m_bRunFromGdiExe) {
+	if (lists.runFromGdiExe)
 		return false;
-	}
 	GetEnvironmentVariableW(L"MACTYPE_FORCE_LOAD", NULL, 0);
-	if (GetLastError()!=ERROR_ENVVAR_NOT_FOUND)
+	if (GetLastError() != ERROR_ENVVAR_NOT_FOUND)
 		return false;
-	ModuleHashMap::const_iterator it = m_arrIncludeModule.begin();
-	for(; it != m_arrIncludeModule.end(); ++it) {
-		if (!lstrcmpi(lpApp, it->c_str())) {	//匹配排除蟻E
-			return true;
-		}
-	}
-	return false;
+	return settings_snapshot::MatchesExecutable(lists.includeModules, lpApp,
+		[](LPCWSTR left, LPCWSTR right) { return lstrcmpiW(left, right) == 0; });
 }
 
-bool CGdippSettings::IsProcessExcluded() const
+bool CGdippSettings::IsProcessExcluded(const settings_snapshot::AdmissionLists& lists) const
 {
-	if (m_bRunFromGdiExe) {
+	if (lists.runFromGdiExe)
 		return false;
-	}
 	GetEnvironmentVariableW(L"MACTYPE_FORCE_EXCLUDE", NULL, 0);
 	if (GetLastError() != ERROR_ENVVAR_NOT_FOUND)
 		return true;
 	GetEnvironmentVariableW(L"MACTYPE_FORCE_LOAD", NULL, 0);
-	if (GetLastError()!=ERROR_ENVVAR_NOT_FOUND)
+	if (GetLastError() != ERROR_ENVVAR_NOT_FOUND)
 		return false;
-	ModuleHashMap::const_iterator it = m_arrExcludeModule.begin();
-	for(; it != m_arrExcludeModule.end(); ++it) {
-		if (IsFolder(it->c_str())) {
-			// if the user is trying to exclude a folder instead of a single executable.
-			if (GetAppDir().find(LowerCase(*it)) == 0) {
-				return true;
-			}
-		}
-		else
-		if (GetModuleHandleW(it->c_str())) {
-			return true;
-		}
-	}
-	return false;
+	return settings_snapshot::MatchesProcess(lists.excludeModules, GetAppDir, true,
+		LowerCase, [](LPCWSTR module) { return GetModuleHandleW(module) != NULL; });
 }
 
-bool CGdippSettings::IsProcessIncluded() const
+bool CGdippSettings::IsProcessIncluded(const settings_snapshot::AdmissionLists& lists) const
 {
-	if (m_bRunFromGdiExe) {
+	if (lists.runFromGdiExe)
 		return true;
-	}
 	GetEnvironmentVariableW(L"MACTYPE_FORCE_LOAD", NULL, 0);
-	if (GetLastError()!=ERROR_ENVVAR_NOT_FOUND)
+	if (GetLastError() != ERROR_ENVVAR_NOT_FOUND)
 		return true;
-	ModuleHashMap::const_iterator it = m_arrIncludeModule.begin();
-	for(; it != m_arrIncludeModule.end(); ++it) {
-		if (IsFolder(it->c_str())) {
-			// if the user is trying to include a folder instead of a single executable.
-			if (GetAppDir() == LowerCase(*it)) {
-				return true;
-			}
-		}
-		else
-		if (GetModuleHandleW(it->c_str())) {
-			return true;
-		}
-	}
-	return false;
+	return settings_snapshot::MatchesProcess(lists.includeModules, GetAppDir, false,
+		LowerCase, [](LPCWSTR module) { return GetModuleHandleW(module) != NULL; });
 }
 
 void CGdippSettings::InitInitTuneTable()
@@ -1215,8 +1194,9 @@ void CGdippSettings::InitTuneTable(int v, int* table)
 
 //見つからない場合は共通設定を返す
 extern BOOL g_ccbIndividual;
-const CFontSettings& CGdippSettings::FindIndividual(LPCTSTR lpFaceName) const
+CFontSettings CGdippSettings::FindIndividual(LPCTSTR lpFaceName) const
 {
+	CCriticalSectionLock __lock(CCriticalSectionLock::CS_SETTING);
 	CFontIndividual* p		= m_arrIndividual.Begin();
 	CFontIndividual* end	= m_arrIndividual.End();
 	if (lpFaceName && *lpFaceName==L'@')
@@ -1225,7 +1205,7 @@ const CFontSettings& CGdippSettings::FindIndividual(LPCTSTR lpFaceName) const
 
 	for(; p != end; ++p) {
 		if (p->GetHash() == hash) {
-			CFontSettings& result = p->GetIndividual();
+			CFontSettings result = p->GetIndividual();
 			if (result.GetAntiAliasMode() > 2 && HarmonyLCD())
 				result.SetAntiAliasMode(2);
 			return result;
@@ -1255,7 +1235,7 @@ int CGdippSettings::_GetAlternativeProfileName(LPTSTR lpszName, LPCTSTR lpszFile
 
 bool CGdippSettings::CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const
 {
-	_ASSERTE(m_bDelayedInit);
+	const auto substitutes = std::atomic_load(&m_fontSubstitutes);
 	//__asm{ int 3 }
 	GetEnvironmentVariableW(L"MACTYPE_FONTSUBSTITUTES_ENV", NULL, 0);
 	if (GetLastError()!=ERROR_ENVVAR_NOT_FOUND)
@@ -1264,7 +1244,7 @@ bool CGdippSettings::CopyForceFont(LOGFONT& lf, const LOGFONT& lfOrg) const
 	bool bForceFont = false;
 	BOOL bFontExist = true;
 	const LOGFONT *lplf;
-	lplf = GetFontSubstitutesInfo().lookup((LOGFONT&)lfOrg);
+	lplf = substitutes->lookup((LOGFONT&)lfOrg);
 	if (lplf) bForceFont = true;
 
 	if (bForceFont) {
@@ -1287,6 +1267,7 @@ const char CFontSettings::m_bound[MAX_FONT_SETTINGS][2] = {
 CFontLinkInfo::CFontLinkInfo()
 {
 	memset(&info, 0, sizeof info);
+	memset(DefaultFontLink, 0, sizeof(DefaultFontLink));
 	memset(AllowDefaultLink, 1, sizeof(AllowDefaultLink));	//默认允喧笾体链接
 }
 
@@ -1786,6 +1767,7 @@ CFontFaceNamesEnumerator::CFontFaceNamesEnumerator(LPCWSTR facename, int nFontFa
 {
 	//CCriticalSectionLock __lock;
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
+	m_fontLinks = pSettings->GetFontLinkInfo();
 	TCHAR  buff[LF_FACESIZE+1];
 	GetFontLocalName((TCHAR*)facename, buff);
 	LPCWSTR srcfacenames[] = {
@@ -1796,7 +1778,7 @@ CFontFaceNamesEnumerator::CFontFaceNamesEnumerator(LPCWSTR facename, int nFontFa
 	for (const LPCWSTR *p = srcfacenames; *p && destpos < MAXFACENAMES; ++p) {
 		m_facenames[destpos++] = *p;
 		if (pSettings->FontLink()) {
-			const LPCWSTR *facenamep = pSettings->GetFontLinkInfo().lookup(*p);
+			const LPCWSTR *facenamep = m_fontLinks->lookup(*p);
 			if (facenamep) {
 				for ( ; *facenamep && **facenamep && destpos < MAXFACENAMES; ++facenamep) {
 					m_facenames[destpos++] = *facenamep;
@@ -1807,7 +1789,7 @@ CFontFaceNamesEnumerator::CFontFaceNamesEnumerator(LPCWSTR facename, int nFontFa
 	m_facenames[0] = facename;
 	if (pSettings->IsWinXPorLater() && pSettings->FontLink() &&
 		pSettings->FontLoader() == SETTING_FONTLOADER_FREETYPE) {
-			m_facenames[destpos++] = pSettings->GetFontLinkInfo().sysfn(nFontFamily);
+			m_facenames[destpos++] = m_fontLinks->sysfn(nFontFamily);
 	}
 	m_endpos = destpos;
 }

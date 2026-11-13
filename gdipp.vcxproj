@@ -868,6 +868,8 @@
     <ClInclude Include="ownedcs.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="settings.h" />
+    <ClInclude Include="settings_snapshot.h" />
+    <ClInclude Include="control_message.h" />
     <ClInclude Include="stdint.h" />
     <ClInclude Include="strtoken.h" />
     <ClInclude Include="supinfo.h" />

@@ -1,0 +1,8 @@
+{
+  "language": "English",
+  "productName": "MacType Control Center",
+  "profileName": "Control Center Default",
+  "modeManual": "Manual launch",
+  "modeTray": "Control Center tray",
+  "systemModeWarning": "Legacy service and AppInit modes are detected but are not changed."
+}

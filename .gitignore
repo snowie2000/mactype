@@ -7,3 +7,14 @@ Rel*/
 x64/
 *.vcxproj.user
 *.DotSettings.user
+control-center/node_modules/
+control-center/dist/
+control-center/src-tauri/target/
+service-runtime/target/
+/target/
+build/
+artifacts/
+/detours.lib
+/detours64.lib
+tmp/
+.superloopy/cache/

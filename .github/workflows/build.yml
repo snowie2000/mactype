@@ -1,0 +1,129 @@
+name: Build MacType Control Center
+
+run-name: Build Control Center ${{ inputs.version }} from ${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version embedded in the generated installer
+        required: true
+        default: 0.1.0
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  open-core:
+    name: Build MacType x86/x64 open core
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: microsoft/setup-msbuild@v3
+      - name: Build official dependencies, core, and fixed injectors
+        shell: pwsh
+        run: .github/scripts/Build-OpenCore.ps1
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mactype-open-core
+          path: artifacts/open-core
+          if-no-files-found: error
+          retention-days: 14
+
+  control-center:
+    name: Build Control Center, native service, and installer
+    needs: open-core
+    runs-on: windows-2022
+    timeout-minutes: 45
+    env:
+      APP_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate installer version
+        shell: pwsh
+        run: |
+          if ($env:APP_VERSION -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$') {
+            throw "Version must look like 1.2.3 or 1.2.3-preview.1, got '$env:APP_VERSION'."
+          }
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: control-center/pnpm-lock.yaml
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: microsoft/setup-msbuild@v3
+      - uses: actions/download-artifact@v8
+        with:
+          name: mactype-open-core
+          path: artifacts/open-core
+      - name: Install frontend dependencies
+        working-directory: control-center
+        run: pnpm install --frozen-lockfile
+      - name: Build Preview Helper, frontend, and Tauri application
+        shell: pwsh
+        run: .github/scripts/Build-ControlCenter.ps1 -Configuration Release -SkipInstall
+      - name: Build immutable native service runtime and payload
+        shell: pwsh
+        run: |
+          $shortSha = '${{ github.sha }}'.Substring(0, 12).ToLowerInvariant()
+          $runtimeVersion = "0.2.0+manual.${{ github.run_id }}.$shortSha"
+          .github/scripts/Build-ServiceRuntime.ps1 `
+            -CoreRoot artifacts/open-core `
+            -OutputRoot artifacts/service-runtime `
+            -Version $runtimeVersion
+      - name: Build Inno Setup installer
+        shell: pwsh
+        run: |
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' `
+            /DAppVersion="$env:APP_VERSION" `
+            /DSourceRoot="${{ github.workspace }}" `
+            /DOutputRoot="${{ github.workspace }}\artifacts\installer" `
+            /DAppExe="${{ github.workspace }}\artifacts\application\MacType Control Center.exe" `
+            /DPreviewExe="${{ github.workspace }}\build\preview-helper\Release\mactype-preview32.exe" `
+            /DCoreRoot="${{ github.workspace }}\artifacts\open-core" `
+            /DServiceRuntimeRoot="${{ github.workspace }}\artifacts\service-runtime" `
+            installer\mactype-control-center.iss
+      - name: Write installer checksum
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem artifacts/installer/*.exe | Select-Object -First 1
+          if (-not $installer) { throw 'The installer was not created.' }
+          $hash = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLowerInvariant()
+          "$hash  $($installer.Name)" | Set-Content -Encoding ascii artifacts/installer/SHA256SUMS.txt
+      - name: Build the Integration/Developer bundle
+        shell: pwsh
+        run: |
+          .github/scripts/Build-IntegrationDeveloperBundle.ps1 `
+            -ApplicationExe 'artifacts/application/MacType Control Center.exe' `
+            -PreviewHelper 'build/preview-helper/Release/mactype-preview32.exe' `
+            -CoreRoot 'artifacts/open-core' `
+            -ServiceRuntimeRoot 'artifacts/service-runtime' `
+            -OutputRoot 'artifacts/integration-developer-bundle'
+          Compress-Archive `
+            -LiteralPath 'artifacts/integration-developer-bundle/README.md', 'artifacts/integration-developer-bundle/installation-tree' `
+            -DestinationPath 'artifacts/integration-developer-bundle/MacType-Control-Center-Integration-Developer-Bundle.zip' `
+            -Force
+          $bundle = 'artifacts/integration-developer-bundle/MacType-Control-Center-Integration-Developer-Bundle.zip'
+          $hash = (Get-FileHash -Algorithm SHA256 $bundle).Hash.ToLowerInvariant()
+          "$hash  $([IO.Path]::GetFileName($bundle))" | Set-Content -Encoding ascii artifacts/integration-developer-bundle/INTEGRATION_SHA256SUMS.txt
+      - name: Upload final-user installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: mactype-control-center-installer-${{ inputs.version }}
+          path: |
+            artifacts/installer/MacType-Control-Center-Installer.exe
+            artifacts/installer/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload Integration/Developer bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: mactype-control-center-integration-developer-bundle-${{ inputs.version }}
+          path: artifacts/integration-developer-bundle/
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,37 @@
+{
+  "labels": [
+    { "key": "title", "cppMember": "title", "default": "MacType Preview" },
+    { "key": "fontFace", "cppMember": "font_face", "default": "Font" },
+    { "key": "fontSize", "cppMember": "font_size", "default": "Size" },
+    { "key": "bold", "cppMember": "bold", "default": "B" },
+    { "key": "italic", "cppMember": "italic", "default": "I" },
+    { "key": "modeSample", "cppMember": "mode_sample", "default": "Sample" },
+    { "key": "modeLadder", "cppMember": "mode_ladder", "default": "Ladder" },
+    { "key": "modeCompare", "cppMember": "mode_compare", "default": "Compare" },
+    { "key": "modeListing", "cppMember": "mode_listing", "default": "Listing" },
+    { "key": "invert", "cppMember": "invert", "default": "Invert" },
+    { "key": "loupe", "cppMember": "loupe", "default": "Loupe" },
+    { "key": "zoom", "cppMember": "zoom", "default": "Zoom" },
+    { "key": "topmost", "cppMember": "topmost", "default": "Top" },
+    { "key": "editText", "cppMember": "edit_text", "default": "Edit" },
+    { "key": "savePng", "cppMember": "save_png", "default": "Save" },
+    { "key": "copy", "cppMember": "copy", "default": "Copy" },
+    { "key": "compareMacType", "cppMember": "compare_mactype", "default": "MacType" },
+    { "key": "compareWindows", "cppMember": "compare_windows", "default": "Windows" },
+    { "key": "compareUnavailable", "cppMember": "compare_unavailable", "default": "Comparison unavailable" },
+    { "key": "engineMacType", "cppMember": "engine_mactype", "default": "MacType" },
+    { "key": "coreVersion", "cppMember": "core_version", "default": "Core {version}" },
+    { "key": "pngFilter", "cppMember": "png_filter", "default": "PNG files (*.png)|*.png" },
+    { "key": "saved", "cppMember": "saved", "default": "Saved" },
+    { "key": "copied", "cppMember": "copied", "default": "Copied" }
+  ],
+  "chrome": {
+    "skin": "classic",
+    "palettes": {
+      "light": { "canvas": "#F3F5F7", "surface": "#FFFFFF", "surfaceSubtle": "#E9EDF1", "border": "#C9D1D8", "text": "#17212B", "muted": "#5A6773", "accent": "#0067C0", "onAccent": "#FFFFFF" },
+      "dark": { "canvas": "#11161B", "surface": "#192027", "surfaceSubtle": "#222B33", "border": "#34414C", "text": "#E8EDF2", "muted": "#9AA8B5", "accent": "#4CA6E8", "onAccent": "#07131C" }
+    },
+    "metrics": { "radius": 4, "controlHeight": 32, "toolbarHeight": 44, "statusHeight": 28, "canvasRadius": 4, "canvasInset": 18, "monoStatus": false }
+  },
+  "ladderSizes": [8, 9, 10, 11, 12, 14, 16, 18, 20, 24]
+}

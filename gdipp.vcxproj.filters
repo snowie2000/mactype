@@ -130,6 +130,12 @@
     <ClInclude Include="settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="settings_snapshot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="control_message.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="stdint.h">
       <Filter>Header Files</Filter>
     </ClInclude>

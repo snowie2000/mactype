@@ -1,0 +1,16 @@
+{
+  "exceptions": [
+    {
+      "advisory": "RUSTSEC-2024-0429",
+      "ghsa": "GHSA-wrw7-89jp-8q8g",
+      "package": "glib",
+      "lockedVersion": "0.18.5",
+      "reason": "Tauri 2.11.5 resolves this crate only for its Linux GTK backend; MacType Control Center supports Windows only.",
+      "supportedTargets": [
+        "x86_64-pc-windows-msvc",
+        "i686-pc-windows-msvc"
+      ],
+      "reviewAfter": "2027-01-31"
+    }
+  ]
+}

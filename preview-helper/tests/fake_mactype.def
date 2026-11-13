@@ -1,0 +1,3 @@
+EXPORTS
+  CreateControlCenter=_CreateControlCenter@4
+  DllGetVersion=_DllGetVersion@4

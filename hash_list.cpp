@@ -1,6 +1,7 @@
 #include "hash_list.h"
 #include <cwctype>
 #include <algorithm>
+#include <memory>
 
 void CHashedStringList::Add(TCHAR * String, TCHAR * Value)
 {
@@ -8,30 +9,24 @@ void CHashedStringList::Add(TCHAR * String, TCHAR * Value)
 	if (!m_bCaseSense)
 		std::transform(buff.begin(), buff.end(), buff.begin(), ::towlower);
 
-	strmap::iterator it = stringmap.find(buff);
-	if (it == stringmap.end()) {
-		stringmap[buff] = _wcsdup(Value);
-	}
-}
-
-void CHashedStringList::Delete(TCHAR * String)
-{
-	std::wstring buff = String;
-	if (!m_bCaseSense)
-		std::transform(buff.begin(), buff.end(), buff.begin(), ::towlower);
-	stringmap.erase(buff);
+	std::unique_ptr<wchar_t, decltype(&free)> value(_wcsdup(Value), &free);
+	if (!value)
+		return;
+	AcquireSRWLockExclusive(&m_lock);
+	const std::unique_ptr<SRWLOCK, decltype(&ReleaseSRWLockExclusive)> lock(
+		&m_lock, &ReleaseSRWLockExclusive);
+	if (stringmap.emplace(buff, value.get()).second)
+		value.release();
 }
 
 TCHAR * CHashedStringList::Find(TCHAR * String)
 {
-	TCHAR* b = _wcsdup(String);
+	std::wstring buff = String;
 	if (!m_bCaseSense)
-		b = _wcslwr(b);
-	std::wstring buff = b;
-	free(b);
-	strmap::iterator it = stringmap.find(buff);
-	if (it != stringmap.end())
-		return it->second;
-	else
-		return NULL;
+		std::transform(buff.begin(), buff.end(), buff.begin(), ::towlower);
+	AcquireSRWLockShared(&m_lock);
+	const std::unique_ptr<SRWLOCK, decltype(&ReleaseSRWLockShared)> lock(
+		&m_lock, &ReleaseSRWLockShared);
+	const auto it = stringmap.find(buff);
+	return it == stringmap.end() ? NULL : it->second;
 }

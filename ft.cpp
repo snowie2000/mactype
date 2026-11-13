@@ -1755,7 +1755,7 @@ BOOL ForEachGetGlyphFT(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString,
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 	//Snowie!!
 	BOOL bIsSymbol = GetTextCharsetInfo(FTInfo.hdc, NULL, 0) == SYMBOL_CHARSET;
-	BOOL bAllowDefaultLink = pSettings->GetFontLinkInfo().IsAllowFontLink((BYTE)GetTextCharsetInfo(FTInfo.hdc, NULL, 0));	//是否为符号
+	BOOL bAllowDefaultLink = pSettings->GetFontLinkInfo()->IsAllowFontLink((BYTE)GetTextCharsetInfo(FTInfo.hdc, NULL, 0));	//是否为符号
 	BOOL nRet = true;
 	BOOL bWindowsLink = pSettings->FontLink() == 2;
 	//!!Snowie
@@ -2275,7 +2275,7 @@ BOOL ForEachGetGlyphGGO(FreeTypeDrawInfo& FTInfo, LPCTSTR lpString, int cbString
 	const CGdippSettings* pSettings = CGdippSettings::GetInstance();
 	//Snowie!!
 	BOOL bIsSymbol = GetTextCharsetInfo(FTInfo.hdc, NULL, 0) == SYMBOL_CHARSET;
-	BOOL bAllowDefaultLink = pSettings->GetFontLinkInfo().IsAllowFontLink((BYTE)GetTextCharsetInfo(FTInfo.hdc, NULL, 0));	//是否为符号
+	BOOL bAllowDefaultLink = pSettings->GetFontLinkInfo()->IsAllowFontLink((BYTE)GetTextCharsetInfo(FTInfo.hdc, NULL, 0));	//是否为符号
 	BOOL nRet = true;
 	BOOL bWindowsLink = pSettings->FontLink() == 2;
 	//!!Snowie
