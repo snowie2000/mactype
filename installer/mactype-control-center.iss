@@ -78,11 +78,13 @@ korean.ForeignContentsButton=계속
 english.StartServicePageCaption=Start the MacType service now?
 english.StartServicePageDescription=Choose whether MacType starts applying fonts as soon as setup finishes.
 english.StartServicePageSubCaption=The service is installed either way. Leave the box unchecked to install it without starting it; you can start it later from MacType Control Center.
-english.StartServiceOption=Start the service right after installation. The bundled default profile (Default.ini) is applied right away to apps that are already open and to apps opened later.
+english.StartServiceOption=Start the service right after installation.
+english.StartServiceOptionDetail=The bundled default profile (Default.ini) is applied right away to apps that are already open and to apps opened later.
 korean.StartServicePageCaption=MacType 서비스를 바로 시작할까요?
 korean.StartServicePageDescription=설치가 끝나자마자 MacType가 글꼴 적용을 시작할지 정합니다.
 korean.StartServicePageSubCaption=서비스는 어느 쪽이든 설치됩니다. 선택하지 않으면 서비스를 설치만 하고 시작하지 않으며, 나중에 MacType Control Center에서 시작할 수 있습니다.
-korean.StartServiceOption=설치 직후 서비스를 시작합니다. 이미 열려 있는 앱과 나중에 여는 앱에 기본 프로필(Default.ini)이 바로 적용됩니다.
+korean.StartServiceOption=설치 직후 서비스를 시작합니다.
+korean.StartServiceOptionDetail=이미 열려 있는 앱과 나중에 여는 앱에 기본 프로필(Default.ini)이 바로 적용됩니다.
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
@@ -145,7 +147,8 @@ var
   DeferredRuntimeCleanup: Boolean;
   ExistingInstallState: Integer;
   ExistingInstallPage: TOutputMsgWizardPage;
-  StartServicePage: TInputOptionWizardPage;
+  StartServicePage: TWizardPage;
+  StartServiceCheckBox: TNewCheckBox;
   ExistingInstallNextCaption: String;
   ExistingInstallClassified: Boolean;
   RootCleanupPreservedUninstaller: String;
@@ -387,25 +390,64 @@ end;
 
 function BootstrapVerb: String;
 begin
-  if StartServicePage.Values[0] then
+  if StartServiceCheckBox.Checked then
     Result := 'bootstrap-install'
   else
     Result := 'bootstrap-install-preserve-run-state';
 end;
 
-procedure InitializeWizard;
+{ The choice is a native check box with its consequence as plain text under
+  it. The stock input-option page keeps its choices in an owner-drawn list
+  that erases and redraws an item's check area, unbuffered, each time the
+  pointer enters or leaves the item, and on this page that showed as flicker.
+  Windows draws a native check box itself, hover state included. }
+procedure CreateStartServicePage;
+var
+  SubCaption: TNewStaticText;
+  Detail: TNewStaticText;
 begin
-  StartServicePage := CreateInputOptionPage(
+  StartServicePage := CreateCustomPage(
     wpSelectTasks,
     CustomMessage('StartServicePageCaption'),
-    CustomMessage('StartServicePageDescription'),
-    CustomMessage('StartServicePageSubCaption'),
-    False,
-    False
+    CustomMessage('StartServicePageDescription')
   );
-  StartServicePage.Add(CustomMessage('StartServiceOption'));
-  StartServicePage.Values[0] := ExpandConstant('{param:STARTSERVICE|0}') = '1';
   StartServicePage.OnShouldSkipPage := @SkipStartServicePage;
+
+  SubCaption := TNewStaticText.Create(StartServicePage);
+  SubCaption.Parent := StartServicePage.Surface;
+  SubCaption.AutoSize := False;
+  SubCaption.WordWrap := True;
+  SubCaption.Width := StartServicePage.SurfaceWidth;
+  SubCaption.Anchors := [akLeft, akTop, akRight];
+  SubCaption.Caption := CustomMessage('StartServicePageSubCaption');
+  SubCaption.AdjustHeight;
+
+  StartServiceCheckBox := TNewCheckBox.Create(StartServicePage);
+  StartServiceCheckBox.Parent := StartServicePage.Surface;
+  StartServiceCheckBox.Top := SubCaption.Top + SubCaption.Height + ScaleY(12);
+  StartServiceCheckBox.Width := StartServicePage.SurfaceWidth;
+  StartServiceCheckBox.Height := ScaleY(17);
+  StartServiceCheckBox.Anchors := [akLeft, akTop, akRight];
+  StartServiceCheckBox.Caption := CustomMessage('StartServiceOption');
+  StartServiceCheckBox.Checked := ExpandConstant('{param:STARTSERVICE|0}') = '1';
+
+  { 18 relative pixels is the Windows layout distance from a check box's left
+    edge to its label, so the consequence lines up under the label. }
+  Detail := TNewStaticText.Create(StartServicePage);
+  Detail.Parent := StartServicePage.Surface;
+  Detail.AutoSize := False;
+  Detail.WordWrap := True;
+  Detail.Left := ScaleX(18);
+  Detail.Top := StartServiceCheckBox.Top + StartServiceCheckBox.Height + ScaleY(4);
+  Detail.Width := StartServicePage.SurfaceWidth - Detail.Left;
+  Detail.Anchors := [akLeft, akTop, akRight];
+  Detail.Caption := CustomMessage('StartServiceOptionDetail');
+  Detail.AdjustHeight;
+end;
+
+procedure InitializeWizard;
+begin
+  CreateStartServicePage;
   ExistingInstallPage := CreateOutputMsgPage(
     wpReady,
     '',
